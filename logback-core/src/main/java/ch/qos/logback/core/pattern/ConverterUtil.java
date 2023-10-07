@@ -59,11 +59,6 @@ public class ConverterUtil {
             if (c instanceof ContextAware) {
                 ((ContextAware) c).setContext(context);
             }
-            if (c instanceof CompositeConverter) {
-                CompositeConverter<E> cc = (CompositeConverter<E>) c;
-                Converter<E> childConverter = cc.childConverter;
-                setContextForConverters(context, childConverter);
-            }
             c = c.getNext();
         }
     }

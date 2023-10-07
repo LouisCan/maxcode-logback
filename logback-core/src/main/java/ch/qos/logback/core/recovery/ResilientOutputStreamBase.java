@@ -15,8 +15,6 @@ package ch.qos.logback.core.recovery;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 import ch.qos.logback.core.Context;
 import ch.qos.logback.core.status.ErrorStatus;
@@ -37,21 +35,11 @@ abstract public class ResilientOutputStreamBase extends OutputStream {
     protected OutputStream os;
     protected boolean presumedClean = true;
 
-    List<RecoveryListener> recoveryListeners = new ArrayList<>(0);
-    
     private boolean isPresumedInError() {
         // existence of recoveryCoordinator indicates failed state
         return (recoveryCoordinator != null && !presumedClean);
     }
 
-    public void addRecoveryListener(RecoveryListener listener) {
-        recoveryListeners.add(listener);
-    }
-    
-    public void removeRecoveryListener(RecoveryListener listener) {
-        recoveryListeners.remove(listener);
-    }
-    
     public void write(byte b[], int off, int len) {
         if (isPresumedInError()) {
             if (!recoveryCoordinator.isTooSoon()) {
@@ -104,7 +92,6 @@ abstract public class ResilientOutputStreamBase extends OutputStream {
         if (recoveryCoordinator != null) {
             recoveryCoordinator = null;
             statusCount = 0;
-            recoveryListeners.forEach( listener -> listener.recoveryOccured());
             addStatus(new InfoStatus("Recovered from IO failure on " + getDescription(), this));
         }
     }
@@ -114,7 +101,6 @@ abstract public class ResilientOutputStreamBase extends OutputStream {
         presumedClean = false;
         if (recoveryCoordinator == null) {
             recoveryCoordinator = new RecoveryCoordinator();
-            recoveryListeners.forEach( listener -> listener.newFailure(e));
         }
     }
 
@@ -131,8 +117,7 @@ abstract public class ResilientOutputStreamBase extends OutputStream {
         } catch (IOException e) {
         }
 
-        addStatusIfCountNotOverLimit(
-                new InfoStatus("Attempting to recover from IO failure on " + getDescription(), this));
+        addStatusIfCountNotOverLimit(new InfoStatus("Attempting to recover from IO failure on " + getDescription(), this));
 
         // subsequent writes must always be in append mode
         try {

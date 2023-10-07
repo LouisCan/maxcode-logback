@@ -13,14 +13,18 @@
  */
 package ch.qos.logback.classic.util;
 
-import ch.qos.logback.core.testUtil.RandomUtil;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+
+import org.junit.Test;
+import ch.qos.logback.core.testUtil.RandomUtil;
 
 public class LogbackMDCAdapterTest {
 
@@ -32,20 +36,21 @@ public class LogbackMDCAdapterTest {
     private final LogbackMDCAdapter mdcAdapter = new LogbackMDCAdapter();
 
     /**
-     * Test that CopyOnInheritThreadLocal does not barf when the MDC hashmap is null
+     * Test that CopyOnInheritThreadLocal does not barf when the
+     * MDC hashmap is null
      *
      * @throws InterruptedException
      */
     @Test
     public void LOGBACK_442() throws InterruptedException {
         Map<String, String> parentHM = getMapFromMDCAdapter(mdcAdapter);
-        Assertions.assertNull(parentHM);
+        assertNull(parentHM);
 
         ChildThreadForMDCAdapter childThread = new ChildThreadForMDCAdapter(mdcAdapter);
         childThread.start();
         childThread.join();
-        Assertions.assertTrue(childThread.successul);
-        Assertions.assertNull(childThread.childHM);
+        assertTrue(childThread.successul);
+        assertNull(childThread.childHM);
     }
 
     @Test
@@ -59,18 +64,14 @@ public class LogbackMDCAdapterTest {
     }
 
     @Test
-    @Disabled
     public void sequenceWithGet() {
         mdcAdapter.put("k0", "v0");
-        Map<String, String> map0 = mdcAdapter.getPropertyMap();
+        Map<String, String> map0 = mdcAdapter.copyOnThreadLocal.get();
         mdcAdapter.get("k0");
         mdcAdapter.put("k1", "v1"); // no map copy required
 
-        Map<String, String> witness = new HashMap<>();
-        witness.put("k0", "v0");
-        witness.put("k1", "v1");
-
-        Assertions.assertEquals(witness, mdcAdapter.getPropertyMap());
+        // verify that map0 is the same instance and that value was updated
+        assertSame(map0, mdcAdapter.copyOnThreadLocal.get());
     }
 
     @Test
@@ -79,39 +80,25 @@ public class LogbackMDCAdapterTest {
         Map<String, String> map0 = mdcAdapter.getPropertyMap(); // point 0
         mdcAdapter.put("k0", "v1"); // new map should be created
         // verify that map0 is that in point 0
-        Assertions.assertEquals("v0", map0.get("k0"));
+        assertEquals("v0", map0.get("k0"));
     }
 
     @Test
-    public void basicGetPropertyMap() {
-        mdcAdapter.put("k0", "v0");
-        mdcAdapter.put("k1", "v1");
-
-        Map<String, String> map0 = mdcAdapter.getPropertyMap(); // point 0
-        mdcAdapter.put("k0", "v1"); // new map should be created
-        // verify that map0 is that in point 0
-        Assertions.assertEquals("v0", map0.get("k0"));
-        Assertions.assertEquals("v1", map0.get("k1"));
-
-    }
-
-    @Test
-    @Disabled
     public void sequenceWithCopyContextMap() {
         mdcAdapter.put("k0", "v0");
-        Map<String, String> map0 = mdcAdapter.getPropertyMap();
+        Map<String, String> map0 = mdcAdapter.copyOnThreadLocal.get();
         mdcAdapter.getCopyOfContextMap();
         mdcAdapter.put("k1", "v1"); // no map copy required
 
         // verify that map0 is the same instance and that value was updated
-        Assertions.assertSame(map0, mdcAdapter.getPropertyMap());
+        assertSame(map0, mdcAdapter.copyOnThreadLocal.get());
     }
 
     // =================================================
 
     /**
-     * Test that LogbackMDCAdapter does not copy its hashmap when a child thread
-     * inherits it.
+     * Test that LogbackMDCAdapter does not copy its hashmap when a child
+     * thread inherits it.
      *
      * @throws InterruptedException
      */
@@ -128,53 +115,52 @@ public class LogbackMDCAdapterTest {
         mdcAdapter.put(firstKey, firstKey + B_SUFFIX);
         childThread.join();
 
-        Assertions.assertNull(mdcAdapter.get(secondKey));
-        Assertions.assertTrue(childThread.successful);
+        assertNull(mdcAdapter.get(secondKey));
+        assertTrue(childThread.successful);
 
         Map<String, String> parentHM = getMapFromMDCAdapter(mdcAdapter);
-        Assertions.assertTrue(parentHM != childThread.childHM);
+        assertTrue(parentHM != childThread.childHM);
 
         HashMap<String, String> parentHMWitness = new HashMap<String, String>();
         parentHMWitness.put(firstKey, firstKey + B_SUFFIX);
-        Assertions.assertEquals(parentHMWitness, parentHM);
+        assertEquals(parentHMWitness, parentHM);
 
         HashMap<String, String> childHMWitness = new HashMap<String, String>();
         childHMWitness.put(secondKey, secondKey + A_SUFFIX);
-        Assertions.assertEquals(childHMWitness, childThread.childHM);
+        assertEquals(childHMWitness, childThread.childHM);
 
     }
 
-    // see also https://jira.qos.ch/browse/LOGBACK-325
+    // see also http://jira.qos.ch/browse/LBCLASSIC-253
     @Test
     public void clearOnChildThreadShouldNotAffectParent() throws InterruptedException {
         String firstKey = "x" + diff;
         String secondKey = "o" + diff;
 
         mdcAdapter.put(firstKey, firstKey + A_SUFFIX);
-        Assertions.assertEquals(firstKey + A_SUFFIX, mdcAdapter.get(firstKey));
+        assertEquals(firstKey + A_SUFFIX, mdcAdapter.get(firstKey));
 
         Thread clearer = new ChildThread(mdcAdapter, firstKey, secondKey) {
             @Override
             public void run() {
                 mdcAdapter.clear();
-                Assertions.assertNull(mdcAdapter.get(firstKey));
+                assertNull(mdcAdapter.get(firstKey));
             }
         };
 
         clearer.start();
         clearer.join();
 
-        Assertions.assertEquals(firstKey + A_SUFFIX, mdcAdapter.get(firstKey));
+        assertEquals(firstKey + A_SUFFIX, mdcAdapter.get(firstKey));
     }
 
-    // see https://jira.qos.ch/browse/LOGBACK-434
+    // see http://jira.qos.ch/browse/LBCLASSIC-289
     // this test used to fail without synchronization code in LogbackMDCAdapter
     @Test
     public void nearSimultaneousPutsShouldNotCauseConcurrentModificationException() throws InterruptedException {
         // For the weirdest reason, modifications to mdcAdapter must be done
         // before the definition anonymous ChildThread class below. Otherwise, the
-        // map in the child thread, the one contained in
-        // mdcAdapter.copyOnInheritThreadLocal,
+        // map in the child thread, the one contained in mdcAdapter.copyOnInheritThreadLocal,
         // is null. How strange is that?
 
         // let the map have lots of elements so that copying it takes time
@@ -199,12 +185,12 @@ public class LogbackMDCAdapterTest {
             mdcAdapter.put("K" + i, "V" + i);
         }
         childThread.join();
-        Assertions.assertTrue(childThread.successful);
+        assertTrue(childThread.successful);
     }
 
     Map<String, String> getMapFromMDCAdapter(LogbackMDCAdapter lma) {
-        ThreadLocal<Map<String, String>> tlMap = lma.readWriteThreadLocalMap;
-        return tlMap.get();
+        ThreadLocal<Map<String, String>> copyOnThreadLocal = lma.copyOnThreadLocal;
+        return copyOnThreadLocal.get();
     }
 
     // ========================== various thread classes
@@ -243,8 +229,7 @@ public class LogbackMDCAdapterTest {
             this(logbackMDCAdapter, firstKey, secondKey, null);
         }
 
-        ChildThread(LogbackMDCAdapter logbackMDCAdapter, String firstKey, String secondKey,
-                CountDownLatch countDownLatch) {
+        ChildThread(LogbackMDCAdapter logbackMDCAdapter, String firstKey, String secondKey, CountDownLatch countDownLatch) {
             super("chil");
             this.logbackMDCAdapter = logbackMDCAdapter;
             this.firstKey = firstKey;
@@ -255,11 +240,11 @@ public class LogbackMDCAdapterTest {
         @Override
         public void run() {
             logbackMDCAdapter.put(secondKey, secondKey + A_SUFFIX);
-            Assertions.assertNull(logbackMDCAdapter.get(firstKey));
+            assertNull(logbackMDCAdapter.get(firstKey));
             if (countDownLatch != null)
                 countDownLatch.countDown();
-            Assertions.assertNotNull(logbackMDCAdapter.get(secondKey));
-            Assertions.assertEquals(secondKey + A_SUFFIX, logbackMDCAdapter.get(secondKey));
+            assertNotNull(logbackMDCAdapter.get(secondKey));
+            assertEquals(secondKey + A_SUFFIX, logbackMDCAdapter.get(secondKey));
 
             successful = true;
             childHM = getMapFromMDCAdapter(logbackMDCAdapter);

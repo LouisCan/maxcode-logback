@@ -51,7 +51,8 @@ public class BasicStatusManager implements StatusManager {
     /**
      * Add a new status object.
      * 
-     * @param newStatus the status message to add
+     * @param newStatus
+     *                the status message to add
      */
     public void add(Status newStatus) {
         // LBCORE-72: fire event before the count check
@@ -105,9 +106,7 @@ public class BasicStatusManager implements StatusManager {
     }
 
     /**
-     * This implementation does not allow duplicate installations of
-     * OnConsoleStatusListener
-     * 
+     * This implementation does not allow duplicate installations of OnConsoleStatusListener
      * @param listener
      */
     public boolean add(StatusListener listener) {

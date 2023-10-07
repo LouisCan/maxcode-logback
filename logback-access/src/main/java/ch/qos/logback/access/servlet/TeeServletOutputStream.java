@@ -16,9 +16,9 @@ package ch.qos.logback.access.servlet;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-import jakarta.servlet.ServletOutputStream;
-import jakarta.servlet.ServletResponse;
-import jakarta.servlet.WriteListener;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.ServletResponse;
+import javax.servlet.WriteListener;
 
 public class TeeServletOutputStream extends ServletOutputStream {
 
@@ -34,7 +34,7 @@ public class TeeServletOutputStream extends ServletOutputStream {
     byte[] getOutputStreamAsByteArray() {
         return baosCopy.toByteArray();
     }
-
+ 
     @Override
     public void write(int val) throws IOException {
         if (underlyingStream != null) {

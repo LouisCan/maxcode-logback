@@ -18,22 +18,22 @@ import ch.qos.logback.core.ContextBase;
 import ch.qos.logback.core.pattern.Converter;
 import ch.qos.logback.core.pattern.Converter123;
 import ch.qos.logback.core.pattern.ConverterHello;
-import ch.qos.logback.core.status.testUtil.StatusChecker;
-//import ch.qos.logback.core.util.StatusPrinter;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import ch.qos.logback.core.status.StatusChecker;
+import ch.qos.logback.core.util.StatusPrinter;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.assertEquals;
 
 public class CompilerTest {
 
     Map<String, String> converterMap = new HashMap<String, String>();
     Context context = new ContextBase();
 
-    @BeforeEach
+    @Before
     public void setUp() {
         converterMap.put("OTT", Converter123.class.getName());
         converterMap.put("hello", ConverterHello.class.getName());
@@ -76,18 +76,6 @@ public class CompilerTest {
             Converter<Object> head = p.compile(t, converterMap);
             String result = write(head, new Object());
             assertEquals("abc Hello 123", result);
-        }
-    }
-
-    @Test
-    public void converterStart() throws Exception {
-        {
-            Parser<Object> p = new Parser<Object>("abc %hello");
-            p.setContext(context);
-            Node t = p.parse();
-            Converter<Object> head = p.compile(t, converterMap);
-            String result = write(head, new Object());
-            assertEquals("abc Hello", result);
         }
     }
 
@@ -180,7 +168,7 @@ public class CompilerTest {
             Node t = p.parse();
             Converter<Object> head = p.compile(t, converterMap);
             String result = write(head, new Object());
-            // StatusPrinter.print(c);
+            StatusPrinter.print(c);
             assertEquals("ABC Hello", result);
         }
         {

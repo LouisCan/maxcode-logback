@@ -13,6 +13,22 @@
  */
 package ch.qos.logback.classic.sift;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static ch.qos.logback.core.util.CoreTestConstants.OUTPUT_DIR_PREFIX;
+import static org.assertj.core.api.Assertions.*;
+
+import java.util.List;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.slf4j.MDC;
+
 import ch.qos.logback.classic.ClassicConstants;
 import ch.qos.logback.classic.ClassicTestConstants;
 import ch.qos.logback.classic.Level;
@@ -22,10 +38,10 @@ import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
-import ch.qos.logback.classic.util.LogbackMDCAdapter;
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.Context;
 import ch.qos.logback.core.FileAppender;
+import ch.qos.logback.core.helpers.NOPAppender;
 import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.read.ListAppender;
 import ch.qos.logback.core.rolling.RollingFileAppender;
@@ -36,39 +52,23 @@ import ch.qos.logback.core.sift.AppenderTracker;
 import ch.qos.logback.core.spi.AbstractComponentTracker;
 import ch.qos.logback.core.spi.ComponentTracker;
 import ch.qos.logback.core.status.ErrorStatus;
-import ch.qos.logback.core.status.testUtil.StatusChecker;
-import ch.qos.logback.core.testUtil.CoreTestConstants;
+import ch.qos.logback.core.status.StatusChecker;
 import ch.qos.logback.core.testUtil.RandomUtil;
-
 import ch.qos.logback.core.testUtil.StringListAppender;
+import ch.qos.logback.core.util.CoreTestConstants;
 import ch.qos.logback.core.util.FileSize;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-import org.slf4j.MDC;
-
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-//import ch.qos.logback.core.util.StatusPrinter;
-
+import ch.qos.logback.core.util.StatusPrinter;
 
 public class SiftingAppenderTest {
 
     static String SIFT_FOLDER_PREFIX = ClassicTestConstants.JORAN_INPUT_PREFIX + "sift/";
 
     LoggerContext loggerContext = new LoggerContext();
-    LogbackMDCAdapter logbackMDCAdapter = new LogbackMDCAdapter();
     Logger logger = loggerContext.getLogger(this.getClass().getName());
     Logger root = loggerContext.getLogger(Logger.ROOT_LOGGER_NAME);
     StatusChecker statusChecker = new StatusChecker(loggerContext);
     int diff = RandomUtil.getPositiveInt();
-    String randomOutputDir = CoreTestConstants.OUTPUT_DIR_PREFIX + diff + "/";
+    String randomOutputDir = OUTPUT_DIR_PREFIX + diff + "/";
     int now = 0;
 
     protected void configure(String file) throws JoranException {
@@ -77,14 +77,14 @@ public class SiftingAppenderTest {
         jc.doConfigure(file);
     }
 
-    @BeforeEach
+    @Before
     public void setUp() {
-        loggerContext.setMDCAdapter(logbackMDCAdapter);
+        MDC.clear();
     }
 
-    @AfterEach
+    @After
     public void tearDown() {
-
+        MDC.clear();
     }
 
     @Test
@@ -105,7 +105,6 @@ public class SiftingAppenderTest {
         List<ILoggingEvent> eventList = listAppender.list;
         assertEquals(1, listAppender.list.size());
         assertEquals("smoke", eventList.get(0).getMessage());
-        statusChecker.assertIsWarningOrErrorFree();
     }
 
     private AppenderTracker<ILoggingEvent> getAppenderTracker() {
@@ -122,8 +121,10 @@ public class SiftingAppenderTest {
         logger.debug("hello");
         logger.debug("hello");
 
-        assertNull(getAppenderTracker());
-        //StatusPrinter.printInCaseOfErrorsOrWarnings(loggerContext);
+        Appender<ILoggingEvent> nopa = getAppenderTracker().find("zeroDefault");
+        assertNotNull(nopa);
+        assertThat(nopa).isInstanceOf(NOPAppender.class);
+        StatusPrinter.printInCaseOfErrorsOrWarnings(loggerContext);
 
         statusChecker.assertContainsMatch(ErrorStatus.ERROR, "No nested appenders found");
     }
@@ -135,9 +136,10 @@ public class SiftingAppenderTest {
         logger.debug("hello");
         logger.debug("hello");
 
-        assertNull(getAppenderTracker());
-        //StatusPrinter.printInCaseOfErrorsOrWarnings(loggerContext);
+        Appender<ILoggingEvent> listAppender = getAppenderTracker().find("multipleDefault");
+        StatusPrinter.printInCaseOfErrorsOrWarnings(loggerContext);
 
+        assertNotNull(listAppender);
         statusChecker.assertContainsMatch(ErrorStatus.ERROR, "Only and only one appender can be nested");
     }
 
@@ -163,17 +165,17 @@ public class SiftingAppenderTest {
 
         long timestamp = System.currentTimeMillis();
 
-        logbackMDCAdapter.put(key, "A-"+diff);
+        MDC.put(key, "A-"+diff);
         logNewEventViaSiftingAppender(sa, timestamp);
         FileAppender<ILoggingEvent> fileAppenderA = (FileAppender<ILoggingEvent>) sa.getAppenderTracker().find("A-"+diff);
         assertNotNull(fileAppenderA);
         assertTrue(fileAppenderA.isStarted());
         timestamp += ComponentTracker.DEFAULT_TIMEOUT + 1;
-        logbackMDCAdapter.put(key, "B-"+diff);
+        MDC.put(key, "B-"+diff);
         logNewEventViaSiftingAppender(sa, timestamp);
         assertFalse(fileAppenderA.isStarted());
-
-        logbackMDCAdapter.put(key, "A-"+diff);
+        
+        MDC.put(key, "A-"+diff);
         timestamp += 1;
         logNewEventViaSiftingAppender(sa, timestamp);
         FileAppender<ILoggingEvent> fileAppenderA_2 = (FileAppender<ILoggingEvent>) sa.getAppenderTracker().find("A-"+diff);
@@ -191,7 +193,7 @@ public class SiftingAppenderTest {
     public void testWholeCycle() throws JoranException {
         String mdcKey = "cycle";
         configure(SIFT_FOLDER_PREFIX + "completeCycle.xml");
-        logbackMDCAdapter.put(mdcKey, "a");
+        MDC.put(mdcKey, "a");
         logger.debug("smoke");
         long timestamp = System.currentTimeMillis();
         SiftingAppender sa = (SiftingAppender) root.getAppender("SIFT");
@@ -201,7 +203,7 @@ public class SiftingAppenderTest {
         assertEquals(1, listAppender.list.size());
         assertEquals("smoke", eventList.get(0).getMessage());
 
-        logbackMDCAdapter.remove(mdcKey);
+        MDC.remove(mdcKey);
         logNewEventViaSiftingAppender(sa, timestamp);
         assertFalse(listAppender.isStarted());
         assertEquals(1, sa.getAppenderTracker().allKeys().size());
@@ -213,7 +215,7 @@ public class SiftingAppenderTest {
         String mdcKey = "linger";
         String mdcVal = "session" + diff;
         configure(SIFT_FOLDER_PREFIX + "lingering.xml");
-        logbackMDCAdapter.put(mdcKey, mdcVal);
+        MDC.put(mdcKey, mdcVal);
         logger.debug("linger 1");
         logger.debug(ClassicConstants.FINALIZE_SESSION_MARKER, "linger 2");
         long now = System.currentTimeMillis();
@@ -238,8 +240,7 @@ public class SiftingAppenderTest {
         String msg = "localPropertiesShouldBeVisible";
         String prefix = "Y";
         configure(SIFT_FOLDER_PREFIX + "propertyPropagation.xml");
-
-        logbackMDCAdapter.put(mdcKey, mdcVal);
+        MDC.put(mdcKey, mdcVal);
         logger.debug(msg);
         SiftingAppender sa = (SiftingAppender) root.getAppender("SIFT");
         StringListAppender<ILoggingEvent> listAppender = (StringListAppender<ILoggingEvent>) sa.getAppenderTracker().find(mdcVal);
@@ -256,7 +257,7 @@ public class SiftingAppenderTest {
         String msg = "propertyDefinedWithinSiftElementShouldBeVisible";
         String prefix = "Y";
         configure(SIFT_FOLDER_PREFIX + "propertyDefinedInSiftElement.xml");
-        logbackMDCAdapter.put(mdcKey, mdcVal);
+        MDC.put(mdcKey, mdcVal);
         logger.debug(msg);
         SiftingAppender sa = (SiftingAppender) root.getAppender("SIFT");
         StringListAppender<ILoggingEvent> listAppender = (StringListAppender<ILoggingEvent>) sa.getAppenderTracker().find(mdcVal);
@@ -273,7 +274,7 @@ public class SiftingAppenderTest {
         String msg = "compositePropertyShouldCombineWithinAndWithoutSiftElement";
         String prefix = "composite";
         configure(SIFT_FOLDER_PREFIX + "compositeProperty.xml");
-        logbackMDCAdapter.put(mdcKey, mdcVal);
+        MDC.put(mdcKey, mdcVal);
         logger.debug(msg);
         SiftingAppender sa = (SiftingAppender) root.getAppender("SIFT");
         StringListAppender<ILoggingEvent> listAppender = (StringListAppender<ILoggingEvent>) sa.getAppenderTracker().find(mdcVal);
@@ -290,7 +291,7 @@ public class SiftingAppenderTest {
         SiftingAppender sa = (SiftingAppender) root.getAppender("SIFT");
         String mdcKey = "max";
         for (int i = 0; i <= max; i++) {
-            logbackMDCAdapter.put(mdcKey, "" + (diff + i));
+            MDC.put(mdcKey, "" + (diff + i));
             LoggingEvent event = new LoggingEvent("", logger, Level.DEBUG, "max" + i, null, null);
             event.setTimeStamp(now);
             sa.doAppend(event);
@@ -325,7 +326,7 @@ public class SiftingAppenderTest {
     }
 
     // LOGBACK-1127
-    @Disabled
+    @Ignore
     @Test
     public void programmicSiftingAppender() {
 
@@ -383,15 +384,15 @@ public class SiftingAppenderTest {
         logger.setLevel(Level.DEBUG);
         logger.setAdditive(false);
 
-        logbackMDCAdapter.put("SKEY", "K1");
+        MDC.put("SKEY", "K1");
         logger.info("bla1");
-        logbackMDCAdapter.clear();
+        MDC.clear();
 
-        logbackMDCAdapter.put("SKEY", "K2");
+        MDC.put("SKEY", "K2");
         logger.info("bla2");
-        logbackMDCAdapter.clear();
+        MDC.clear();
 
-        //StatusPrinter.print(loggerContext);
+        StatusPrinter.print(loggerContext);
 
     }
 }

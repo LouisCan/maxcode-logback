@@ -13,34 +13,35 @@
  */
 package ch.qos.logback.access.net;
 
+import static org.junit.Assert.*;
+
+import ch.qos.logback.access.spi.IAccessEvent;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
 import ch.qos.logback.access.dummy.DummyRequest;
 import ch.qos.logback.access.dummy.DummyResponse;
 import ch.qos.logback.access.dummy.DummyServerAdapter;
-import ch.qos.logback.access.spi.AccessContext;
 import ch.qos.logback.access.spi.AccessEvent;
-import ch.qos.logback.access.spi.IAccessEvent;
+import ch.qos.logback.core.Context;
+import ch.qos.logback.core.ContextBase;
 import ch.qos.logback.core.boolex.EvaluationException;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class URLEvaluatorTest {
 
     final String expectedURL1 = "testUrl1";
     final String expectedURL2 = "testUrl2";
-    AccessContext accessContext = new AccessContext();
+    Context context = new ContextBase();
     URLEvaluator evaluator;
     DummyRequest request;
     DummyResponse response;
     DummyServerAdapter serverAdapter;
 
-    @BeforeEach
+    @Before
     public void setUp() throws Exception {
         evaluator = new URLEvaluator();
-        evaluator.setContext(accessContext);
+        evaluator.setContext(context);
         evaluator.addURL(expectedURL1);
         evaluator.start();
         request = new DummyRequest();
@@ -48,27 +49,27 @@ public class URLEvaluatorTest {
         serverAdapter = new DummyServerAdapter(request, response);
     }
 
-    @AfterEach
+    @After
     public void tearDown() throws Exception {
         evaluator.stop();
         evaluator = null;
         request = null;
         response = null;
         serverAdapter = null;
-        accessContext = null;
+        context = null;
     }
 
     @Test
     public void testExpectFalse() throws EvaluationException {
         request.setRequestUri("test");
-        IAccessEvent ae = new AccessEvent(accessContext, request, response, serverAdapter);
+        IAccessEvent ae = new AccessEvent(request, response, serverAdapter);
         assertFalse(evaluator.evaluate(ae));
     }
 
     @Test
     public void testExpectTrue() throws EvaluationException {
         request.setRequestUri(expectedURL1);
-        IAccessEvent ae = new AccessEvent(accessContext, request, response, serverAdapter);
+        IAccessEvent ae = new AccessEvent(request, response, serverAdapter);
         assertTrue(evaluator.evaluate(ae));
     }
 
@@ -76,7 +77,7 @@ public class URLEvaluatorTest {
     public void testExpectTrueMultiple() throws EvaluationException {
         evaluator.addURL(expectedURL2);
         request.setRequestUri(expectedURL2);
-        IAccessEvent ae = new AccessEvent(accessContext, request, response, serverAdapter);
+        IAccessEvent ae = new AccessEvent(request, response, serverAdapter);
         assertTrue(evaluator.evaluate(ae));
     }
 }

@@ -31,8 +31,7 @@ public class OThread extends Thread {
 
         while (!isInterrupted()) {
             long start = System.nanoTime();
-            for (long now = System.nanoTime(); now < start + 2 * WAIT_MILLIS * NANOS_IN_MILLI; now = System
-                    .nanoTime()) {
+            for (long now = System.nanoTime(); now < start + 2 * WAIT_MILLIS * NANOS_IN_MILLI; now = System.nanoTime()) {
                 logger.info("in time loop");
             }
 

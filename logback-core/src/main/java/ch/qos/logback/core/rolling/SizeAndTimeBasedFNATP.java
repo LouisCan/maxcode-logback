@@ -1,20 +1,21 @@
 /**
- * Logback: the reliable, generic, fast and flexible logging framework. Copyright (C) 1999-2015, QOS.ch. All rights
- * reserved.
+ * Logback: the reliable, generic, fast and flexible logging framework.
+ * Copyright (C) 1999-2015, QOS.ch. All rights reserved.
  *
- * This program and the accompanying materials are dual-licensed under either the terms of the Eclipse Public License
- * v1.0 as published by the Eclipse Foundation
+ * This program and the accompanying materials are dual-licensed under
+ * either the terms of the Eclipse Public License v1.0 as published by
+ * the Eclipse Foundation
  *
- * or (per the licensee's choosing)
+ *   or (per the licensee's choosing)
  *
- * under the terms of the GNU Lesser General Public License version 2.1 as published by the Free Software Foundation.
+ * under the terms of the GNU Lesser General Public License version 2.1
+ * as published by the Free Software Foundation.
  */
 package ch.qos.logback.core.rolling;
 
 import static ch.qos.logback.core.CoreConstants.MANUAL_URL_PREFIX;
 
 import java.io.File;
-import java.time.Instant;
 import java.util.Date;
 
 import ch.qos.logback.core.CoreConstants;
@@ -26,57 +27,49 @@ import ch.qos.logback.core.rolling.helper.SizeAndTimeBasedArchiveRemover;
 import ch.qos.logback.core.util.FileSize;
 import ch.qos.logback.core.util.DefaultInvocationGate;
 import ch.qos.logback.core.util.InvocationGate;
-import ch.qos.logback.core.util.SimpleInvocationGate;
 
 @NoAutoStart
 public class SizeAndTimeBasedFNATP<E> extends TimeBasedFileNamingAndTriggeringPolicyBase<E> {
 
-    enum Usage {
-        EMBEDDED, DIRECT
-    }
+    enum Usage {EMBEDDED, DIRECT};
 
-    ;
-
-    volatile int currentPeriodsCounter = 0;
+    
+    int currentPeriodsCounter = 0;
     FileSize maxFileSize;
+    // String maxFileSizeAsString;
 
-    Integer checkIncrement = null;
-
+    long nextSizeCheck = 0;
     static String MISSING_INT_TOKEN = "Missing integer token, that is %i, in FileNamePattern [";
     static String MISSING_DATE_TOKEN = "Missing date token, that is %d, in FileNamePattern [";
 
     private final Usage usage;
-
-    InvocationGate invocationGate = new SimpleInvocationGate();
-
+    
     public SizeAndTimeBasedFNATP() {
         this(Usage.DIRECT);
     }
-
+    
     public SizeAndTimeBasedFNATP(Usage usage) {
         this.usage = usage;
     }
-
+    
     @Override
     public void start() {
         // we depend on certain fields having been initialized in super class
         super.start();
-
-        if (usage == Usage.DIRECT) {
-            addWarn(CoreConstants.SIZE_AND_TIME_BASED_FNATP_IS_DEPRECATED);
-            addWarn("For more information see " + MANUAL_URL_PREFIX + "appenders.html#SizeAndTimeBasedRollingPolicy");
+        
+        if(usage == Usage.DIRECT) {
+          addWarn(CoreConstants.SIZE_AND_TIME_BASED_FNATP_IS_DEPRECATED);
+          addWarn("For more information see "+MANUAL_URL_PREFIX+"appenders.html#SizeAndTimeBasedRollingPolicy");
         }
-
+        
         if (!super.isErrorFree())
             return;
 
+        
         if (maxFileSize == null) {
             addError("maxFileSize property is mandatory.");
             withErrors();
         }
-
-        if (checkIncrement != null)
-            invocationGate = new SimpleInvocationGate(checkIncrement);
 
         if (!validateDateAndIntegerTokens()) {
             withErrors();
@@ -138,27 +131,25 @@ public class SizeAndTimeBasedFNATP<E> extends TimeBasedFileNamingAndTriggeringPo
         }
     }
 
+    InvocationGate invocationGate = new DefaultInvocationGate();
+
     @Override
     public boolean isTriggeringEvent(File activeFile, final E event) {
 
-        long currentTime = getCurrentTime();
-        long localNextCheck = atomicNextCheck.get();
+        long time = getCurrentTime();
 
         // first check for roll-over based on time
-        if (currentTime >= localNextCheck) {
-            long nextCheckCandidate = computeNextCheck(currentTime);
-            atomicNextCheck.set(nextCheckCandidate);
-            Instant instantInElapsedPeriod = dateInCurrentPeriod;
-            elapsedPeriodsFileName = tbrp.fileNamePatternWithoutCompSuffix.convertMultipleArguments(
-                    instantInElapsedPeriod, currentPeriodsCounter);
+        if (time >= nextCheck) {
+            Date dateInElapsedPeriod = dateInCurrentPeriod;
+            elapsedPeriodsFileName = tbrp.fileNamePatternWithoutCompSuffix.convertMultipleArguments(dateInElapsedPeriod, currentPeriodsCounter);
             currentPeriodsCounter = 0;
-            setDateInCurrentPeriod(currentTime);
-
+            setDateInCurrentPeriod(time);
+            computeNextCheck();
             return true;
         }
 
         // next check for roll-over based on size
-        if (invocationGate.isTooSoon(currentTime)) {
+        if (invocationGate.isTooSoon(time)) {
             return false;
         }
 
@@ -172,8 +163,7 @@ public class SizeAndTimeBasedFNATP<E> extends TimeBasedFileNamingAndTriggeringPo
         }
         if (activeFile.length() >= maxFileSize.getSize()) {
 
-            elapsedPeriodsFileName = tbrp.fileNamePatternWithoutCompSuffix.convertMultipleArguments(dateInCurrentPeriod,
-                    currentPeriodsCounter);
+            elapsedPeriodsFileName = tbrp.fileNamePatternWithoutCompSuffix.convertMultipleArguments(dateInCurrentPeriod, currentPeriodsCounter);
             currentPeriodsCounter++;
             return true;
         }
@@ -181,18 +171,9 @@ public class SizeAndTimeBasedFNATP<E> extends TimeBasedFileNamingAndTriggeringPo
         return false;
     }
 
-    public Integer getCheckIncrement() {
-        return checkIncrement;
-    }
-
-    public void setCheckIncrement(Integer checkIncrement) {
-        this.checkIncrement = checkIncrement;
-    }
-
     @Override
     public String getCurrentPeriodsFileNameWithoutCompressionSuffix() {
-        return tbrp.fileNamePatternWithoutCompSuffix.convertMultipleArguments(dateInCurrentPeriod,
-                currentPeriodsCounter);
+        return tbrp.fileNamePatternWithoutCompSuffix.convertMultipleArguments(dateInCurrentPeriod, currentPeriodsCounter);
     }
 
     public void setMaxFileSize(FileSize aMaxFileSize) {

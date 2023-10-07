@@ -13,25 +13,24 @@
  */
 package ch.qos.logback.core.joran.spi;
 
-import java.util.function.Supplier;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-import org.junit.jupiter.api.Test;
+import java.util.List;
+
+import org.junit.Test;
 import org.xml.sax.Attributes;
 
 import ch.qos.logback.core.ContextBase;
 import ch.qos.logback.core.joran.action.Action;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
-
 /**
  * Test SimpleRuleStore for various explicit rule combinations.
  * 
- * We also test that explicit patterns are case-sensitive.
+ * We also test that explicit patterns are case sensitive.
  * 
  * @author Ceki G&uuml;lc&uuml;
  */
@@ -42,15 +41,16 @@ public class SimpleRuleStoreTest {
 
     @Test
     public void smoke() throws Exception {
-        srs.addRule(new ElementSelector("a/b"), () -> new XAction());
+        srs.addRule(new ElementSelector("a/b"), new XAction());
 
         // test for all possible case combinations of "a/b"
         for (String s : cc.combinations("a/b")) {
             System.out.println("s=" + s);
-            Supplier<Action> r = srs.matchActions(new ElementPath(s));
+            List<Action> r = srs.matchActions(new ElementPath(s));
             assertNotNull(r);
+            assertEquals(1, r.size());
 
-            if (!(r.get() instanceof XAction)) {
+            if (!(r.get(0) instanceof XAction)) {
                 fail("Wrong type");
             }
         }
@@ -58,24 +58,35 @@ public class SimpleRuleStoreTest {
 
     @Test
     public void smokeII() throws Exception {
-        srs.addRule(new ElementSelector("a/b"), () -> new XAction());
+        srs.addRule(new ElementSelector("a/b"), new XAction());
+        srs.addRule(new ElementSelector("a/b"), new YAction());
 
-        Exception e = assertThrows(IllegalStateException.class, () -> {
-            srs.addRule(new ElementSelector("a/b"), () -> new YAction());
-        });
-        assertEquals("[a][b] already has an associated action supplier", e.getMessage());
+        for (String s : cc.combinations("a/b")) {
+            List<Action> r = srs.matchActions(new ElementPath(s));
+            assertNotNull(r);
+            assertEquals(2, r.size());
+
+            if (!(r.get(0) instanceof XAction)) {
+                fail("Wrong type");
+            }
+
+            if (!(r.get(1) instanceof YAction)) {
+                fail("Wrong type");
+            }
+        }
     }
 
     @Test
     public void testSlashSuffix() throws Exception {
         ElementSelector pa = new ElementSelector("a/");
-        srs.addRule(pa, () -> new XAction());
+        srs.addRule(pa, new XAction());
 
         for (String s : cc.combinations("a")) {
-            Supplier<Action> r = srs.matchActions(new ElementPath(s));
+            List<Action> r = srs.matchActions(new ElementPath(s));
             assertNotNull(r);
+            assertEquals(1, r.size());
 
-            if (!(r.get() instanceof XAction)) {
+            if (!(r.get(0) instanceof XAction)) {
                 fail("Wrong type");
             }
         }
@@ -84,13 +95,15 @@ public class SimpleRuleStoreTest {
 
     @Test
     public void testTail1() throws Exception {
-        srs.addRule(new ElementSelector("*/b"), () -> new XAction());
+        srs.addRule(new ElementSelector("*/b"), new XAction());
 
         for (String s : cc.combinations("a/b")) {
-            Supplier<Action> r = srs.matchActions(new ElementPath(s));
+            List<Action> r = srs.matchActions(new ElementPath(s));
             assertNotNull(r);
 
-            if (!(r.get() instanceof XAction)) {
+            assertEquals(1, r.size());
+
+            if (!(r.get(0) instanceof XAction)) {
                 fail("Wrong type");
             }
         }
@@ -99,12 +112,15 @@ public class SimpleRuleStoreTest {
     @Test
     public void testTail2() throws Exception {
         SimpleRuleStore srs = new SimpleRuleStore(new ContextBase());
-        srs.addRule(new ElementSelector("*/c"), () -> new XAction());
+        srs.addRule(new ElementSelector("*/c"), new XAction());
 
         for (String s : cc.combinations("a/b/c")) {
-            Supplier<Action> r = srs.matchActions(new ElementPath(s));
+            List<Action> r = srs.matchActions(new ElementPath(s));
             assertNotNull(r);
-            if (!(r.get() instanceof XAction)) {
+
+            assertEquals(1, r.size());
+
+            if (!(r.get(0) instanceof XAction)) {
                 fail("Wrong type");
             }
         }
@@ -112,14 +128,15 @@ public class SimpleRuleStoreTest {
 
     @Test
     public void testTail3() throws Exception {
-        srs.addRule(new ElementSelector("*/b"), () -> new XAction());
-        srs.addRule(new ElementSelector("*/a/b"), () -> new YAction());
+        srs.addRule(new ElementSelector("*/b"), new XAction());
+        srs.addRule(new ElementSelector("*/a/b"), new YAction());
 
         for (String s : cc.combinations("a/b")) {
-            Supplier<Action> r = srs.matchActions(new ElementPath(s));
+            List<Action> r = srs.matchActions(new ElementPath(s));
             assertNotNull(r);
-            Action ya = r.get();
-            if (!(ya instanceof YAction)) {
+            assertEquals(1, r.size());
+
+            if (!(r.get(0) instanceof YAction)) {
                 fail("Wrong type");
             }
         }
@@ -127,15 +144,16 @@ public class SimpleRuleStoreTest {
 
     @Test
     public void testTail4() throws Exception {
-        srs.addRule(new ElementSelector("*/b"), () -> new XAction());
-        srs.addRule(new ElementSelector("*/a/b"), () -> new YAction());
-        srs.addRule(new ElementSelector("a/b"), () -> new ZAction());
+        srs.addRule(new ElementSelector("*/b"), new XAction());
+        srs.addRule(new ElementSelector("*/a/b"), new YAction());
+        srs.addRule(new ElementSelector("a/b"), new ZAction());
 
         for (String s : cc.combinations("a/b")) {
-            Supplier<Action> r = srs.matchActions(new ElementPath(s));
+            List<Action> r = srs.matchActions(new ElementPath(s));
             assertNotNull(r);
+            assertEquals(1, r.size());
 
-            if (!(r.get() instanceof ZAction)) {
+            if (!(r.get(0) instanceof ZAction)) {
                 fail("Wrong type");
             }
         }
@@ -143,96 +161,57 @@ public class SimpleRuleStoreTest {
 
     @Test
     public void testSuffix() throws Exception {
-        srs.addRule(new ElementSelector("a"), () -> new XAction());
-        srs.addRule(new ElementSelector("a/*"), () -> new YAction());
+        srs.addRule(new ElementSelector("a"), new XAction());
+        srs.addRule(new ElementSelector("a/*"), new YAction());
 
         for (String s : cc.combinations("a/b")) {
-            Supplier<Action> r = srs.matchActions(new ElementPath(s));
+            List<Action> r = srs.matchActions(new ElementPath(s));
             assertNotNull(r);
-            assertTrue(r.get() instanceof YAction);
+            assertEquals(1, r.size());
+            assertTrue(r.get(0) instanceof YAction);
         }
     }
 
     @Test
     public void testDeepSuffix() throws Exception {
-        srs.addRule(new ElementSelector("a"), () -> new XAction(1));
-        srs.addRule(new ElementSelector("a/b/*"), () -> new XAction(2));
+        srs.addRule(new ElementSelector("a"), new XAction(1));
+        srs.addRule(new ElementSelector("a/b/*"), new XAction(2));
 
         for (String s : cc.combinations("a/other")) {
-            Supplier<Action> r = srs.matchActions(new ElementPath(s));
+            List<Action> r = srs.matchActions(new ElementPath(s));
             assertNull(r);
         }
     }
 
     @Test
     public void testPrefixSuffixInteraction1() throws Exception {
-        srs.addRule(new ElementSelector("a"), () -> new ZAction());
-        srs.addRule(new ElementSelector("a/*"), () -> new YAction());
-        srs.addRule(new ElementSelector("*/a/b"), () -> new XAction(3));
+        srs.addRule(new ElementSelector("a"), new ZAction());
+        srs.addRule(new ElementSelector("a/*"), new YAction());
+        srs.addRule(new ElementSelector("*/a/b"), new XAction(3));
 
         for (String s : cc.combinations("a/b")) {
-            Supplier<Action> r = srs.matchActions(new ElementPath(s));
+            List<Action> r = srs.matchActions(new ElementPath(s));
             assertNotNull(r);
 
-            Action ra = r.get();
-            
-            assertTrue(ra instanceof XAction);
-            XAction xaction = (XAction) ra;
+            assertEquals(1, r.size());
+
+            assertTrue(r.get(0) instanceof XAction);
+            XAction xaction = (XAction) r.get(0);
             assertEquals(3, xaction.id);
         }
     }
 
     @Test
     public void testPrefixSuffixInteraction2() throws Exception {
-        srs.addRule(new ElementSelector("tG"), () -> new XAction());
-        srs.addRule(new ElementSelector("tG/tS"), () -> new YAction());
-        srs.addRule(new ElementSelector("tG/tS/test"), () -> new ZAction());
-        srs.addRule(new ElementSelector("tG/tS/test/*"), () -> new XAction(9));
+        srs.addRule(new ElementSelector("tG"), new XAction());
+        srs.addRule(new ElementSelector("tG/tS"), new YAction());
+        srs.addRule(new ElementSelector("tG/tS/test"), new ZAction());
+        srs.addRule(new ElementSelector("tG/tS/test/*"), new XAction(9));
 
         for (String s : cc.combinations("tG/tS/toto")) {
-            Supplier<Action> r = srs.matchActions(new ElementPath(s));
+            List<Action> r = srs.matchActions(new ElementPath(s));
             assertNull(r);
         }
-    }
-
-    @Test
-    public void withTransparentParts() throws Exception {
-//        srs.addRule(new ElementSelector("x"), new TopElementAction());
-//        srs.addRule(new ElementSelector("x/stack"), new StackAction());
-//        srs.addRule(new ElementSelector("x/property"), new PropertyAction());
-//        srs.addRule(new ElementSelector("*/if"), new IfAction());
-//        srs.addRule(new ElementSelector("*/if/then"), new ThenAction());
-//        srs.addRule(new ElementSelector("*/if/else"), new ElseAction());
-
-        srs.addTransparentPathPart("if");
-        srs.addTransparentPathPart("then");
-        srs.addTransparentPathPart("else");
-
-        {
-            ElementPath ep = new ElementPath("x/if/then/if");
-            ElementPath witness = new ElementPath("x/");
-            
-            ElementPath cleanedEP = srs.removeTransparentPathParts(ep);
-            assertEquals(witness, cleanedEP);
-        }
-        
-        {
-            ElementPath ep = new ElementPath("x/if/then/stack");
-            ElementPath witness = new ElementPath("x/stack");
-            
-            ElementPath cleanedEP = srs.removeTransparentPathParts(ep);
-            assertEquals(witness, cleanedEP);
-        }
-        
-        {
-            ElementPath ep = new ElementPath("x/if/then/if/else/stack");
-            ElementPath witness = new ElementPath("x/stack");
-            
-            ElementPath cleanedEP = srs.removeTransparentPathParts(ep);
-            assertEquals(witness, cleanedEP);
-        }
-        
-
     }
 
     class XAction extends Action {
@@ -245,13 +224,13 @@ public class SimpleRuleStoreTest {
             this.id = id;
         }
 
-        public void begin(SaxEventInterpretationContext ec, String name, Attributes attributes) {
+        public void begin(InterpretationContext ec, String name, Attributes attributes) {
         }
 
-        public void end(SaxEventInterpretationContext ec, String name) {
+        public void end(InterpretationContext ec, String name) {
         }
 
-        public void finish(SaxEventInterpretationContext ec) {
+        public void finish(InterpretationContext ec) {
         }
 
         public String toString() {
@@ -260,24 +239,24 @@ public class SimpleRuleStoreTest {
     }
 
     class YAction extends Action {
-        public void begin(SaxEventInterpretationContext ec, String name, Attributes attributes) {
+        public void begin(InterpretationContext ec, String name, Attributes attributes) {
         }
 
-        public void end(SaxEventInterpretationContext ec, String name) {
+        public void end(InterpretationContext ec, String name) {
         }
 
-        public void finish(SaxEventInterpretationContext ec) {
+        public void finish(InterpretationContext ec) {
         }
     }
 
     class ZAction extends Action {
-        public void begin(SaxEventInterpretationContext ec, String name, Attributes attributes) {
+        public void begin(InterpretationContext ec, String name, Attributes attributes) {
         }
 
-        public void end(SaxEventInterpretationContext ec, String name) {
+        public void end(InterpretationContext ec, String name) {
         }
 
-        public void finish(SaxEventInterpretationContext ec) {
+        public void finish(InterpretationContext ec) {
         }
     }
 

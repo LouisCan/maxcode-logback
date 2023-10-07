@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * An LRU cache based on Java's LinkedHashMap.
+ * An lru cache based on Java's LinkedHashMap.
  * 
  * @author Ceki Gulcu
  *
@@ -39,7 +39,7 @@ public class LRUCache<K, V> extends LinkedHashMap<K, V> {
         this.cacheSize = cacheSize;
     }
 
-    protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
+    protected boolean removeEldestEntry(Map.Entry eldest) {
         return (size() > cacheSize);
     }
 

@@ -15,23 +15,19 @@ package ch.qos.logback.classic.spi;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.time.Clock;
-import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
+import org.slf4j.MDC;
 import org.slf4j.Marker;
-import org.slf4j.event.KeyValuePair;
 import org.slf4j.helpers.MessageFormatter;
-import org.slf4j.spi.MDCAdapter;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.util.LogbackMDCAdapter;
-import ch.qos.logback.core.spi.SequenceNumberGenerator;
+
+import org.slf4j.spi.MDCAdapter;
 
 /**
  * The internal representation of logging events. When an affirmative decision
@@ -52,8 +48,8 @@ import ch.qos.logback.core.spi.SequenceNumberGenerator;
 public class LoggingEvent implements ILoggingEvent {
 
     /**
-     * Fully qualified name of the calling Logger class. This field does not survive
-     * serialization.
+     * Fully qualified name of the calling Logger class. This field does not
+     * survive serialization.
      * <p/>
      * <p/>
      * Note that the getCallerInformation() method relies on this fact.
@@ -92,31 +88,20 @@ public class LoggingEvent implements ILoggingEvent {
 
     private StackTraceElement[] callerDataArray;
 
-    private List<Marker> markerList;
+    private Marker marker;
 
     private Map<String, String> mdcPropertyMap;
-
-    /**
-     * @since 1.3.0
-     */
-    List<KeyValuePair> keyValuePairs;
 
     /**
      * The number of milliseconds elapsed from 1/1/1970 until logging event was
      * created.
      */
-    private Instant instant;
-
     private long timeStamp;
-    private int nanoseconds;
-
-    private long sequenceNumber;
 
     public LoggingEvent() {
     }
 
-    public LoggingEvent(String fqcn, Logger logger, Level level, String message, Throwable throwable,
-            Object[] argArray) {
+    public LoggingEvent(String fqcn, Logger logger, Level level, String message, Throwable throwable, Object[] argArray) {
         this.fqnOfLoggerClass = fqcn;
         this.loggerName = logger.getName();
         this.loggerContext = logger.getLoggerContext();
@@ -126,34 +111,19 @@ public class LoggingEvent implements ILoggingEvent {
         this.message = message;
         this.argumentArray = argArray;
 
-        Instant instant = Clock.systemUTC().instant();
-        initTmestampFields(instant);
-
-        if (loggerContext != null) {
-            SequenceNumberGenerator sequenceNumberGenerator = loggerContext.getSequenceNumberGenerator();
-            if (sequenceNumberGenerator != null)
-                sequenceNumber = sequenceNumberGenerator.nextSequenceNumber();
-        }
-
         if (throwable == null) {
             throwable = extractThrowableAnRearrangeArguments(argArray);
         }
 
         if (throwable != null) {
             this.throwableProxy = new ThrowableProxy(throwable);
-
-            if (loggerContext != null && loggerContext.isPackagingDataEnabled()) {
+            LoggerContext lc = logger.getLoggerContext();
+            if (lc.isPackagingDataEnabled()) {
                 this.throwableProxy.calculatePackagingData();
             }
         }
-    }
 
-    void initTmestampFields(Instant instant) {
-        this.instant = instant;
-        long epochSecond = instant.getEpochSecond();
-        this.nanoseconds = instant.getNano();
-        long milliseconds = nanoseconds / 1000_000;
-        this.timeStamp = (epochSecond * 1000) + (milliseconds);
+        timeStamp = System.currentTimeMillis();
     }
 
     private Throwable extractThrowableAnRearrangeArguments(Object[] argArray) {
@@ -173,22 +143,6 @@ public class LoggingEvent implements ILoggingEvent {
 
     public Object[] getArgumentArray() {
         return this.argumentArray;
-    }
-
-    public void addKeyValuePair(KeyValuePair kvp) {
-        if (keyValuePairs == null) {
-            keyValuePairs = new ArrayList<>(4);
-        }
-        keyValuePairs.add(kvp);
-    }
-
-    public void setKeyValuePairs(List<KeyValuePair> kvpList) {
-        this.keyValuePairs = kvpList;
-    }
-
-    @Override
-    public List<KeyValuePair> getKeyValuePairs() {
-        return this.keyValuePairs;
     }
 
     public Level getLevel() {
@@ -241,8 +195,8 @@ public class LoggingEvent implements ILoggingEvent {
     }
 
     /**
-     * This method should be called prior to serializing an event. It should also be
-     * called when using asynchronous or deferred logging.
+     * This method should be called prior to serializing an event. It should also
+     * be called when using asynchronous or deferred logging.
      * <p/>
      * <p/>
      * Note that due to performance concerns, this method does NOT extract caller
@@ -253,10 +207,6 @@ public class LoggingEvent implements ILoggingEvent {
         this.getThreadName();
         // fixes http://jira.qos.ch/browse/LBCLASSIC-104
         this.getMDCPropertyMap();
-    }
-
-    public void setLoggerContext(LoggerContext lc) {
-        this.loggerContext = lc;
     }
 
     public LoggerContextVO getLoggerContextVO() {
@@ -278,62 +228,12 @@ public class LoggingEvent implements ILoggingEvent {
         this.message = message;
     }
 
-    /**
-     * Return the {@link Instant} corresponding to the creation of this event.
-     * 
-     * @see {@link #getTimeStamp()}
-     * @since 1.3
-     */
-    public Instant getInstant() {
-        return instant;
-    }
-
-    /**
-     * Set {@link Instant} corresponding to the creation of this event.
-     * 
-     * The value of {@link #getTimeStamp()} will be overridden as well.
-     */
-    public void setInstant(Instant instant) {
-        initTmestampFields(instant);
-    }
-
-    /**
-     * Return the number of elapsed milliseconds since epoch in UTC.
-     */
     public long getTimeStamp() {
         return timeStamp;
     }
 
-
-    /**
-     * Return the number of nanoseconds past the {@link #getTimeStamp() timestamp in seconds}.
-     * @since 1.3.0
-     */
-    @Override
-    public int getNanoseconds() {
-        return nanoseconds;
-    }
-
-    /**
-     * Set the number of elapsed milliseconds since epoch in UTC.
-     * 
-     * Setting the timestamp will override the value contained in
-     * {@link #getInstant}. Nanoseconds value will be computed form the provided
-     * millisecond value.
-     * 
-     */
     public void setTimeStamp(long timeStamp) {
-        Instant instant = Instant.ofEpochMilli(timeStamp);
-        setInstant(instant);
-    }
-
-    @Override
-    public long getSequenceNumber() {
-        return sequenceNumber;
-    }
-
-    public void setSequenceNumber(long sn) {
-        sequenceNumber = sn;
+        this.timeStamp = timeStamp;
     }
 
     public void setLevel(Level level) {
@@ -355,8 +255,8 @@ public class LoggingEvent implements ILoggingEvent {
      */
     public StackTraceElement[] getCallerData() {
         if (callerDataArray == null) {
-            callerDataArray = CallerData.extract(new Throwable(), fqnOfLoggerClass,
-                    loggerContext.getMaxCallerDataDepth(), loggerContext.getFrameworkPackages());
+            callerDataArray = CallerData
+                            .extract(new Throwable(), fqnOfLoggerClass, loggerContext.getMaxCallerDataDepth(), loggerContext.getFrameworkPackages());
         }
         return callerDataArray;
     }
@@ -369,18 +269,15 @@ public class LoggingEvent implements ILoggingEvent {
         this.callerDataArray = callerDataArray;
     }
 
-    public List<Marker> getMarkerList() {
-        return markerList;
+    public Marker getMarker() {
+        return marker;
     }
 
-    public void addMarker(Marker marker) {
-        if (marker == null) {
-            return;
+    public void setMarker(Marker marker) {
+        if (this.marker != null) {
+            throw new IllegalStateException("The marker has been already set for this event.");
         }
-        if (markerList == null) {
-            markerList = new ArrayList<>(4);
-        }
-        markerList.add(marker);
+        this.marker = marker;
     }
 
     public long getContextBirthTime() {
@@ -404,11 +301,11 @@ public class LoggingEvent implements ILoggingEvent {
     public Map<String, String> getMDCPropertyMap() {
         // populate mdcPropertyMap if null
         if (mdcPropertyMap == null) {
-            MDCAdapter mdcAdapter = loggerContext.getMDCAdapter();
-            if (mdcAdapter instanceof LogbackMDCAdapter)
-                mdcPropertyMap = ((LogbackMDCAdapter) mdcAdapter).getPropertyMap();
+            MDCAdapter mdc = MDC.getMDCAdapter();
+            if (mdc instanceof LogbackMDCAdapter)
+                mdcPropertyMap = ((LogbackMDCAdapter) mdc).getPropertyMap();
             else
-                mdcPropertyMap = mdcAdapter.getCopyOfContextMap();
+                mdcPropertyMap = mdc.getCopyOfContextMap();
         }
         // mdcPropertyMap still null, use emptyMap()
         if (mdcPropertyMap == null)
@@ -451,14 +348,13 @@ public class LoggingEvent implements ILoggingEvent {
 
     /**
      * LoggerEventVO instances should be used for serialization. Use
-     * {@link LoggingEventVO#build(ILoggingEvent) build} method to create the
-     * LoggerEventVO instance.
+     * {@link LoggingEventVO#build(ILoggingEvent) build} method to create the LoggerEventVO instance.
      *
      * @since 1.0.11
      */
     private void writeObject(ObjectOutputStream out) throws IOException {
         throw new UnsupportedOperationException(this.getClass() + " does not support serialization. "
-                + "Use LoggerEventVO instance instead. See also LoggerEventVO.build method.");
+                        + "Use LoggerEventVO instance instead. See also LoggerEventVO.build method.");
     }
 
 }

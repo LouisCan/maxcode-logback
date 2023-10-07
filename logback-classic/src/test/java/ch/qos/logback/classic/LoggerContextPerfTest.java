@@ -13,15 +13,14 @@
  */
 package ch.qos.logback.classic;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-
 import ch.qos.logback.classic.corpus.CorpusModel;
-import ch.qos.logback.core.contention.RunnableWithCounterAndDone;
-import ch.qos.logback.core.contention.ThreadedThroughputCalculator;
+import ch.qos.logback.core.contention.*;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
 
-@Disabled
+import static org.junit.Assert.fail;
+
 public class LoggerContextPerfTest {
 
     static int THREAD_COUNT = 10000;
@@ -34,7 +33,7 @@ public class LoggerContextPerfTest {
 
     CorpusModel corpusMaker;
 
-    @BeforeEach
+    @Before
     public void setUp() throws Exception {
     }
 
@@ -70,7 +69,7 @@ public class LoggerContextPerfTest {
     @Test
     public void computeResults() throws InterruptedException {
         harness.execute(runnableArray);
-        harness.printThroughput(runnableArray,"getLogger performance: ", true);
+        harness.printThroughput("getLogger performance: ", true);
     }
 
     private class GetLoggerRunnable extends RunnableWithCounterAndDone {

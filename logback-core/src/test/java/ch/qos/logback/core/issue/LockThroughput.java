@@ -13,7 +13,6 @@
  */
 package ch.qos.logback.core.issue;
 
-import ch.qos.logback.core.contention.RunnableWithCounterAndDone;
 import ch.qos.logback.core.contention.ThreadedThroughputCalculator;
 import ch.qos.logback.core.issue.SelectiveLockRunnable.LockingModel;
 
@@ -39,19 +38,14 @@ public class LockThroughput {
             tp.execute(buildArray(LockingModel.FAIR));
         }
 
+        tp.execute(buildArray(LockingModel.SYNC));
+        tp.printThroughput("Sync:   ");
 
-        RunnableWithCounterAndDone[] runnableArraySync = buildArray(LockingModel.SYNC);
-        tp.execute(runnableArraySync);
-        tp.printThroughput(runnableArraySync, "Sync:   ");
+        tp.execute(buildArray(LockingModel.UNFAIR));
+        tp.printThroughput("Unfair: ");
 
-
-        RunnableWithCounterAndDone[] runnableArrayUnfair = buildArray(LockingModel.UNFAIR);
-        tp.execute(runnableArrayUnfair);
-        tp.printThroughput(runnableArrayUnfair, "Unfair: ");
-
-        RunnableWithCounterAndDone[] runnableArrayFair = buildArray(LockingModel.FAIR);
-        tp.execute(runnableArrayFair);
-        tp.printThroughput(runnableArrayFair, "Fair:   ");
+        tp.execute(buildArray(LockingModel.FAIR));
+        tp.printThroughput("Fair:   ");
     }
 
     static SelectiveLockRunnable[] buildArray(LockingModel model) {

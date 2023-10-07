@@ -13,9 +13,9 @@
  */
 package ch.qos.logback.core.net;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.Assert.assertEquals;
 
 public class SyslogAppenderBaseTest {
     @Test

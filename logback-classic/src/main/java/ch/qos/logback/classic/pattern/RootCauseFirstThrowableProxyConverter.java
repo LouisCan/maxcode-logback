@@ -45,8 +45,7 @@ public class RootCauseFirstThrowableProxyConverter extends ExtendedThrowableProx
         IThrowableProxy[] suppressed = tp.getSuppressed();
         if (suppressed != null) {
             for (IThrowableProxy current : suppressed) {
-                recursiveAppendRootCauseFirst(sb, CoreConstants.SUPPRESSED,
-                        indent + ThrowableProxyUtil.SUPPRESSED_EXCEPTION_INDENT, current);
+                recursiveAppendRootCauseFirst(sb, CoreConstants.SUPPRESSED, indent + ThrowableProxyUtil.SUPPRESSED_EXCEPTION_INDENT, current);
             }
         }
     }

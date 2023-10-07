@@ -13,19 +13,20 @@
  */
 package ch.qos.logback.core.net.server;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import ch.qos.logback.core.net.mock.MockContext;
-import ch.qos.logback.core.net.server.test.MockServerListener;
-import ch.qos.logback.core.net.server.test.MockServerRunner;
-import ch.qos.logback.core.net.server.test.ServerSocketUtil;
 import ch.qos.logback.core.status.ErrorStatus;
 import ch.qos.logback.core.status.Status;
 
@@ -45,14 +46,14 @@ public class AbstractServerSocketAppenderTest {
     private ServerSocket serverSocket;
     private InstrumentedServerSocketAppenderBase appender;
 
-    @BeforeEach
+    @Before
     public void setUp() throws Exception {
         serverSocket = ServerSocketUtil.createServerSocket();
         appender = new InstrumentedServerSocketAppenderBase(serverSocket, listener, runner);
         appender.setContext(context);
     }
 
-    @AfterEach
+    @After
     public void tearDown() throws Exception {
         serverSocket.close();
     }
@@ -60,40 +61,40 @@ public class AbstractServerSocketAppenderTest {
     @Test
     public void testStartStop() throws Exception {
         appender.start();
-        Assertions.assertTrue(runner.isContextInjected());
-        Assertions.assertTrue(runner.isRunning());
-        Assertions.assertSame(listener, appender.getLastListener());
+        assertTrue(runner.isContextInjected());
+        assertTrue(runner.isRunning());
+        assertSame(listener, appender.getLastListener());
 
         appender.stop();
-        Assertions.assertFalse(runner.isRunning());
+        assertFalse(runner.isRunning());
     }
 
     @Test
     public void testStartWhenAlreadyStarted() throws Exception {
         appender.start();
         appender.start();
-        Assertions.assertEquals(1, runner.getStartCount());
+        assertEquals(1, runner.getStartCount());
     }
 
     @Test
     public void testStopThrowsException() throws Exception {
         appender.start();
-        Assertions.assertTrue(appender.isStarted());
+        assertTrue(appender.isStarted());
         IOException ex = new IOException("test exception");
         runner.setStopException(ex);
         appender.stop();
 
         Status status = context.getLastStatus();
-        Assertions.assertNotNull(status);
-        Assertions.assertTrue(status instanceof ErrorStatus);
-        Assertions.assertTrue(status.getMessage().contains(ex.getMessage()));
-        Assertions.assertSame(ex, status.getThrowable());
+        assertNotNull(status);
+        assertTrue(status instanceof ErrorStatus);
+        assertTrue(status.getMessage().contains(ex.getMessage()));
+        assertSame(ex, status.getThrowable());
     }
 
     @Test
     public void testStopWhenNotStarted() throws Exception {
         appender.stop();
-        Assertions.assertEquals(0, runner.getStartCount());
+        assertEquals(0, runner.getStartCount());
     }
 
 }

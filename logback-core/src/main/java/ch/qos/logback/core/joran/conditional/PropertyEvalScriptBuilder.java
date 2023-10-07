@@ -31,14 +31,14 @@ public class PropertyEvalScriptBuilder extends ContextAwareBase {
 
     final PropertyContainer localPropContainer;
 
-    public PropertyEvalScriptBuilder(PropertyContainer localPropContainer) {
+    PropertyEvalScriptBuilder(PropertyContainer localPropContainer) {
         this.localPropContainer = localPropContainer;
     }
 
     Map<String, String> map = new HashMap<String, String>();
 
-    public Condition build(String script) throws IllegalAccessException, CompileException, InstantiationException,
-            SecurityException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
+    public Condition build(String script) throws IllegalAccessException, CompileException, InstantiationException, SecurityException, NoSuchMethodException,
+                    IllegalArgumentException, InvocationTargetException {
 
         ClassBodyEvaluator cbe = new ClassBodyEvaluator();
         cbe.setImplementedInterfaces(new Class[] { Condition.class });
@@ -47,9 +47,8 @@ public class PropertyEvalScriptBuilder extends ContextAwareBase {
         cbe.cook(SCRIPT_PREFIX + script + SCRIPT_SUFFIX);
 
         Class<?> clazz = cbe.getClazz();
-        Condition instance = (Condition) clazz.getDeclaredConstructor().newInstance();
-        Method setMapMethod = clazz.getMethod("setPropertyContainers", PropertyContainer.class,
-                PropertyContainer.class);
+        Condition instance = (Condition) clazz.newInstance();
+        Method setMapMethod = clazz.getMethod("setPropertyContainers", PropertyContainer.class, PropertyContainer.class);
         setMapMethod.invoke(instance, localPropContainer, context);
 
         return instance;

@@ -19,27 +19,26 @@ import java.util.Map;
 import org.xml.sax.Attributes;
 
 import ch.qos.logback.core.CoreConstants;
-import ch.qos.logback.core.joran.JoranConstants;
-import ch.qos.logback.core.joran.spi.SaxEventInterpretationContext;
+import ch.qos.logback.core.joran.spi.InterpretationContext;
 import ch.qos.logback.core.util.OptionHelper;
 
 public class ConversionRuleAction extends Action {
     boolean inError = false;
 
     /**
-     * Instantiates a layout of the given class and sets its name.
+     * Instantiates an layout of the given class and sets its name.
      *
      */
     @SuppressWarnings("unchecked")
-    public void begin(SaxEventInterpretationContext ec, String localName, Attributes attributes) {
+    public void begin(InterpretationContext ec, String localName, Attributes attributes) {
         // Let us forget about previous errors (in this object)
         inError = false;
 
         String errorMsg;
-        String conversionWord = attributes.getValue(JoranConstants.CONVERSION_WORD_ATTRIBUTE);
-        String converterClass = attributes.getValue(JoranConstants.CONVERTER_CLASS_ATTRIBUTE);
+        String conversionWord = attributes.getValue(ActionConst.CONVERSION_WORD_ATTRIBUTE);
+        String converterClass = attributes.getValue(ActionConst.CONVERTER_CLASS_ATTRIBUTE);
 
-        if (OptionHelper.isNullOrEmpty(conversionWord)) {
+        if (OptionHelper.isEmpty(conversionWord)) {
             inError = true;
             errorMsg = "No 'conversionWord' attribute in <conversionRule>";
             addError(errorMsg);
@@ -47,7 +46,7 @@ public class ConversionRuleAction extends Action {
             return;
         }
 
-        if (OptionHelper.isNullOrEmpty(converterClass)) {
+        if (OptionHelper.isEmpty(converterClass)) {
             inError = true;
             errorMsg = "No 'converterClass' attribute in <conversionRule>";
             ec.addError(errorMsg);
@@ -56,8 +55,7 @@ public class ConversionRuleAction extends Action {
         }
 
         try {
-            Map<String, String> ruleRegistry = (Map<String, String>) context
-                    .getObject(CoreConstants.PATTERN_RULE_REGISTRY);
+            Map<String, String> ruleRegistry = (Map) context.getObject(CoreConstants.PATTERN_RULE_REGISTRY);
             if (ruleRegistry == null) {
                 ruleRegistry = new HashMap<String, String>();
                 context.putObject(CoreConstants.PATTERN_RULE_REGISTRY, ruleRegistry);
@@ -73,12 +71,12 @@ public class ConversionRuleAction extends Action {
     }
 
     /**
-     * Once the children elements are also parsed, now is the time to activate the
-     * appender options.
+     * Once the children elements are also parsed, now is the time to activate
+     * the appender options.
      */
-    public void end(SaxEventInterpretationContext ec, String n) {
+    public void end(InterpretationContext ec, String n) {
     }
 
-    public void finish(SaxEventInterpretationContext ec) {
+    public void finish(InterpretationContext ec) {
     }
 }

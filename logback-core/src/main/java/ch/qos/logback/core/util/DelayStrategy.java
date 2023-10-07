@@ -22,7 +22,6 @@ package ch.qos.logback.core.util;
 public interface DelayStrategy {
     /**
      * The value computed by this {@code DelayStrategy} for the next delay.
-     * 
      * @return a delay value
      */
     long nextDelay();

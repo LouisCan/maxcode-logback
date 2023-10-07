@@ -27,10 +27,6 @@ public class ActionException extends Exception {
     public ActionException() {
     }
 
-    public ActionException(String msg) {
-        super(msg);
-    }
-    
     public ActionException(final Throwable rootCause) {
         super(rootCause);
     }

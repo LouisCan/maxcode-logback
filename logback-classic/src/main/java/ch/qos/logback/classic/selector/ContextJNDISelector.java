@@ -36,6 +36,7 @@ import ch.qos.logback.core.status.StatusUtil;
 import ch.qos.logback.core.status.WarnStatus;
 import ch.qos.logback.core.util.JNDIUtil;
 import ch.qos.logback.core.util.Loader;
+import ch.qos.logback.core.util.OptionHelper;
 import ch.qos.logback.core.util.StatusPrinter;
 
 /**
@@ -83,12 +84,12 @@ public class ContextJNDISelector implements ContextSelector {
             // We first try to find the name of our
             // environment's LoggerContext
             ctx = JNDIUtil.getInitialContext();
-            contextName = (String) JNDIUtil.lookupString(ctx, JNDI_CONTEXT_NAME);
+            contextName = (String) JNDIUtil.lookup(ctx, JNDI_CONTEXT_NAME);
         } catch (NamingException ne) {
             // We can't log here
         }
 
-        if (contextName == null) {
+        if (OptionHelper.isEmpty(contextName)) {
             // We return the default context
             return defaultContext;
         } else {
@@ -125,19 +126,17 @@ public class ContextJNDISelector implements ContextSelector {
         StatusManager sm = loggerContext.getStatusManager();
 
         String jndiEntryForConfigResource = null;
-
         try {
-            jndiEntryForConfigResource = JNDIUtil.lookupString(ctx, JNDI_CONFIGURATION_RESOURCE);
-        } catch (NamingException e) {
-            sm.add(new WarnStatus("JNDI lookup failed", this, e));
+            jndiEntryForConfigResource = JNDIUtil.lookup(ctx, JNDI_CONFIGURATION_RESOURCE);
+        } catch (NamingException ne) {
         }
         // Do we have a dedicated configuration file?
         if (jndiEntryForConfigResource != null) {
             sm.add(new InfoStatus("Searching for [" + jndiEntryForConfigResource + "]", this));
             URL url = urlByResourceName(sm, jndiEntryForConfigResource);
             if (url == null) {
-                String msg = "The jndi resource [" + jndiEntryForConfigResource + "] for context ["
-                        + loggerContext.getName() + "] does not lead to a valid file";
+                String msg = "The jndi resource [" + jndiEntryForConfigResource + "] for context [" + loggerContext.getName()
+                                + "] does not lead to a valid file";
                 sm.add(new WarnStatus(msg, this));
             }
             return url;
@@ -189,8 +188,8 @@ public class ContextJNDISelector implements ContextSelector {
     /**
      * These methods are used by the LoggerContextFilter.
      * <p/>
-     * They provide a way to tell the selector which context to use, thus saving the
-     * cost of a JNDI call at each new request.
+     * They provide a way to tell the selector which context to use, thus saving
+     * the cost of a JNDI call at each new request.
      *
      * @param context
      */

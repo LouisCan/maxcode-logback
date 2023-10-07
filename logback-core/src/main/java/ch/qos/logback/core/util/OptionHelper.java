@@ -17,6 +17,7 @@ import java.lang.reflect.Constructor;
 import java.util.Properties;
 
 import ch.qos.logback.core.Context;
+import ch.qos.logback.core.CoreConstants;
 import ch.qos.logback.core.spi.ContextAware;
 import ch.qos.logback.core.spi.PropertyContainer;
 import ch.qos.logback.core.spi.ScanException;
@@ -27,26 +28,25 @@ import ch.qos.logback.core.subst.NodeToStringTransformer;
  */
 public class OptionHelper {
 
-    public static Object instantiateByClassName(String className, Class<?> superClass, Context context)
-            throws IncompatibleClassException, DynamicClassLoadingException {
+    public static Object instantiateByClassName(String className, Class<?> superClass, Context context) throws IncompatibleClassException,
+                    DynamicClassLoadingException {
         ClassLoader classLoader = Loader.getClassLoaderOfObject(context);
         return instantiateByClassName(className, superClass, classLoader);
     }
 
-    public static Object instantiateByClassNameAndParameter(String className, Class<?> superClass, Context context,
-            Class<?> type, Object param) throws IncompatibleClassException, DynamicClassLoadingException {
+    public static Object instantiateByClassNameAndParameter(String className, Class<?> superClass, Context context, Class<?> type, Object param)
+                    throws IncompatibleClassException, DynamicClassLoadingException {
         ClassLoader classLoader = Loader.getClassLoaderOfObject(context);
         return instantiateByClassNameAndParameter(className, superClass, classLoader, type, param);
     }
 
-    public static Object instantiateByClassName(String className, Class<?> superClass, ClassLoader classLoader)
-            throws IncompatibleClassException, DynamicClassLoadingException {
+    public static Object instantiateByClassName(String className, Class<?> superClass, ClassLoader classLoader) throws IncompatibleClassException,
+                    DynamicClassLoadingException {
         return instantiateByClassNameAndParameter(className, superClass, classLoader, null, null);
     }
 
-    public static Object instantiateByClassNameAndParameter(String className, Class<?> superClass,
-            ClassLoader classLoader, Class<?> type, Object parameter)
-            throws IncompatibleClassException, DynamicClassLoadingException {
+    public static Object instantiateByClassNameAndParameter(String className, Class<?> superClass, ClassLoader classLoader, Class<?> type, Object parameter)
+                    throws IncompatibleClassException, DynamicClassLoadingException {
 
         if (className == null) {
             throw new NullPointerException();
@@ -58,7 +58,7 @@ public class OptionHelper {
                 throw new IncompatibleClassException(superClass, classObj);
             }
             if (type == null) {
-                return classObj.getConstructor().newInstance();
+                return classObj.newInstance();
             } else {
                 Constructor<?> constructor = classObj.getConstructor(type);
                 return constructor.newInstance(parameter);
@@ -71,8 +71,8 @@ public class OptionHelper {
     }
 
     /**
-     * Find the value corresponding to <code>key</code> in <code>props</code>. Then
-     * perform variable substitution on the found value.
+     * Find the value corresponding to <code>key</code> in <code>props</code>.
+     * Then perform variable substitution on the found value.
      */
     // public static String findAndSubst(String key, Properties props) {
     // String value = props.getProperty(key);
@@ -100,17 +100,19 @@ public class OptionHelper {
     /**
      * @see #substVars(String, PropertyContainer, PropertyContainer)
      */
-    public static String substVars(String val, PropertyContainer pc1) throws ScanException {
+    public static String substVars(String val, PropertyContainer pc1) {
         return substVars(val, pc1, null);
     }
 
     /**
-     * See http://logback.qos.ch/manual/configuration.html#variableSubstitution
+     * See  http://logback.qos.ch/manual/configuration.html#variableSubstitution
      */
-    public static String substVars(String input, PropertyContainer pc0, PropertyContainer pc1) throws ScanException {
-        // may throw IllegalArgumentException or ScanException
-        return NodeToStringTransformer.substituteVariable(input, pc0, pc1);
-
+    public static String substVars(String input, PropertyContainer pc0, PropertyContainer pc1) {
+        try {
+            return NodeToStringTransformer.substituteVariable(input, pc0, pc1);
+        } catch (ScanException e) {
+            throw new IllegalArgumentException("Failed to parse input [" + input + "]", e);
+        }
     }
 
     public static String propertyLookup(String key, PropertyContainer pc1, PropertyContainer pc2) {
@@ -209,9 +211,9 @@ public class OptionHelper {
     }
 
     /**
-     * Return a String[] of size two. The first item containing the key part and the
-     * second item containing a default value specified by the user. The second item
-     * will be null if no default value is specified.
+     * Return a String[] of size two. The first item containing the key part and the second item
+     * containing a default value specified by the user. The second item will be null if no default value
+     * is specified.
      *
      * @param key
      * @return
@@ -232,10 +234,10 @@ public class OptionHelper {
 
     /**
      * If <code>value</code> is "true", then <code>true</code> is returned. If
-     * <code>value</code> is "false", then <code>true</code> is returned. Otherwise,
-     * <code>default</code> is returned.
-     * <p>
-     * Case of value is unimportant.
+     * <code>value</code> is "false", then <code>true</code> is returned.
+     * Otherwise, <code>default</code> is returned.
+     * <p/>
+     * <p> Case of value is unimportant.
      */
     public static boolean toBoolean(String value, boolean dEfault) {
         if (value == null) {
@@ -255,32 +257,8 @@ public class OptionHelper {
         return dEfault;
     }
 
-    /**
-     * @deprecated
-     * @since 1.3
-     */
     public static boolean isEmpty(String str) {
-        return isNullOrEmpty(str);
+        return ((str == null) || CoreConstants.EMPTY_STRING.equals(str));
     }
 
-    /**
-     * Returns true if input str is null or empty.
-     * 
-     * @param str
-     * @return
-     */
-    public static boolean isNullOrEmpty(String str) {
-        return ((str == null) || str.trim().length() == 0);
-    }
-
-    final public static boolean isNullOrEmpty(Object[] array) {
-        if(array == null || array.length == 0)
-                return true;
-        else
-                return false;
-    }
-
-    final public static boolean isNotEmtpy(Object[] array) {
-        return !isNullOrEmpty(array);
-    }
 }

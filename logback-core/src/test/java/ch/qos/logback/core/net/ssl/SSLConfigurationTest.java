@@ -13,9 +13,9 @@
  */
 package ch.qos.logback.core.net.ssl;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.Assert.assertNotNull;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import org.junit.Test;
 
 /**
  * Unit tests for {@link SSLConfiguration}.

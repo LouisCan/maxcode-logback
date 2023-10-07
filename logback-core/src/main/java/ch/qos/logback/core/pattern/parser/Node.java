@@ -62,8 +62,7 @@ public class Node {
         }
         Node r = (Node) o;
 
-        return (type == r.type) && (value != null ? value.equals(r.value) : r.value == null)
-                && (next != null ? next.equals(r.next) : r.next == null);
+        return (type == r.type) && (value != null ? value.equals(r.value) : r.value == null) && (next != null ? next.equals(r.next) : r.next == null);
     }
 
     @Override

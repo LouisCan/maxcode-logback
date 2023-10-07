@@ -18,17 +18,15 @@ import java.io.FileInputStream;
 import java.io.IOException;
 
 import ch.qos.logback.core.testUtil.EnvUtilForTests;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import ch.qos.logback.core.encoder.EchoEncoder;
 import ch.qos.logback.core.testUtil.RandomUtil;
 import ch.qos.logback.core.util.ResilienceUtil;
 import ch.qos.logback.core.util.StatusPrinter;
-import org.junit.jupiter.api.Test;
 
-@Disabled
 public class FileAppenderResilience_AS_ROOT_Test {
 
     static String MOUNT_POINT = "/mnt/loop/";
@@ -52,7 +50,7 @@ public class FileAppenderResilience_AS_ROOT_Test {
         return EnvUtilForTests.isLocalHostNameInList(new String[] { "haro" });
     }
 
-    @BeforeEach
+    @Before
     public void setUp() throws IOException, InterruptedException {
         if (!isConformingHost()) {
             return;
@@ -89,7 +87,7 @@ public class FileAppenderResilience_AS_ROOT_Test {
         }
     }
 
-    @AfterEach
+    @After
     public void tearDown() throws IOException, InterruptedException {
         if (!isConformingHost()) {
             return;
@@ -116,9 +114,9 @@ public class FileAppenderResilience_AS_ROOT_Test {
             Thread.sleep(DELAY);
         }
         p.waitFor();
-        // the external script has the file system ready for IO 50% of the time
+        // the extrernal script has the file system ready for IO 50% of the time
         double bestCase = 0.5;
-        ResilienceUtil.countLines(logfileStr, "^(\\d{1,3}) x*$");
+        ResilienceUtil.verify(logfileStr, "^(\\d{1,3}) x*$", NUM_STEPS, bestCase * 0.6);
         System.out.println("Done go");
     }
 

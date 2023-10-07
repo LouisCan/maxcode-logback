@@ -17,15 +17,9 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JacksonInject;
-import com.fasterxml.jackson.annotation.JsonAlias;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonValueInstantiator;
 import org.slf4j.Marker;
-import org.slf4j.event.KeyValuePair;
 import org.slf4j.helpers.MessageFormatter;
 
 import ch.qos.logback.classic.Level;
@@ -44,24 +38,20 @@ public class PubLoggingEventVO implements ILoggingEvent, Serializable {
 
     public String threadName;
     public String loggerName;
-    public PubLoggerContextVO loggerContextVO;
+    public LoggerContextVO loggerContextVO;
 
     public transient Level level;
     public String message;
 
     private transient String formattedMessage;
 
-    @JsonAlias
     public Object[] argumentArray;
 
     public IThrowableProxy throwableProxy;
     public StackTraceElement[] callerDataArray;
-    public List<Marker> markerList;
-    public List<KeyValuePair> kvpList;
+    public Marker marker;
     public Map<String, String> mdcPropertyMap;
     public long timeStamp;
-    public int nanoseconds;
-    public long sequenceNumber;
 
     public String getThreadName() {
         return threadName;
@@ -75,8 +65,6 @@ public class PubLoggingEventVO implements ILoggingEvent, Serializable {
         return loggerName;
     }
 
-
-    @JsonIgnore
     public Level getLevel() {
         return level;
     }
@@ -115,25 +103,12 @@ public class PubLoggingEventVO implements ILoggingEvent, Serializable {
         return callerDataArray != null;
     }
 
-    public List<Marker> getMarkerList() {
-        return markerList;
+    public Marker getMarker() {
+        return marker;
     }
 
     public long getTimeStamp() {
         return timeStamp;
-    }
-
-    @Override
-    public int getNanoseconds() {
-        return nanoseconds;
-    }
-
-    public long getSequenceNumber() {
-        return sequenceNumber;
-    }
-
-    public void setSequenceNumber(long sequenceNumber) {
-        this.sequenceNumber = sequenceNumber;
     }
 
     public long getContextBirthTime() {
@@ -153,11 +128,6 @@ public class PubLoggingEventVO implements ILoggingEvent, Serializable {
     }
 
     public void prepareForDeferredProcessing() {
-    }
-
-    @Override
-    public List<KeyValuePair> getKeyValuePairs() {
-        return kvpList;
     }
 
     private void writeObject(ObjectOutputStream out) throws IOException {
@@ -235,10 +205,10 @@ public class PubLoggingEventVO implements ILoggingEvent, Serializable {
         if (timeStamp != other.timeStamp)
             return false;
 
-        if (markerList == null) {
-            if (other.markerList != null)
+        if (marker == null) {
+            if (other.marker != null)
                 return false;
-        } else if (!markerList.equals(other.markerList))
+        } else if (!marker.equals(other.marker))
             return false;
 
         if (mdcPropertyMap == null) {

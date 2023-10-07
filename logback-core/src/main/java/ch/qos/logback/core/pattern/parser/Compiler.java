@@ -28,9 +28,9 @@ class Compiler<E> extends ContextAwareBase {
     Converter<E> head;
     Converter<E> tail;
     final Node top;
-    final Map<String, String> converterMap;
+    final Map converterMap;
 
-    Compiler(final Node top, final Map<String, String> converterMap) {
+    Compiler(final Node top, final Map converterMap) {
         this.top = top;
         this.converterMap = converterMap;
     }
@@ -88,7 +88,8 @@ class Compiler<E> extends ContextAwareBase {
     }
 
     /**
-     * Attempt to create a converter using the information found in 'converterMap'.
+     * Attempt to create a converter using the information found in
+     * 'converterMap'.
      *
      * @param kn
      * @return
@@ -100,11 +101,9 @@ class Compiler<E> extends ContextAwareBase {
 
         if (converterClassStr != null) {
             try {
-                return (DynamicConverter<E>) OptionHelper.instantiateByClassName(converterClassStr,
-                        DynamicConverter.class, context);
+                return (DynamicConverter) OptionHelper.instantiateByClassName(converterClassStr, DynamicConverter.class, context);
             } catch (Exception e) {
-                addError("Failed to instantiate converter class [" + converterClassStr + "] for keyword [" + keyword
-                        + "]", e);
+                addError("Failed to instantiate converter class [" + converterClassStr + "] for keyword [" + keyword + "]", e);
                 return null;
             }
         } else {
@@ -127,11 +126,9 @@ class Compiler<E> extends ContextAwareBase {
 
         if (converterClassStr != null) {
             try {
-                return (CompositeConverter<E>) OptionHelper.instantiateByClassName(converterClassStr,
-                        CompositeConverter.class, context);
+                return (CompositeConverter) OptionHelper.instantiateByClassName(converterClassStr, CompositeConverter.class, context);
             } catch (Exception e) {
-                addError("Failed to instantiate converter class [" + converterClassStr
-                        + "] as a composite converter for keyword [" + keyword + "]", e);
+                addError("Failed to instantiate converter class [" + converterClassStr + "] as a composite converter for keyword [" + keyword + "]", e);
                 return null;
             }
         } else {

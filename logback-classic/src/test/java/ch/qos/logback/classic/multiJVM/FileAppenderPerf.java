@@ -86,8 +86,7 @@ public class FileAppenderPerf {
 
         lc.stop();
 
-        System.out.println(
-                "Average duration of " + (durationPerLog) + " microseconds per log. Prudent mode=" + safetyMode);
+        System.out.println("Average duration of " + (durationPerLog) + " microseconds per log. Prudent mode=" + safetyMode);
         System.out.println("------------------------------------------------");
     }
 

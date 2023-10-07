@@ -79,10 +79,11 @@ public class FileFilterUtil {
         if (!file.exists() || !file.isDirectory()) {
             return new File[0];
         }
-
-        // better compile the regex. See also LOGBACK-1409
-        Pattern pattern = Pattern.compile(stemRegex);
-        return file.listFiles((dir, name) -> pattern.matcher(name).matches());
+        return file.listFiles(new FilenameFilter() {
+            public boolean accept(File dir, String name) {
+                return name.matches(stemRegex);
+            }
+        });
     }
 
     static public int findHighestCounter(File[] matchingFileArray, final String stemRegex) {
@@ -104,7 +105,7 @@ public class FileFilterUtil {
             throw new IllegalStateException("The regex [" + stemRegex + "] should match [" + lastFileName + "]");
         }
         String counterAsStr = m.group(1);
-        return Integer.parseInt(counterAsStr);
+        return new Integer(counterAsStr).intValue();
     }
 
     public static String slashify(String in) {

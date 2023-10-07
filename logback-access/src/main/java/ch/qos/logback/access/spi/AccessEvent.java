@@ -16,13 +16,11 @@ package ch.qos.logback.access.spi;
 import ch.qos.logback.access.AccessConstants;
 import ch.qos.logback.access.pattern.AccessConverter;
 import ch.qos.logback.access.servlet.Util;
-import ch.qos.logback.core.Context;
-import ch.qos.logback.core.spi.SequenceNumberGenerator;
 
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -38,8 +36,8 @@ import java.util.Vector;
 /**
  * The Access module's internal representation of logging events. When the
  * logging component instance is called in the container to log then a
- * <code>AccessEvent</code> instance is created. This instance is passed around
- * to the different logback components.
+ * <code>AccessEvent</code> instance is created. This instance is passed
+ * around to the different logback components.
  *
  * @author Ceki G&uuml;lc&uuml;
  * @author S&eacute;bastien Pennec
@@ -87,18 +85,10 @@ public class AccessEvent implements Serializable, IAccessEvent {
      */
     private long timeStamp = 0;
 
-    private long sequenceNumber = 0;
-
-    public AccessEvent(Context context, HttpServletRequest httpRequest, HttpServletResponse httpResponse,
-            ServerAdapter adapter) {
+    public AccessEvent(HttpServletRequest httpRequest, HttpServletResponse httpResponse, ServerAdapter adapter) {
         this.httpRequest = httpRequest;
         this.httpResponse = httpResponse;
         this.timeStamp = System.currentTimeMillis();
-
-        SequenceNumberGenerator sng = context.getSequenceNumberGenerator();
-        if (sng != null) {
-            this.sequenceNumber = sng.nextSequenceNumber();
-        }
         this.serverAdapter = adapter;
         this.elapsedTime = calculateElapsedTime();
     }
@@ -131,15 +121,11 @@ public class AccessEvent implements Serializable, IAccessEvent {
     }
 
     public void setTimeStamp(long timeStamp) {
-        this.timeStamp = timeStamp;
-    }
-
-    public long getSequenceNumber() {
-        return sequenceNumber;
-    }
-
-    public void setSequenceNumber(long sequenceNumber) {
-        this.sequenceNumber = sequenceNumber;
+        if (this.timeStamp != 0) {
+            throw new IllegalStateException("timeStamp has been already set for this event.");
+        } else {
+            this.timeStamp = timeStamp;
+        }
     }
 
     /**
@@ -260,7 +246,7 @@ public class AccessEvent implements Serializable, IAccessEvent {
     public String getSessionID() {
         if (sessionID == null) {
             if (httpRequest != null) {
-                final HttpSession session = httpRequest.getSession(false);
+                final HttpSession session = httpRequest.getSession();
                 if (session != null) {
                     sessionID = session.getId();
                 }
@@ -334,7 +320,7 @@ public class AccessEvent implements Serializable, IAccessEvent {
     }
 
     public void buildRequestHeaderMap() {
-        // according to RFC 2616 header names are case-insensitive
+        // according to RFC 2616 header names are case insensitive
         // latest versions of Tomcat return header names in lower-case
         requestHeaderMap = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
         Enumeration<String> e = httpRequest.getHeaderNames();
@@ -349,22 +335,13 @@ public class AccessEvent implements Serializable, IAccessEvent {
 
     public void buildRequestParameterMap() {
         requestParameterMap = new HashMap<String, String[]>();
-        try {
-            Enumeration<String> e = httpRequest.getParameterNames();
-            if (e == null) {
-                return;
-            }
-            while (e.hasMoreElements()) {
-                String key = e.nextElement();
-                requestParameterMap.put(key, httpRequest.getParameterValues(key));
-            }
-        } catch(Throwable t) {
-            // The use of HttpServletRequest.getParameterNames() can cause
-            // a READ of the Request body content.  This can fail with various
-            // Throwable failures depending on the state of the Request
-            // at the time this method is called.
-            // We don't want to fail the logging due to these types of requests
-            t.printStackTrace();
+        Enumeration<String> e = httpRequest.getParameterNames();
+        if (e == null) {
+            return;
+        }
+        while (e.hasMoreElements()) {
+            String key = e.nextElement();
+            requestParameterMap.put(key, httpRequest.getParameterValues(key));
         }
     }
 
@@ -380,8 +357,7 @@ public class AccessEvent implements Serializable, IAccessEvent {
     public String getAttribute(String key) {
         Object value = null;
         if (attributeMap != null) {
-            // Event was prepared for deferred processing so we have a copy of attribute map
-            // and must use that copy
+            // Event was prepared for deferred processing so we have a copy of attribute map and must use that copy
             value = attributeMap.get(key);
         } else if (httpRequest != null) {
             // We have original request so take attribute from it
@@ -398,10 +374,10 @@ public class AccessEvent implements Serializable, IAccessEvent {
         }
 
         // attributeMap has been copied already. See also LOGBACK-1189
-        if (attributeMap != null) {
+        if(attributeMap != null) {
             return;
         }
-
+        
         attributeMap = new HashMap<String, Object>();
 
         Enumeration<String> names = httpRequest.getAttributeNames();
@@ -417,12 +393,10 @@ public class AccessEvent implements Serializable, IAccessEvent {
 
     private boolean shouldCopyAttribute(String name, Object value) {
         if (AccessConstants.LB_INPUT_BUFFER.equals(name) || AccessConstants.LB_OUTPUT_BUFFER.equals(name)) {
-            // Do not copy attributes used by logback internally - these are available via
-            // other getters anyway
+            // Do not copy attributes used by logback internally - these are available via other getters anyway
             return false;
         } else if (value == null) {
-            // No reasons to copy nulls - Map.get() will return null for missing keys and
-            // the list of attribute
+            // No reasons to copy nulls - Map.get() will return null for missing keys and the list of attribute
             // names is not available through IAccessEvent
             return false;
         } else {
@@ -434,14 +408,14 @@ public class AccessEvent implements Serializable, IAccessEvent {
     @Override
     public String[] getRequestParameter(String key) {
         String[] value = null;
-
-        if (requestParameterMap != null) {
+        
+        if(requestParameterMap != null) {
             value = requestParameterMap.get(key);
         } else if (httpRequest != null) {
-            value = httpRequest.getParameterValues(key);
+             value = httpRequest.getParameterValues(key);
         }
 
-        return (value != null) ? value : NA_STRING_ARRAY;
+        return (value != null) ? value: NA_STRING_ARRAY;
     }
 
     @Override
@@ -505,12 +479,12 @@ public class AccessEvent implements Serializable, IAccessEvent {
         if (Util.isFormUrlEncoded(httpRequest)) {
             StringBuilder buf = new StringBuilder();
 
-            try {
-                Enumeration<String> pramEnumeration = httpRequest.getParameterNames();
+            Enumeration<String> pramEnumeration = httpRequest.getParameterNames();
 
-                // example: id=1234&user=cgu
-                // number=1233&x=1
-                int count = 0;
+            // example: id=1234&user=cgu
+            // number=1233&x=1
+            int count = 0;
+            try {
                 while (pramEnumeration.hasMoreElements()) {
 
                     String key = pramEnumeration.nextElement();
@@ -526,14 +500,9 @@ public class AccessEvent implements Serializable, IAccessEvent {
                         buf.append("");
                     }
                 }
-            } catch (Throwable t) {
-                // The use of HttpServletRequest.getParameterNames() and
-                // HttpServletRequest.getParameter(String) can cause
-                // a READ of the Request body content.  This can fail with various
-                // Throwable failures depending on the state of the Request
-                // at the time this method is called.
-                // We don't want to fail the logging due to these types of requests
-                t.printStackTrace();
+            } catch (Exception e) {
+                // FIXME Why is try/catch required?
+                e.printStackTrace();
             }
             requestContent = buf.toString();
         } else {
@@ -561,7 +530,7 @@ public class AccessEvent implements Serializable, IAccessEvent {
             responseContent = "[IMAGE CONTENTS SUPPRESSED]";
         } else {
 
-            // retrieve the byte array previously placed by TeeFilter
+            // retreive the byte array previously placed by TeeFilter
             byte[] outputBuffer = (byte[]) httpRequest.getAttribute(AccessConstants.LB_OUTPUT_BUFFER);
 
             if (outputBuffer != null) {

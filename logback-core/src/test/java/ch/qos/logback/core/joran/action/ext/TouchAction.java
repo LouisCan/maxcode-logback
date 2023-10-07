@@ -16,29 +16,29 @@ package ch.qos.logback.core.joran.action.ext;
 import org.xml.sax.Attributes;
 
 import ch.qos.logback.core.joran.action.Action;
-import ch.qos.logback.core.joran.spi.SaxEventInterpretationContext;
+import ch.qos.logback.core.joran.spi.InterpretationContext;
 
 public class TouchAction extends Action {
 
     public static final String KEY = "touched";
 
     /**
-     * Instantiates a layout of the given class and sets its name.
+     * Instantiates an layout of the given class and sets its name.
      *
      */
-    public void begin(SaxEventInterpretationContext ec, String name, Attributes attributes) {
+    public void begin(InterpretationContext ec, String name, Attributes attributes) {
         Integer i = (Integer) ec.getContext().getObject(KEY);
         if (i == null) {
-            ec.getContext().putObject(KEY, Integer.valueOf(1));
+            ec.getContext().putObject(KEY, new Integer(1));
         } else {
-            ec.getContext().putObject(KEY, Integer.valueOf(i.intValue() + 1));
+            ec.getContext().putObject(KEY, new Integer(i.intValue() + 1));
         }
     }
 
     /**
-     * Once the children elements are also parsed, now is the time to activate the
-     * appender options.
+     * Once the children elements are also parsed, now is the time to activate
+     * the appender options.
      */
-    public void end(SaxEventInterpretationContext ec, String name) {
+    public void end(InterpretationContext ec, String name) {
     }
 }

@@ -23,13 +23,12 @@ import ch.qos.logback.core.spi.ContextAware;
 
 /**
  * Utility class which can convert string into objects.
- * 
  * @author Ceki G&uuml;lc&uuml;
  *
  */
 public class StringToObjectConverter {
 
-    private static final Class<?>[] STRING_CLASS_PARAMETER = new Class[] { String.class };
+    private static final Class<?>[] STING_CLASS_PARAMETER = new Class[] { String.class };
 
     static public boolean canBeBuiltFromSimpleString(Class<?> parameterClass) {
         Package p = parameterClass.getPackage();
@@ -59,13 +58,13 @@ public class StringToObjectConverter {
         if (String.class.isAssignableFrom(type)) {
             return v;
         } else if (Integer.TYPE.isAssignableFrom(type)) {
-            return Integer.valueOf(v);
+            return new Integer(v);
         } else if (Long.TYPE.isAssignableFrom(type)) {
-            return Long.valueOf(v);
+            return new Long(v);
         } else if (Float.TYPE.isAssignableFrom(type)) {
-            return Float.valueOf(v);
+            return new Float(v);
         } else if (Double.TYPE.isAssignableFrom(type)) {
-            return Double.valueOf(v);
+            return new Double(v);
         } else if (Boolean.TYPE.isAssignableFrom(type)) {
             if ("true".equalsIgnoreCase(v)) {
                 return Boolean.TRUE;
@@ -99,7 +98,7 @@ public class StringToObjectConverter {
     // returned value may be null and in most cases it is null.
     public static Method getValueOfMethod(Class<?> type) {
         try {
-            return type.getMethod(CoreConstants.VALUE_OF, STRING_CLASS_PARAMETER);
+            return type.getMethod(CoreConstants.VALUE_OF, STING_CLASS_PARAMETER);
         } catch (NoSuchMethodException e) {
             return null;
         } catch (SecurityException e) {
@@ -118,11 +117,10 @@ public class StringToObjectConverter {
 
     private static Object convertByValueOfMethod(ContextAware ca, Class<?> type, String val) {
         try {
-            Method valueOfMethod = type.getMethod(CoreConstants.VALUE_OF, STRING_CLASS_PARAMETER);
+            Method valueOfMethod = type.getMethod(CoreConstants.VALUE_OF, STING_CLASS_PARAMETER);
             return valueOfMethod.invoke(null, val);
         } catch (Exception e) {
-            ca.addError("Failed to invoke " + CoreConstants.VALUE_OF + "{} method in class [" + type.getName()
-                    + "] with value [" + val + "]");
+            ca.addError("Failed to invoke " + CoreConstants.VALUE_OF + "{} method in class [" + type.getName() + "] with value [" + val + "]");
             return null;
         }
     }

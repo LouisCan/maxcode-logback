@@ -13,7 +13,6 @@
  */
 package ch.qos.logback.core.rolling.helper;
 
-import java.time.Instant;
 import java.util.Date;
 import java.util.concurrent.Future;
 
@@ -25,11 +24,8 @@ import ch.qos.logback.core.spi.ContextAware;
  * @author Ceki G&uuml;lc&uuml;
  */
 public interface ArchiveRemover extends ContextAware {
-    void clean(Instant instant);
-
+    void clean(Date now);
     void setMaxHistory(int maxHistory);
-
     void setTotalSizeCap(long totalSizeCap);
-
-    Future<?> cleanAsynchronously(Instant now);
+    Future<?> cleanAsynchronously(Date now);
 }

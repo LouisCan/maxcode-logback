@@ -21,8 +21,9 @@ import org.osgi.framework.FrameworkListener;
 
 public class FrameworkErrorListener implements FrameworkListener {
 
-    public List<FrameworkEvent> errorList = new ArrayList<FrameworkEvent>();
+    public List errorList = new ArrayList();
 
+    @SuppressWarnings("unchecked")
     public void frameworkEvent(FrameworkEvent fe) {
         if (fe.getType() == FrameworkEvent.ERROR) {
             errorList.add(fe);
@@ -35,8 +36,7 @@ public class FrameworkErrorListener implements FrameworkListener {
         if (t != null) {
             tString = t.toString();
         }
-        System.out.println(
-                "Framework ERROR:" + ", source " + fe.getSource() + ", bundle=" + fe.getBundle() + ", ex=" + tString);
+        System.out.println("Framework ERROR:" + ", source " + fe.getSource() + ", bundle=" + fe.getBundle() + ", ex=" + tString);
         if (t != null) {
             t.printStackTrace();
         }

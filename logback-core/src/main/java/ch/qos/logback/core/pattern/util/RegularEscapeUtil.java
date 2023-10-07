@@ -42,9 +42,8 @@ public class RegularEscapeUtil implements IEscapeUtil {
                 break;
             default:
                 String commaSeperatedEscapeChars = formatEscapeCharsForListing(escapeChars);
-                throw new IllegalArgumentException("Illegal char '" + next + " at column " + pointer
-                        + ". Only \\\\, \\_" + commaSeperatedEscapeChars
-                        + ", \\t, \\n, \\r combinations are allowed as escape characters.");
+                throw new IllegalArgumentException("Illegal char '" + next + " at column " + pointer + ". Only \\\\, \\_" + commaSeperatedEscapeChars
+                                + ", \\t, \\n, \\r combinations are allowed as escape characters.");
             }
     }
 
@@ -56,8 +55,6 @@ public class RegularEscapeUtil implements IEscapeUtil {
         return commaSeperatedEscapeChars.toString();
     }
 
-    // s might be path such as c:\\toto\\file.log
-    // as of version 1.3.0-beta1 this method is no longer used
     public static String basicEscape(String s) {
         char c;
         int len = s.length();
@@ -66,7 +63,7 @@ public class RegularEscapeUtil implements IEscapeUtil {
         int i = 0;
         while (i < len) {
             c = s.charAt(i++);
-            if (c == '\\' && i < len  ) {
+            if (c == '\\') {
                 c = s.charAt(i++);
                 if (c == 'n') {
                     c = '\n';
@@ -85,10 +82,9 @@ public class RegularEscapeUtil implements IEscapeUtil {
                 } else if (c == '\\') {
                     c = '\\';
                 }
-                /////
             }
             sbuf.append(c);
-        } // while
+        }
         return sbuf.toString();
     }
 }

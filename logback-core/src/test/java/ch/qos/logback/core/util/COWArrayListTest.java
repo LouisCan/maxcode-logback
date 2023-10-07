@@ -1,21 +1,21 @@
 package ch.qos.logback.core.util;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static org.junit.Assert.*;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 public class COWArrayListTest {
 
     Integer[] model = new Integer[0];
     COWArrayList<Integer> cowaList = new COWArrayList<Integer>(model);
 
-    @BeforeEach
+    @Before
     public void setUp() throws Exception {
     }
 
-    @AfterEach
+    @After
     public void tearDown() throws Exception {
     }
 
@@ -33,6 +33,7 @@ public class COWArrayListTest {
         assertArrayEquals(new Integer[] { 1 }, result);
     }
 
+    
     @Test
     public void basicToArrayTyped() {
         cowaList.add(1);

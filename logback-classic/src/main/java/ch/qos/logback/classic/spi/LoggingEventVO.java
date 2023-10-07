@@ -17,12 +17,9 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.time.Instant;
-import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Marker;
-import org.slf4j.event.KeyValuePair;
 import org.slf4j.helpers.MessageFormatter;
 
 import ch.qos.logback.classic.Level;
@@ -58,14 +55,9 @@ public class LoggingEventVO implements ILoggingEvent, Serializable {
 
     private ThrowableProxyVO throwableProxy;
     private StackTraceElement[] callerDataArray;
-    private List<Marker> markerList;
-    private List<KeyValuePair> keyValuePairList;
+    private Marker marker;
     private Map<String, String> mdcPropertyMap;
-
-    private long timestamp;
-    private int nanoseconds;
-
-    private long sequenceNumber;
+    private long timeStamp;
 
     public static LoggingEventVO build(ILoggingEvent le) {
         LoggingEventVO ledo = new LoggingEventVO();
@@ -75,12 +67,9 @@ public class LoggingEventVO implements ILoggingEvent, Serializable {
         ledo.level = (le.getLevel());
         ledo.message = (le.getMessage());
         ledo.argumentArray = (le.getArgumentArray());
-        ledo.markerList = le.getMarkerList();
-        ledo.keyValuePairList = le.getKeyValuePairs();
+        ledo.marker = le.getMarker();
         ledo.mdcPropertyMap = le.getMDCPropertyMap();
-        ledo.timestamp = le.getTimeStamp();
-        ledo.nanoseconds = le.getNanoseconds();
-        ledo.sequenceNumber = le.getSequenceNumber();
+        ledo.timeStamp = le.getTimeStamp();
         ledo.throwableProxy = ThrowableProxyVO.build(le.getThrowableProxy());
         // add caller data only if it is there already
         // fixes http://jira.qos.ch/browse/LBCLASSIC-145
@@ -140,18 +129,12 @@ public class LoggingEventVO implements ILoggingEvent, Serializable {
         return callerDataArray != null;
     }
 
-    public List<Marker> getMarkerList() {
-        return markerList;
+    public Marker getMarker() {
+        return marker;
     }
 
-    @Override
-    public long getTimeStamp() { return timestamp; }
-
-    @Override
-    public int getNanoseconds() {  return nanoseconds; }
-
-    public long getSequenceNumber() {
-        return sequenceNumber;
+    public long getTimeStamp() {
+        return timeStamp;
     }
 
     public long getContextBirthTime() {
@@ -168,11 +151,6 @@ public class LoggingEventVO implements ILoggingEvent, Serializable {
 
     public Map<String, String> getMdc() {
         return mdcPropertyMap;
-    }
-
-    @Override
-    public List<KeyValuePair> getKeyValuePairs() {
-        return this.keyValuePairList;
     }
 
     public void prepareForDeferredProcessing() {
@@ -217,12 +195,10 @@ public class LoggingEventVO implements ILoggingEvent, Serializable {
     @Override
     public int hashCode() {
         final int prime = 31;
-        long millis = getTimeStamp();
-
         int result = 1;
         result = prime * result + ((message == null) ? 0 : message.hashCode());
         result = prime * result + ((threadName == null) ? 0 : threadName.hashCode());
-        result = prime * result + (int) (millis ^ (millis >>> 32));
+        result = prime * result + (int) (timeStamp ^ (timeStamp >>> 32));
         return result;
     }
 
@@ -252,13 +228,13 @@ public class LoggingEventVO implements ILoggingEvent, Serializable {
                 return false;
         } else if (!threadName.equals(other.threadName))
             return false;
-        if (getTimeStamp() != other.getTimeStamp())
+        if (timeStamp != other.timeStamp)
             return false;
 
-        if (markerList == null) {
-            if (other.markerList != null)
+        if (marker == null) {
+            if (other.marker != null)
                 return false;
-        } else if (!markerList.equals(other.markerList))
+        } else if (!marker.equals(other.marker))
             return false;
 
         if (mdcPropertyMap == null) {
@@ -268,5 +244,4 @@ public class LoggingEventVO implements ILoggingEvent, Serializable {
             return false;
         return true;
     }
-
 }

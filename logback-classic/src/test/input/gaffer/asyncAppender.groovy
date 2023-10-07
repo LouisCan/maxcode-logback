@@ -21,7 +21,7 @@ def p = "HELLO"
 appender("STDOUT", ConsoleAppender) {
   encoder(LayoutWrappingEncoder) {
     layout(PatternLayout) {
-      pattern = "%m%n"
+      pattern = "${p} %m%n"
     }
   }
 }

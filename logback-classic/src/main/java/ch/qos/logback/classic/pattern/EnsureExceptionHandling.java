@@ -16,7 +16,6 @@ package ch.qos.logback.classic.pattern;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Context;
-import ch.qos.logback.core.pattern.CompositeConverter;
 import ch.qos.logback.core.pattern.Converter;
 import ch.qos.logback.core.pattern.ConverterUtil;
 import ch.qos.logback.core.pattern.PostCompileProcessor;
@@ -28,12 +27,13 @@ public class EnsureExceptionHandling implements PostCompileProcessor<ILoggingEve
      * exceptions. If not, then this method adds a
      * {@link ExtendedThrowableProxyConverter} instance to the end of the chain.
      * <p>
-     * This allows appenders using this layout to output exception information event
-     * if the user forgets to add %ex to the pattern. Note that the appenders
-     * defined in the Core package are not aware of exceptions nor LoggingEvents.
+     * This allows appenders using this layout to output exception information
+     * event if the user forgets to add %ex to the pattern. Note that the
+     * appenders defined in the Core package are not aware of exceptions nor
+     * LoggingEvents.
      * <p>
-     * If for some reason the user wishes to NOT print exceptions, then she can add
-     * %nopex to the pattern.
+     * If for some reason the user wishes to NOT print exceptions, then she can
+     * add %nopex to the pattern.
      * 
      * 
      */
@@ -56,44 +56,20 @@ public class EnsureExceptionHandling implements PostCompileProcessor<ILoggingEve
     }
 
     /**
-     * This method computes whether a chain of converters handles exceptions or not.
+     * This method computes whether a chain of converters handles exceptions or
+     * not.
      * 
-     * @param head The first element of the chain
-     * @return true if it can handle throwables contained in logging events
+     * @param head
+     *                The first element of the chain
+     * @return true if can handle throwables contained in logging events
      */
     public boolean chainHandlesThrowable(Converter<ILoggingEvent> head) {
         Converter<ILoggingEvent> c = head;
         while (c != null) {
             if (c instanceof ThrowableHandlingConverter) {
                 return true;
-            } else if (c instanceof CompositeConverter) {
-                if (compositeHandlesThrowable((CompositeConverter<ILoggingEvent>) c)) {
-                    return true;
-                }
             }
             c = c.getNext();
-        }
-        return false;
-    }
-
-    /**
-     * This method computes whether a composite converter handles exceptions or not.
-     *
-     * @param compositeConverter The composite converter
-     * @return true if it can handle throwables contained in logging events
-     */
-    public boolean compositeHandlesThrowable(CompositeConverter<ILoggingEvent> compositeConverter) {
-        Converter<ILoggingEvent> childConverter = compositeConverter.getChildConverter();
-
-        for (Converter<ILoggingEvent> c = childConverter; c != null; c = c.getNext()) {
-            if (c instanceof ThrowableHandlingConverter) {
-                return true;
-            } else if (c instanceof CompositeConverter) {
-                boolean r = compositeHandlesThrowable((CompositeConverter<ILoggingEvent>) c);
-                if (r)
-                    return true;
-            }
-
         }
         return false;
     }

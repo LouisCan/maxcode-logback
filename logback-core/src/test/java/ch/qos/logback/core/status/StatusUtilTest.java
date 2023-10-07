@@ -16,10 +16,10 @@ package ch.qos.logback.core.status;
 import ch.qos.logback.core.Context;
 import ch.qos.logback.core.ContextBase;
 import ch.qos.logback.core.CoreConstants;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Ceki G&uuml;lc&uuml;

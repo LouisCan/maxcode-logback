@@ -1,6 +1,6 @@
 /**
  * Logback: the reliable, generic, fast and flexible logging framework.
- * Copyright (C) 1999-2022, QOS.ch. All rights reserved.
+ * Copyright (C) 1999-2015, QOS.ch. All rights reserved.
  *
  * This program and the accompanying materials are dual-licensed under
  * either the terms of the Eclipse Public License v1.0 as published by
@@ -13,26 +13,28 @@
  */
 package ch.qos.logback.core.joran;
 
-import ch.qos.logback.core.joran.action.*;
-import ch.qos.logback.core.joran.conditional.ElseAction;
-import ch.qos.logback.core.joran.conditional.IfAction;
-import ch.qos.logback.core.joran.conditional.ThenAction;
-import ch.qos.logback.core.joran.sanity.AppenderWithinAppenderSanityChecker;
-import ch.qos.logback.core.joran.sanity.SanityChecker;
+import java.util.HashMap;
+import java.util.Map;
+
+import ch.qos.logback.core.Appender;
+import ch.qos.logback.core.joran.action.ActionConst;
+import ch.qos.logback.core.joran.action.AppenderAction;
+import ch.qos.logback.core.joran.action.AppenderRefAction;
+import ch.qos.logback.core.joran.action.ContextPropertyAction;
+import ch.qos.logback.core.joran.action.ConversionRuleAction;
+import ch.qos.logback.core.joran.action.DefinePropertyAction;
+import ch.qos.logback.core.joran.action.NestedBasicPropertyIA;
+import ch.qos.logback.core.joran.action.NestedComplexPropertyIA;
+import ch.qos.logback.core.joran.action.NewRuleAction;
+import ch.qos.logback.core.joran.action.ParamAction;
+import ch.qos.logback.core.joran.action.PropertyAction;
+import ch.qos.logback.core.joran.action.ShutdownHookAction;
+import ch.qos.logback.core.joran.action.StatusListenerAction;
+import ch.qos.logback.core.joran.action.TimestampAction;
 import ch.qos.logback.core.joran.spi.ElementSelector;
+import ch.qos.logback.core.joran.spi.InterpretationContext;
+import ch.qos.logback.core.joran.spi.Interpreter;
 import ch.qos.logback.core.joran.spi.RuleStore;
-import ch.qos.logback.core.joran.spi.SaxEventInterpretationContext;
-import ch.qos.logback.core.joran.spi.SaxEventInterpreter;
-import ch.qos.logback.core.model.*;
-import ch.qos.logback.core.model.conditional.ElseModel;
-import ch.qos.logback.core.model.conditional.IfModel;
-import ch.qos.logback.core.model.conditional.ThenModel;
-import ch.qos.logback.core.model.processor.*;
-import ch.qos.logback.core.model.processor.conditional.ElseModelHandler;
-import ch.qos.logback.core.model.processor.conditional.IfModelHandler;
-import ch.qos.logback.core.model.processor.conditional.ThenModelHandler;
-import ch.qos.logback.core.sift.SiftModelHandler;
-import ch.qos.logback.core.spi.ContextAware;
 
 // Based on 310985 revision 310985 as attested by http://tinyurl.com/8njps
 // see also http://tinyurl.com/c2rp5
@@ -40,117 +42,63 @@ import ch.qos.logback.core.spi.ContextAware;
 /**
  * A JoranConfiguratorBase lays most of the groundwork for concrete
  * configurators derived from it. Concrete configurators only need to implement
- * the {@link #addElementSelectorAndActionAssociations} method.
+ * the {@link #addInstanceRules} method.
  * <p>
  * A JoranConfiguratorBase instance should not be used more than once to
  * configure a Context.
  *
  * @author Ceki G&uuml;lc&uuml;
  */
-abstract public class JoranConfiguratorBase<E> extends GenericXMLConfigurator {
+abstract public class JoranConfiguratorBase<E> extends GenericConfigurator {
 
     @Override
-    protected void addElementSelectorAndActionAssociations(RuleStore rs) {
+    protected void addInstanceRules(RuleStore rs) {
 
-        // is "*/variable" referenced in the docs?
-        rs.addRule(new ElementSelector("*/variable"), PropertyAction::new);
-        rs.addRule(new ElementSelector("*/property"),  PropertyAction::new);
-        // substitutionProperty is deprecated
-        rs.addRule(new ElementSelector("*/substitutionProperty"),  PropertyAction::new);
+        // is "configuration/variable" referenced in the docs?
+        rs.addRule(new ElementSelector("configuration/variable"), new PropertyAction());
+        rs.addRule(new ElementSelector("configuration/property"), new PropertyAction());
 
-        rs.addRule(new ElementSelector("configuration/import"), ImportAction::new);
-        
+        rs.addRule(new ElementSelector("configuration/substitutionProperty"), new PropertyAction());
 
-        rs.addRule(new ElementSelector("configuration/timestamp"),  TimestampAction::new);
-        rs.addRule(new ElementSelector("configuration/shutdownHook"),  ShutdownHookAction::new);
-        rs.addRule(new ElementSelector("configuration/sequenceNumberGenerator"),  SequenceNumberGeneratorAction::new);
-        rs.addRule(new ElementSelector("configuration/serializeModel"),  SerializeModelAction::new);
-
-        rs.addRule(new ElementSelector("configuration/define"),  DefinePropertyAction::new);
-        rs.addRule(new ElementSelector("configuration/evaluator"),  EventEvaluatorAction::new);
+        rs.addRule(new ElementSelector("configuration/timestamp"), new TimestampAction());
+        rs.addRule(new ElementSelector("configuration/shutdownHook"), new ShutdownHookAction());
+        rs.addRule(new ElementSelector("configuration/define"), new DefinePropertyAction());
 
         // the contextProperty pattern is deprecated. It is undocumented
         // and will be dropped in future versions of logback
-        rs.addRule(new ElementSelector("configuration/contextProperty"),  ContextPropertyAction::new);
+        rs.addRule(new ElementSelector("configuration/contextProperty"), new ContextPropertyAction());
 
-        rs.addRule(new ElementSelector("configuration/conversionRule"),  ConversionRuleAction::new);
+        rs.addRule(new ElementSelector("configuration/conversionRule"), new ConversionRuleAction());
 
-        rs.addRule(new ElementSelector("configuration/statusListener"),  StatusListenerAction::new);
+        rs.addRule(new ElementSelector("configuration/statusListener"), new StatusListenerAction());
 
-        rs.addRule(new ElementSelector("*/appender"),  AppenderAction::new);
-        rs.addRule(new ElementSelector("configuration/appender/appender-ref"),  AppenderRefAction::new);
-        rs.addRule(new ElementSelector("configuration/newRule"),  NewRuleAction::new);
-
-        rs.addRule(new ElementSelector("*/param"),  ParamAction::new);
-
-        // add if-then-else support
-        rs.addRule(new ElementSelector("*/if"),  IfAction::new);
-        rs.addTransparentPathPart("if");
-        rs.addRule(new ElementSelector("*/if/then"),  ThenAction::new);
-        rs.addTransparentPathPart("then");
-        rs.addRule(new ElementSelector("*/if/else"),  ElseAction::new);
-        rs.addTransparentPathPart("else");
-        
-        rs.addRule(new ElementSelector("*/appender/sift"),  SiftAction::new);
-        rs.addTransparentPathPart("sift");
-        
-        
-    }
-
-    /**
-     * Perform sanity check and issue warning if necessary.
-     *
-     * @param topModel
-     */
-    protected void sanityCheck(Model topModel) {
-        performCheck(new AppenderWithinAppenderSanityChecker(), topModel);
-    }
-
-    protected void performCheck(SanityChecker sc, Model model) {
-        if(sc instanceof ContextAware)
-            ((ContextAware) sc).setContext(context);
-        sc.check(model);
+        rs.addRule(new ElementSelector("configuration/appender"), new AppenderAction<E>());
+        rs.addRule(new ElementSelector("configuration/appender/appender-ref"), new AppenderRefAction<E>());
+        rs.addRule(new ElementSelector("configuration/newRule"), new NewRuleAction());
+        rs.addRule(new ElementSelector("*/param"), new ParamAction(getBeanDescriptionCache()));
     }
 
     @Override
-    protected void setImplicitRuleSupplier(SaxEventInterpreter interpreter) {
-        interpreter.setImplicitActionSupplier(  ImplicitModelAction::new );
+    protected void addImplicitRules(Interpreter interpreter) {
+        // The following line adds the capability to parse nested components
+        NestedComplexPropertyIA nestedComplexPropertyIA = new NestedComplexPropertyIA(getBeanDescriptionCache());
+        nestedComplexPropertyIA.setContext(context);
+        interpreter.addImplicitAction(nestedComplexPropertyIA);
+
+        NestedBasicPropertyIA nestedBasicIA = new NestedBasicPropertyIA(getBeanDescriptionCache());
+        nestedBasicIA.setContext(context);
+        interpreter.addImplicitAction(nestedBasicIA);
     }
 
     @Override
-    public void buildModelInterpretationContext() {
-        super.buildModelInterpretationContext();
-        modelInterpretationContext.createAppenderBags();
+    protected void buildInterpreter() {
+        super.buildInterpreter();
+        Map<String, Object> omap = interpreter.getInterpretationContext().getObjectMap();
+        omap.put(ActionConst.APPENDER_BAG, new HashMap<String, Appender<?>>());
+        //omap.put(ActionConst.FILTER_CHAIN_BAG, new HashMap());
     }
 
-    public SaxEventInterpretationContext getInterpretationContext() {
-        return saxEventInterpreter.getSaxEventInterpretationContext();
+    public InterpretationContext getInterpretationContext() {
+        return interpreter.getInterpretationContext();
     }
-
-    @Override
-    protected void addModelHandlerAssociations(DefaultProcessor defaultProcessor) {
-        defaultProcessor.addHandler(ImportModel.class, ImportModelHandler::makeInstance);
-
-        defaultProcessor.addHandler(ShutdownHookModel.class, ShutdownHookModelHandler::makeInstance);
-        defaultProcessor.addHandler(SequenceNumberGeneratorModel.class, SequenceNumberGeneratorModelHandler::makeInstance);
-
-        defaultProcessor.addHandler(EventEvaluatorModel.class, EventEvaluatorModelHandler::makeInstance);
-        defaultProcessor.addHandler(DefineModel.class, DefineModelHandler::makeInstance);
-        defaultProcessor.addHandler(IncludeModel.class, NOPModelHandler::makeInstance);
-
-        
-        defaultProcessor.addHandler(ParamModel.class, ParamModelHandler::makeInstance);
-        defaultProcessor.addHandler(PropertyModel.class, PropertyModelHandler::makeInstance);
-        defaultProcessor.addHandler(TimestampModel.class, TimestampModelHandler::makeInstance);
-        defaultProcessor.addHandler(StatusListenerModel.class, StatusListenerModelHandler::makeInstance);
-        defaultProcessor.addHandler(ImplicitModel.class, ImplicitModelHandler::makeInstance);
-        
-        defaultProcessor.addHandler(IfModel.class, IfModelHandler::makeInstance);
-        defaultProcessor.addHandler(ThenModel.class, ThenModelHandler::makeInstance);
-        defaultProcessor.addHandler(ElseModel.class, ElseModelHandler::makeInstance);
-        
-        defaultProcessor.addHandler(SiftModel.class, SiftModelHandler::makeInstance);
-        
-    }
-
 }

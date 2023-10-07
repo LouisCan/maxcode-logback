@@ -16,27 +16,25 @@ package ch.qos.logback.core.issue.LOGBACK_849;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import org.junit.Ignore;
+import org.junit.Test;
 
 import ch.qos.logback.core.Context;
 import ch.qos.logback.core.ContextBase;
 import ch.qos.logback.core.util.ExecutorServiceUtil;
-import org.junit.jupiter.api.Timeout;
 
 public class Basic {
 
     ExecutorService executor = ExecutorServiceUtil.newScheduledExecutorService();
     Context context = new ContextBase();
 
-    @Test
-    @Timeout(value=100, unit=TimeUnit.MILLISECONDS)
+    @Test(timeout = 100)
     public void withNoSubmittedTasksShutdownNowShouldReturnImmediately() throws InterruptedException {
         executor.shutdownNow();
         executor.awaitTermination(5000, TimeUnit.MILLISECONDS);
     }
 
-    @Disabled
+    @Ignore
     @Test
     public void withOneSlowTask() throws InterruptedException {
         executor.execute(new InterruptIgnoring(1000));
@@ -61,7 +59,7 @@ public class Basic {
                     long sleep = runUntil - System.currentTimeMillis();
                     System.out.println("will sleep " + sleep);
                     if (sleep > 0) {
-                        Thread.sleep(delay);
+                        Thread.currentThread().sleep(delay);
                     } else {
                         return;
                     }

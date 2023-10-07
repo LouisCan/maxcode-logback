@@ -13,6 +13,8 @@
  */
 package ch.qos.logback.core.util;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -22,8 +24,9 @@ import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
+
+import ch.qos.logback.core.util.LocationUtil;
 
 /**
  * Unit tests for {@link LocationUtil}.
@@ -53,18 +56,14 @@ public class LocationUtilTest {
         validateResource(url);
     }
 
-    @Test
+    @Test(expected = MalformedURLException.class)
     public void testExplicitClasspathUrlEmptyPath() throws Exception {
-        Assertions.assertThrows(MalformedURLException.class, () -> {
-            LocationUtil.urlForResource(LocationUtil.CLASSPATH_SCHEME);
-        });
+        LocationUtil.urlForResource(LocationUtil.CLASSPATH_SCHEME);
     }
 
-    @Test
+    @Test(expected = MalformedURLException.class)
     public void testExplicitClasspathUrlWithRootPath() throws Exception {
-        Assertions.assertThrows(MalformedURLException.class, () -> {
-            LocationUtil.urlForResource(LocationUtil.CLASSPATH_SCHEME + "/");
-        });
+        LocationUtil.urlForResource(LocationUtil.CLASSPATH_SCHEME + "/");
     }
 
     @Test
@@ -83,7 +82,7 @@ public class LocationUtilTest {
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
             String line = reader.readLine();
-            Assertions.assertEquals(TEST_PATTERN, line);
+            assertEquals(TEST_PATTERN, line);
         } finally {
             try {
                 inputStream.close();

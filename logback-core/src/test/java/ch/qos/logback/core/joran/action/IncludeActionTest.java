@@ -13,6 +13,9 @@
  */
 package ch.qos.logback.core.joran.action;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -21,12 +24,10 @@ import java.net.MalformedURLException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Stack;
-import java.util.function.Supplier;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import org.xml.sax.SAXParseException;
 
 import ch.qos.logback.core.Context;
@@ -35,17 +36,11 @@ import ch.qos.logback.core.joran.TrivialConfigurator;
 import ch.qos.logback.core.joran.action.ext.StackAction;
 import ch.qos.logback.core.joran.spi.ElementSelector;
 import ch.qos.logback.core.joran.spi.JoranException;
-import ch.qos.logback.core.model.IncludeModel;
-import ch.qos.logback.core.model.StackModel;
-import ch.qos.logback.core.model.TopModel;
-import ch.qos.logback.core.model.processor.DefaultProcessor;
-import ch.qos.logback.core.model.processor.NOPModelHandler;
-import ch.qos.logback.core.model.processor.StackModelHandler;
 import ch.qos.logback.core.status.Status;
-import ch.qos.logback.core.testUtil.CoreTestConstants;
+import ch.qos.logback.core.status.StatusChecker;
 import ch.qos.logback.core.testUtil.FileTestUtil;
 import ch.qos.logback.core.testUtil.RandomUtil;
-import ch.qos.logback.core.status.testUtil.StatusChecker;
+import ch.qos.logback.core.util.CoreTestConstants;
 import ch.qos.logback.core.util.StatusPrinter;
 
 public class IncludeActionTest {
@@ -89,30 +84,21 @@ public class IncludeActionTest {
 
     int diff = RandomUtil.getPositiveInt();
 
+    StackAction stackAction = new StackAction();
 
-    @BeforeEach
+    @Before
     public void setUp() throws Exception {
         FileTestUtil.makeTestOutputDir();
-        HashMap<ElementSelector, Supplier<Action>> rulesMap = new HashMap<>();
-        rulesMap.put(new ElementSelector("x"), () -> new TopElementAction());
-        rulesMap.put(new ElementSelector("x/include"), () -> new IncludeAction());
-        rulesMap.put(new ElementSelector("x/stack"), () -> new StackAction());
+        HashMap<ElementSelector, Action> rulesMap = new HashMap<ElementSelector, Action>();
+        rulesMap.put(new ElementSelector("x"), new NOPAction());
+        rulesMap.put(new ElementSelector("x/include"), new IncludeAction());
+        rulesMap.put(new ElementSelector("x/stack"), stackAction);
 
-        tc = new TrivialConfigurator(rulesMap) {
-            
-            
-            @Override
-            protected void addModelHandlerAssociations(DefaultProcessor defaultProcessor) {
-                defaultProcessor.addHandler(TopModel.class, NOPModelHandler::makeInstance);
-                defaultProcessor.addHandler(IncludeModel.class, NOPModelHandler::makeInstance);
-                defaultProcessor.addHandler(StackModel.class, StackModelHandler::makeInstance);
-            }
-        };
-
+        tc = new TrivialConfigurator(rulesMap);
         tc.setContext(context);
     }
 
-    @AfterEach
+    @After
     public void tearDown() throws Exception {
         StatusPrinter.printInCaseOfErrorsOrWarnings(context);
         context = null;
@@ -126,7 +112,6 @@ public class IncludeActionTest {
     public void basicFile() throws JoranException {
         System.setProperty(INCLUDE_KEY, INCLUDED_FILE);
         tc.doConfigure(TOP_BY_FILE);
-        StatusPrinter.print(context);
         verifyConfig(new String[] { "IA", "IB" });
     }
 
@@ -142,7 +127,7 @@ public class IncludeActionTest {
         tc.doConfigure(TOP_OPTIONAL_RESOURCE);
         verifyConfig(new String[] { "IA", "IB" });
         StatusPrinter.print(context);
-        Assertions.assertEquals(Status.INFO, statusChecker.getHighestLevel(0));
+        assertEquals(Status.INFO, statusChecker.getHighestLevel(0));
     }
 
     @Test
@@ -156,7 +141,6 @@ public class IncludeActionTest {
     public void basicURL() throws JoranException {
         System.setProperty(INCLUDE_KEY, URL_TO_INCLUDE);
         tc.doConfigure(TOP_BY_URL);
-        StatusPrinter.print(context);
         verifyConfig(new String[] { "IA", "IB" });
     }
 
@@ -164,7 +148,7 @@ public class IncludeActionTest {
     public void noFileFound() throws JoranException {
         System.setProperty(INCLUDE_KEY, "toto");
         tc.doConfigure(TOP_BY_FILE);
-        Assertions.assertEquals(Status.WARN, statusChecker.getHighestLevel(0));
+        assertEquals(Status.WARN, statusChecker.getHighestLevel(0));
     }
 
     @Test
@@ -172,15 +156,15 @@ public class IncludeActionTest {
         String tmpOut = copyToTemp(INVALID);
         System.setProperty(INCLUDE_KEY, tmpOut);
         tc.doConfigure(TOP_BY_FILE);
-        Assertions.assertEquals(Status.ERROR, statusChecker.getHighestLevel(0));
+        assertEquals(Status.ERROR, statusChecker.getHighestLevel(0));
         StatusPrinter.print(context);
-        Assertions.assertTrue(statusChecker.containsException(SAXParseException.class));
+        assertTrue(statusChecker.containsException(SAXParseException.class));
 
         // we like to erase the temp file in order to see
         // if http://jira.qos.ch/browse/LBCORE-122 was fixed
         File f = new File(tmpOut);
-        Assertions.assertTrue(f.exists());
-        Assertions.assertTrue(f.delete());
+        assertTrue(f.exists());
+        assertTrue(f.delete());
 
     }
 
@@ -199,19 +183,18 @@ public class IncludeActionTest {
 
     @Test
     public void malformedURL() throws JoranException {
-        String MALFORMED = "htp://logback.qos.ch";
-
+    	String MALFORMED = "htp://logback.qos.ch";
         System.setProperty(INCLUDE_KEY, MALFORMED);
         tc.doConfigure(TOP_BY_URL);
-        Assertions.assertEquals(Status.ERROR, statusChecker.getHighestLevel(0));
-        Assertions.assertTrue(statusChecker.containsException(MalformedURLException.class));
+        assertEquals(Status.ERROR, statusChecker.getHighestLevel(0));
+        assertTrue(statusChecker.containsException(MalformedURLException.class));
     }
 
     @Test
     public void unknownURL() throws JoranException {
         System.setProperty(INCLUDE_KEY, "http://logback2345.qos.ch");
         tc.doConfigure(TOP_BY_URL);
-        Assertions.assertEquals(Status.WARN, statusChecker.getHighestLevel(0));
+        assertEquals(Status.WARN, statusChecker.getHighestLevel(0));
     }
 
     @Test
@@ -219,13 +202,11 @@ public class IncludeActionTest {
         System.setProperty(SUB_FILE_KEY, SUB_FILE);
         System.setProperty(INCLUDE_KEY, INTERMEDIARY_FILE);
         tc.doConfigure(TOP_BY_FILE);
-        Stack<String> expected = new Stack<String>();
-        expected.push("a");
-        expected.push("b");
-        expected.push("c");
-        @SuppressWarnings({ "unchecked", "rawtypes" })
-        Stack<String> aStack = (Stack) context.getObject(StackModelHandler.STACK_TEST);
-        Assertions.assertEquals(expected, aStack);
+        Stack<String> witness = new Stack<String>();
+        witness.push("a");
+        witness.push("b");
+        witness.push("c");
+        assertEquals(witness, stackAction.getStack());
     }
 
     @Test
@@ -235,31 +216,22 @@ public class IncludeActionTest {
         tc.doConfigure(MULTI_INCLUDE_BY_FILE);
         verifyConfig(new String[] { "IA", "IB", "SECOND" });
     }
-
-    // See LOGBACK-1465 - xxe vulnerability
+    
     @Test
     public void includeAsEntity() throws JoranException {
         tc.doConfigure(TOP_BY_ENTITY);
-        // when entity inclusion is enabled
-        // verifyConfig(new String[] { "EA", "EB" });
-
-        // when entity inclusion disabled
-        verifyConfig(null);
-    }
-
-    void verifyConfig(String[] expected) {
-        @SuppressWarnings({ "unchecked", "rawtypes" })
-        Stack<String> aStack = (Stack) context.getObject(StackModelHandler.STACK_TEST);
-
-        if(expected == null) {
-            Assertions.assertNull(aStack);
-            return;
-        } 
         
+        // entity inclusion disabled
+        // verifyConfig(new String[] { "EA", "EB" });
+        verifyConfig(new String[] { });
+    }
+    
+    void verifyConfig(String[] expected) {
         Stack<String> witness = new Stack<String>();
         witness.addAll(Arrays.asList(expected));
-            
-        Assertions.assertEquals(witness, aStack);
+        assertEquals(witness, stackAction.getStack());
     }
 
+
+    
 }

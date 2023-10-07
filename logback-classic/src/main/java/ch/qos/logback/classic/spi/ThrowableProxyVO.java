@@ -26,7 +26,6 @@ public class ThrowableProxyVO implements IThrowableProxy, Serializable {
     private StackTraceElementProxy[] stackTraceElementProxyArray;
     private IThrowableProxy cause;
     private IThrowableProxy[] suppressed;
-    private boolean cyclic;
 
     public String getMessage() {
         return message;
@@ -50,10 +49,6 @@ public class ThrowableProxyVO implements IThrowableProxy, Serializable {
 
     public IThrowableProxy[] getSuppressed() {
         return suppressed;
-    }
-
-    public boolean isCyclic() {
-        return cyclic;
     }
 
     @Override
@@ -104,8 +99,6 @@ public class ThrowableProxyVO implements IThrowableProxy, Serializable {
         tpvo.message = throwableProxy.getMessage();
         tpvo.commonFramesCount = throwableProxy.getCommonFrames();
         tpvo.stackTraceElementProxyArray = throwableProxy.getStackTraceElementProxyArray();
-        tpvo.cyclic = throwableProxy.isCyclic();
-
         IThrowableProxy cause = throwableProxy.getCause();
         if (cause != null) {
             tpvo.cause = ThrowableProxyVO.build(cause);
@@ -117,7 +110,6 @@ public class ThrowableProxyVO implements IThrowableProxy, Serializable {
                 tpvo.suppressed[i] = ThrowableProxyVO.build(suppressed[i]);
             }
         }
-
         return tpvo;
     }
 }

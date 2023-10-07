@@ -13,13 +13,16 @@
  */
 package ch.qos.logback.core.appender;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
+
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.Context;
 import ch.qos.logback.core.ContextBase;
-import ch.qos.logback.core.status.testUtil.StatusChecker;
+import ch.qos.logback.core.status.StatusChecker;
 import ch.qos.logback.core.util.StatusPrinter;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 
 abstract public class AbstractAppenderTest<E> {
 
@@ -33,17 +36,17 @@ abstract public class AbstractAppenderTest<E> {
     public void testNewAppender() {
         // new appenders should be inactive
         Appender<E> appender = getAppender();
-        Assertions.assertFalse(appender.isStarted());
+        assertFalse(appender.isStarted());
     }
 
     @Test
     public void testConfiguredAppender() {
         Appender<E> appender = getConfiguredAppender();
         appender.start();
-        Assertions.assertTrue(appender.isStarted());
+        assertTrue(appender.isStarted());
 
         appender.stop();
-        Assertions.assertFalse(appender.isStarted());
+        assertFalse(appender.isStarted());
 
     }
 

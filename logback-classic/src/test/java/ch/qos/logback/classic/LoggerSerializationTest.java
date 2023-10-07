@@ -1,17 +1,20 @@
 /**
  * Logback: the reliable, generic, fast and flexible logging framework.
  * Copyright (C) 1999-2015, QOS.ch. All rights reserved.
- * <p>
+ *
  * This program and the accompanying materials are dual-licensed under
  * either the terms of the Eclipse Public License v1.0 as published by
  * the Eclipse Foundation
- * <p>
- * or (per the licensee's choosing)
- * <p>
+ *
+ *   or (per the licensee's choosing)
+ *
  * under the terms of the GNU Lesser General Public License version 2.1
  * as published by the Free Software Foundation.
  */
 package ch.qos.logback.classic;
+
+import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -21,23 +24,20 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.net.server.HardenedLoggingEventInputStream;
 import ch.qos.logback.core.net.HardenedObjectInputStream;
-import ch.qos.logback.core.testUtil.CoreTestConstants;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import ch.qos.logback.core.util.CoreTestConstants;
 
 public class LoggerSerializationTest {
 
     static final String SERIALIZATION_PREFIX = CoreTestConstants.TEST_INPUT_PREFIX + "/serialization/";
 
-    // force SLF4J initialization for subsequent Logger readResolve operation
+    // force SLF4J initialization for subsequent Logger readResolce ooperaiton
     org.slf4j.Logger unused = LoggerFactory.getLogger(this.getClass());
     LoggerContext lc;
     Logger logger;
@@ -46,8 +46,8 @@ public class LoggerSerializationTest {
     ObjectOutputStream oos;
     HardenedLoggingEventInputStream hardenedLoggingEventInputStream;
     List<String> whitelist = new ArrayList<String>();
-
-    @BeforeEach
+    
+    @Before
     public void setUp() throws Exception {
         lc = new LoggerContext();
         lc.setName("testContext");
@@ -58,7 +58,7 @@ public class LoggerSerializationTest {
         whitelist.add(Foo.class.getName());
     }
 
-    @AfterEach
+    @After
     public void tearDown() throws Exception {
         lc = null;
         logger = null;
@@ -113,16 +113,15 @@ public class LoggerSerializationTest {
         oos.close();
         int sizeB = bos.size();
 
-        assertTrue(sizeA < 100, "serialized logger should be less than 100 bytes");
+        assertTrue("serialized logger should be less than 100 bytes", sizeA < 100);
         // logger tree should not influnce serialization
-        assertTrue((sizeA - sizeB) < 10,
-                "serialized loggers should be nearly the same size a:" + sizeA + ", sizeB:" + sizeB);
+        assertTrue("serialized loggers should be nearly the same size a:" + sizeA + ", sizeB:" + sizeB, (sizeA - sizeB) < 10);
     }
 
     private Foo writeAndRead(Foo foo) throws IOException, ClassNotFoundException {
         writeObject(oos, foo);
         ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
-        hardenedLoggingEventInputStream = new HardenedLoggingEventInputStream(bis, whitelist);
+        hardenedLoggingEventInputStream =  new HardenedLoggingEventInputStream(bis, whitelist);
         Foo fooBack = readFooObject(hardenedLoggingEventInputStream);
         hardenedLoggingEventInputStream.close();
         return fooBack;
@@ -145,23 +144,19 @@ public class LoggerSerializationTest {
     @Test
     public void testCompatibilityWith_v1_0_11() throws IOException, ClassNotFoundException {
         FileInputStream fis = new FileInputStream(SERIALIZATION_PREFIX + "logger_v1.0.11.ser");
-        HardenedObjectInputStream ois = new HardenedLoggingEventInputStream(fis); // new String[]
-        // {Logger.class.getName(),
-        // LoggerRemoteView.class.getName()});
+        HardenedObjectInputStream ois = new HardenedLoggingEventInputStream(fis); // new String[] {Logger.class.getName(), LoggerRemoteView.class.getName()});
         Logger a = (Logger) ois.readObject();
         ois.close();
         assertEquals("a", a.getName());
     }
 
-    // interestingly enough, logback 1.0.11 and earlier can also read loggers
-    // serialized by 1.0.12.
-    // fields not serialized are set to their default values and since the fields
-    // are not
+    // interestingly enough, logback 1.0.11 and earlier can also read loggers serialized by 1.0.12.
+    // fields not serialized are set to their default values and since the fields are not
     // used, it works out nicely
     @Test
     public void testCompatibilityWith_v1_0_12() throws IOException, ClassNotFoundException {
         FileInputStream fis = new FileInputStream(SERIALIZATION_PREFIX + "logger_v1.0.12.ser");
-        HardenedObjectInputStream ois = new HardenedObjectInputStream(fis, new String[]{Logger.class.getName()});
+        HardenedObjectInputStream ois = new HardenedObjectInputStream(fis, new String[] {Logger.class.getName()});
         Logger a = (Logger) ois.readObject();
         ois.close();
         assertEquals("a", a.getName());

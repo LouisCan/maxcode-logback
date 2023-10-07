@@ -13,8 +13,6 @@
  */
 package ch.qos.logback.core.pattern.parser;
 
-import java.util.List;
-
 class Token {
 
     static final int PERCENT = 37;
@@ -35,42 +33,27 @@ class Token {
 
     static Token EOF_TOKEN = new Token(EOF, "EOF");
     static Token RIGHT_PARENTHESIS_TOKEN = new Token(RIGHT_PARENTHESIS);
-    // BARE as in naked. Used for formatting purposes
     static Token BARE_COMPOSITE_KEYWORD_TOKEN = new Token(COMPOSITE_KEYWORD, "BARE");
     static Token PERCENT_TOKEN = new Token(PERCENT);
 
     private final int type;
-    private final String value;
-    private final List<String> optionsList;
+    private final Object value;
 
     public Token(int type) {
-        this(type, null, null);
+        this(type, null);
     }
 
-    public Token(int type, String value) {
-        this(type, value, null);
-    }
-
-    public Token(int type, List<String> optionsList) {
-        this(type, null, optionsList);
-    }
-
-    public Token(int type, String value, List<String> optionsList) {
+    public Token(int type, Object value) {
         this.type = type;
         this.value = value;
-        this.optionsList = optionsList;
     }
 
     public int getType() {
         return type;
     }
 
-    public String getValue() {
+    public Object getValue() {
         return value;
-    }
-
-    public List<String> getOptionsList() {
-        return optionsList;
     }
 
     public String toString() {

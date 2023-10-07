@@ -14,11 +14,10 @@
 package ch.qos.logback.core.spi;
 
 import ch.qos.logback.core.helpers.CyclicBuffer;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
 
 /**
  * @author Ceki G&uuml;lc&uuml;

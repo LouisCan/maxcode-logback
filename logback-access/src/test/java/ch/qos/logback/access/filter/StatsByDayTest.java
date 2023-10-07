@@ -13,10 +13,11 @@
  */
 package ch.qos.logback.access.filter;
 
-import ch.qos.logback.core.util.TimeUtil;
-import org.junit.jupiter.api.Test;
+import static org.junit.Assert.assertEquals;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.Test;
+
+import ch.qos.logback.core.util.TimeUtil;
 
 public class StatsByDayTest {
 

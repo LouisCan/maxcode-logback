@@ -13,48 +13,41 @@
  */
 package ch.qos.logback.access.pattern;
 
+import static org.junit.Assert.assertEquals;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.servlet.http.Cookie;
+
+import ch.qos.logback.access.spi.IAccessEvent;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import ch.qos.logback.access.dummy.DummyRequest;
 import ch.qos.logback.access.dummy.DummyResponse;
 import ch.qos.logback.access.dummy.DummyServerAdapter;
-import ch.qos.logback.access.spi.AccessContext;
 import ch.qos.logback.access.spi.AccessEvent;
-import ch.qos.logback.access.spi.IAccessEvent;
-import ch.qos.logback.core.CoreConstants;
-import ch.qos.logback.core.model.TimestampModel;
-import jakarta.servlet.http.Cookie;
-import org.assertj.core.util.Lists;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ConverterTest {
 
-    AccessEvent event;
-    DummyRequest request = new DummyRequest();
-    DummyResponse response = new DummyResponse();
-    AccessContext accessContext = new AccessContext();
+    IAccessEvent event;
+    DummyRequest request;
+    DummyResponse response;
 
-    Locale defaultLocale = Locale.getDefault();
-
-    @BeforeEach
+    @Before
     public void setUp() throws Exception {
+        request = new DummyRequest();
+        response = new DummyResponse();
         event = createEvent();
     }
 
-    @AfterEach
+    @After
     public void tearDown() throws Exception {
         event = null;
         request = null;
         response = null;
-        Locale.setDefault(defaultLocale);
     }
 
     @Test
@@ -72,26 +65,6 @@ public class ConverterTest {
         String result = converter.convert(event);
         assertEquals(converter.cachingDateFormatter.format(event.getTimeStamp()), result);
     }
-
-    @Test
-    public void testDateConverter_AU_locale() {
-        DateConverter converter = new DateConverter();
-        List<String> optionsList = Lists.list(CoreConstants.CLF_DATE_PATTERN, "Australia/Sydney", "en-AU");
-
-        converter.setOptionList(optionsList);
-        converter.start();
-        Instant instant = Instant.parse("2022-10-21T10:30:20.800Z");
-
-        System.out.println(instant.toEpochMilli());
-
-        event.setTimeStamp(instant.toEpochMilli());
-        String result = converter.convert(event);
-        assertEquals("21/Oct/2022:21:30:20 +1100", result);
-        System.out.println(result);
-
-        assertEquals(converter.cachingDateFormatter.format(event.getTimeStamp()), result);
-    }
-
 
     public void testLineLocalPortConverter() {
         LocalPortConverter converter = new LocalPortConverter();
@@ -218,9 +191,9 @@ public class ConverterTest {
         assertEquals(Integer.toString(event.getServerAdapter().getStatusCode()), result);
     }
 
-    private AccessEvent createEvent() {
+    private IAccessEvent createEvent() {
         DummyServerAdapter dummyAdapter = new DummyServerAdapter(request, response);
-        return new AccessEvent(accessContext, request, response, dummyAdapter);
+        return new AccessEvent(request, response, dummyAdapter);
     }
 
 }

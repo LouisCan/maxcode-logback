@@ -15,17 +15,12 @@ package ch.qos.logback.classic.spi;
 
 import java.io.Serializable;
 
-@Deprecated
 public class ClassPackagingData implements Serializable {
 
     private static final long serialVersionUID = -804643281218337001L;
-    String codeLocation;
-    String version;
-    boolean exact;
-
-    public ClassPackagingData() {
-
-    }
+    final String codeLocation;
+    final String version;
+    private final boolean exact;
 
     public ClassPackagingData(String codeLocation, String version) {
         this.codeLocation = codeLocation;
@@ -49,18 +44,6 @@ public class ClassPackagingData implements Serializable {
 
     public boolean isExact() {
         return exact;
-    }
-
-    public void setCodeLocation(String codeLocation) {
-        this.codeLocation = codeLocation;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    public void setExact(boolean exact) {
-        this.exact = exact;
     }
 
     @Override

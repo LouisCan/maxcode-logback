@@ -15,6 +15,7 @@ package ch.qos.logback.core.encoder;
 
 import java.nio.charset.Charset;
 
+import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.CoreConstants;
 import ch.qos.logback.core.Layout;
 import ch.qos.logback.core.OutputStreamAppender;
@@ -26,9 +27,10 @@ public class LayoutWrappingEncoder<E> extends EncoderBase<E> {
 
     /**
      * The charset to use when converting a String into bytes.
-     * <p>
-     * By default this property has the value {@code null} which corresponds to the
-     * system's default charset.
+     * <p/>
+     * By default this property has the value
+     * <code>null</null> which corresponds to
+     * the system's default charset.
      */
     private Charset charset;
 
@@ -48,11 +50,12 @@ public class LayoutWrappingEncoder<E> extends EncoderBase<E> {
     }
 
     /**
-     * Set the charset to use when converting the string returned by the layout into
-     * bytes.
-     * <p>
-     * By default this property has the value {@code null} which corresponds to the
-     * system's default charset.
+     * Set the charset to use when converting the string returned by the layout
+     * into bytes.
+     * <p/>
+     * By default this property has the value
+     * <code>null</null> which corresponds to
+     * the system's default charset.
      *
      * @param charset
      */
@@ -61,10 +64,9 @@ public class LayoutWrappingEncoder<E> extends EncoderBase<E> {
     }
 
     /**
-     * Sets the immediateFlush option. The default value for immediateFlush is
-     * 'true'. If set to true, the doEncode() method will immediately flush the
-     * underlying OutputStream. Although immediate flushing is safer, it also
-     * significantly degrades logging throughput.
+     * Sets the immediateFlush option. The default value for immediateFlush is 'true'. If set to true,
+     * the doEncode() method will immediately flush the underlying OutputStream. Although immediate flushing
+     * is safer, it also significantly degrades logging throughput.
      *
      * @since 1.0.3
      */
@@ -116,7 +118,7 @@ public class LayoutWrappingEncoder<E> extends EncoderBase<E> {
     }
 
     public boolean isStarted() {
-        return started;
+        return false;
     }
 
     public void start() {

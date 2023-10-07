@@ -14,18 +14,14 @@
 package ch.qos.logback.core.spi;
 
 import ch.qos.logback.core.Appender;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
-
-import java.util.concurrent.TimeUnit;
-
+import org.junit.Test;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * This test shows the general problem I described in LOGBACK-102.
+ * This test shows the general problem I described in LBCORE-67.
  *
- * In the two test cases below, an appender that throws an RuntimeException
+ * In the two test cases below, an appender that throws an OutOfMemoryError
  * while getName is called - but this is just an example to show the general
  * problem.
  *
@@ -54,17 +50,16 @@ public class AppenderAttachableImplLockTest {
     private AppenderAttachableImpl<Integer> aai = new AppenderAttachableImpl<Integer>();
 
     @SuppressWarnings("unchecked")
-    @Test
-    @Timeout(value=1, unit = TimeUnit.SECONDS)
+    @Test(timeout = 5000)
     public void getAppenderBoom() {
         Appender<Integer> mockAppender1 = mock(Appender.class);
 
-        when(mockAppender1.getName()).thenThrow(new RuntimeException("oops"));
+        when(mockAppender1.getName()).thenThrow(new OutOfMemoryError("oops"));
         aai.addAppender(mockAppender1);
         try {
             // appender.getName called as a result of next statement
             aai.getAppender("foo");
-        } catch (RuntimeException e) {
+        } catch (OutOfMemoryError e) {
             // this leaves the read lock locked.
         }
 
@@ -75,11 +70,10 @@ public class AppenderAttachableImplLockTest {
     }
 
     @SuppressWarnings("unchecked")
-    @Test
-    @Timeout(value=1, unit = TimeUnit.SECONDS)
+    @Test(timeout = 5000)
     public void detachAppenderBoom() throws InterruptedException {
         Appender<Integer> mockAppender = mock(Appender.class);
-        when(mockAppender.getName()).thenThrow(new RuntimeException("oops"));
+        when(mockAppender.getName()).thenThrow(new OutOfMemoryError("oops"));
         mockAppender.doAppend(17);
 
         aai.addAppender(mockAppender);
@@ -89,8 +83,7 @@ public class AppenderAttachableImplLockTest {
                 try {
                     // appender.getName called as a result of next statement
                     aai.detachAppender("foo");
-                } catch (RuntimeException e) {
-                    System.out.println("Caught " + e.toString());
+                } catch (OutOfMemoryError e) {
                     // this leaves the write lock locked.
                 }
             }

@@ -13,15 +13,14 @@
  */
 package ch.qos.logback.classic.control;
 
-import org.slf4j.Marker;
-import org.slf4j.helpers.LegacyAbstractLogger;
+import org.slf4j.helpers.MarkerIgnoringBase;
 
 import ch.qos.logback.classic.Level;
 
 /**
  * See javadoc for ControlLoggerContext.
  */
-public class ControlLogger extends LegacyAbstractLogger {
+public class ControlLogger extends MarkerIgnoringBase {
 
     private static final long serialVersionUID = 1L;
     final ControlLogger parent;
@@ -76,47 +75,117 @@ public class ControlLogger extends LegacyAbstractLogger {
         }
     }
 
+    public void trace(String msg, Throwable t) {
+        // To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    public void trace(String parameterizedMsg, Object param1) {
+        // To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    public void trace(String parameterizedMsg, Object param1, Object param2) {
+        // To change body of implemented methods use File | Settings | File Templates.
+    }
+
     public final void debug(String o) {
         if (getEffectiveLevel().levelInt <= Level.DEBUG_INT) {
             throw new UnsupportedOperationException("not yet implemented");
         }
     }
 
-    @Override
-    protected String getFullyQualifiedCallerName() {
-        return ControlLogger.class.getName();
+    public void debug(String msg, Throwable t) {
+        // To change body of implemented methods use File | Settings | File Templates.
     }
 
-    @Override
-    protected void handleNormalizedLoggingCall(org.slf4j.event.Level level, Marker marker, String msg,
-            Object[] arguments, Throwable throwable) {
-        // TODO Auto-generated method stub
-
+    public void debug(String parameterizedMsg, Object param1) {
+        // To change body of implemented methods use File | Settings | File Templates.
     }
 
-    @Override
+    public void debug(String parameterizedMsg, Object param1, Object param2) {
+        // To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    public void error(String msg) {
+        // To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    public void error(String msg, Throwable t) {
+        // To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    public void error(String parameterizedMsg, Object param1) {
+        // To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    public void error(String parameterizedMsg, Object param1, Object param2) {
+        // To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    public void info(String msg) {
+        // To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    public void info(String msg, Throwable t) {
+        // To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    public void info(String parameterizedMsg, Object param1) {
+        // To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    public void info(String parameterizedMsg, Object param1, Object param2) {
+        // To change body of implemented methods use File | Settings | File Templates.
+    }
+
     public boolean isTraceEnabled() {
         return false;
     }
 
-    @Override
     public boolean isDebugEnabled() {
-        return false;
+        return false; // To change body of implemented methods use File | Settings | File Templates.
     }
 
-    @Override
-    public boolean isInfoEnabled() {
-        return false;
-    }
-
-    @Override
-    public boolean isWarnEnabled() {
-        return false;
-    }
-
-    @Override
     public boolean isErrorEnabled() {
-        return false;
+        return false; // To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    public boolean isInfoEnabled() {
+        return false; // To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    public boolean isWarnEnabled() {
+        return false; // To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    public void warn(String msg) {
+        // To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    public void warn(String msg, Throwable t) {
+        // To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    public void warn(String parameterizedMsg, Object param1) {
+        // To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    public void warn(String parameterizedMsg, Object param1, Object param2) {
+        // To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    public void trace(String format, Object[] argArray) {
+    }
+
+    public void debug(String format, Object[] argArray) {
+    }
+
+    public void info(String format, Object[] argArray) {
+    }
+
+    public void warn(String format, Object[] argArray) {
+    }
+
+    public void error(String format, Object[] argArray) {
     }
 
 }

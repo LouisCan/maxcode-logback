@@ -16,13 +16,11 @@ package ch.qos.logback.core.rolling;
 import java.io.IOException;
 import java.util.List;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 
 import ch.qos.logback.core.encoder.EchoEncoder;
-import ch.qos.logback.core.rolling.testUtil.ScaffoldingForRollingTests;
-import ch.qos.logback.core.testUtil.CoreTestConstants;
+import ch.qos.logback.core.util.CoreTestConstants;
 import ch.qos.logback.core.util.FileSize;
 import ch.qos.logback.core.util.StatusPrinter;
 
@@ -33,7 +31,7 @@ public class SizeBasedRollingTest extends ScaffoldingForRollingTests {
     SizeBasedTriggeringPolicy<Object> sizeBasedTriggeringPolicy = new SizeBasedTriggeringPolicy<Object>();
     EchoEncoder<Object> encoder = new EchoEncoder<Object>();
 
-    @BeforeEach
+    @Before
     public void setUp() {
         super.setUp();
         fwrp.setContext(context);
@@ -53,25 +51,21 @@ public class SizeBasedRollingTest extends ScaffoldingForRollingTests {
      * Test whether FixedWindowRollingPolicy throws an exception when the
      * ActiveFileName is not set.
      */
-    @Test
+    @Test(expected = IllegalStateException.class)
     public void activeFileNameNotSet() {
-        Assertions.assertThrows(IllegalStateException.class, () -> {
-            sizeBasedTriggeringPolicy.setMaxFileSize(new FileSize(100));
-            sizeBasedTriggeringPolicy.start();
+        sizeBasedTriggeringPolicy.setMaxFileSize(new FileSize(100));
+        sizeBasedTriggeringPolicy.start();
 
-            fwrp.setFileNamePattern(CoreTestConstants.OUTPUT_DIR_PREFIX + "sizeBased-test1.%i");
-            fwrp.start();
-            // The absence of activeFileName option should cause an exception.
-        });
+        fwrp.setFileNamePattern(CoreTestConstants.OUTPUT_DIR_PREFIX + "sizeBased-test1.%i");
+        fwrp.start();
+        // The absence of activeFileName option should cause an exception.
     }
 
-    void generic(String testName, String fileName, String filenamePattern, List<String> expectedFilenameList)
-            throws InterruptedException, IOException {
+    void generic(String testName, String fileName, String filenamePattern, List<String> expectedFilenameList) throws InterruptedException, IOException {
         rfa.setName("ROLLING");
         initRFA(randomOutputDir + fileName);
 
         sizeBasedTriggeringPolicy.setMaxFileSize(new FileSize(100));
-        sizeBasedTriggeringPolicy.setCheckIncrement(50);
         fwrp.setMinIndex(0);
         fwrp.setFileNamePattern(randomOutputDir + filenamePattern);
 

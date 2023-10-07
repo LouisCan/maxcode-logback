@@ -13,13 +13,13 @@
  */
 package ch.qos.logback.classic.net;
 
+import static org.junit.Assert.assertTrue;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
-import ch.qos.logback.classic.util.LogbackMDCAdapter;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
@@ -27,9 +27,6 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.AppenderBase;
 import ch.qos.logback.core.testUtil.RandomUtil;
 import ch.qos.logback.core.util.Duration;
-import org.junit.jupiter.api.Timeout;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SocketAppenderMessageLossTest {
     int runLen = 100;
@@ -37,7 +34,7 @@ public class SocketAppenderMessageLossTest {
 
     static final int TIMEOUT = 3000;
 
-    @Test // (timeout = TIMEOUT)
+    @Test  // (timeout = TIMEOUT)
     public void synchronousSocketAppender() throws Exception {
 
         SocketAppender socketAppender = new SocketAppender();
@@ -47,8 +44,7 @@ public class SocketAppenderMessageLossTest {
         runTest(socketAppender);
     }
 
-    @Test
-    @Timeout(value = TIMEOUT, unit= TimeUnit.MILLISECONDS)
+    @Test(timeout = TIMEOUT)
     public void smallQueueSocketAppender() throws Exception {
 
         SocketAppender socketAppender = new SocketAppender();
@@ -58,8 +54,7 @@ public class SocketAppenderMessageLossTest {
         runTest(socketAppender);
     }
 
-    @Test
-    @Timeout(value = TIMEOUT, unit= TimeUnit.MILLISECONDS)
+    @Test(timeout = TIMEOUT)
     public void largeQueueSocketAppender() throws Exception {
         SocketAppender socketAppender = new SocketAppender();
         socketAppender.setReconnectionDelay(reconnectionDelay);
@@ -68,8 +63,7 @@ public class SocketAppenderMessageLossTest {
         runTest(socketAppender);
     }
 
-    // appender used to signal when the N'th event (as set in the latch) is received
-    // by the server
+    // appender used to signal when the N'th event (as set in the latch) is received by the server
     // this allows us to have test which are both more robust and quicker.
     static public class ListAppenderWithLatch extends AppenderBase<ILoggingEvent> {
         public List<ILoggingEvent> list = new ArrayList<ILoggingEvent>();
@@ -89,8 +83,6 @@ public class SocketAppenderMessageLossTest {
         final int port = RandomUtil.getRandomServerPort();
 
         LoggerContext serverLoggerContext = new LoggerContext();
-        LogbackMDCAdapter serverLogbackMDCAdapter = new LogbackMDCAdapter();
-        serverLoggerContext.setMDCAdapter(serverLogbackMDCAdapter);
         serverLoggerContext.setName("serverLoggerContext");
 
         CountDownLatch allMessagesReceivedLatch = new CountDownLatch(runLen);
@@ -103,9 +95,6 @@ public class SocketAppenderMessageLossTest {
         serverRootLogger.addAppender(listAppender);
 
         LoggerContext loggerContext = new LoggerContext();
-        LogbackMDCAdapter logbackMDCAdapter = new LogbackMDCAdapter();
-        loggerContext.setMDCAdapter(logbackMDCAdapter);
-
         loggerContext.setName("clientLoggerContext");
         socketAppender.setContext(loggerContext);
 
@@ -134,5 +123,6 @@ public class SocketAppenderMessageLossTest {
         loggerContext.stop();
         simpleSocketServer.close();
 
+ 
     }
 }

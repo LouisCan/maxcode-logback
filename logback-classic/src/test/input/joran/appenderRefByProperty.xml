@@ -4,6 +4,7 @@
 <configuration debug="false">
 
   <appender name="A" class="ch.qos.logback.core.read.ListAppender"/>
+  <appender name="B" class="ch.qos.logback.core.read.ListAppender"/>
 
   <logger name="ch.qos.logback.classic.joran" level="INFO">
     <appender-ref ref="${logback.appenderRef}"/>

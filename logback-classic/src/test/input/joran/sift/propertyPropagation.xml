@@ -1,4 +1,4 @@
-<configuration debug="false">
+<configuration debug="true">
 
 
   <property name="X" value="Y"/>  

@@ -13,15 +13,15 @@
  */
 package ch.qos.logback.classic.turbo.lru;
 
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import static org.junit.Assert.assertEquals;
 
 import java.util.LinkedList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.Ignore;
+import org.junit.Test;
 
-@Disabled
+@Ignore
 public class LRUCacheTest {
 
     @Test
@@ -64,19 +64,18 @@ public class LRUCacheTest {
     void doScenario(int simulationLen, int cacheSize, int worldSize) {
         int get2PutRatio = 10;
         Simulator simulator = new Simulator(worldSize, get2PutRatio, false);
-        List<Event<String>> scenario = simulator.generateScenario(simulationLen);
+        List<Event> scenario = simulator.generateScenario(simulationLen);
         LRUCache<String, String> lruCache = new LRUCache<String, String>(cacheSize);
         T_LRUCache<String> tlruCache = new T_LRUCache<String>(cacheSize);
         long start = System.nanoTime();
         simulator.simulate(scenario, lruCache, tlruCache);
         // assertEquals(tlruCache.keyList(), lruCache.keyList());
         long end = System.nanoTime();
-        System.out.println("cacheSize=" + cacheSize + ", worldSize=" + worldSize + ", elapsed time="
-                + ((end - start) / (1000 * 1000)) + " in millis");
+        System.out.println("cacheSize=" + cacheSize + ", worldSize=" + worldSize + ", elapsed time=" + ((end - start) / (1000 * 1000)) + " in millis");
     }
 
     @Test
-    @Disabled
+    @Ignore
     // slow test that is known to pass
     public void multiThreadedScenario() throws InterruptedException {
         int cacheSize = 100;
@@ -112,7 +111,7 @@ public class LRUCacheTest {
             int get2PutRatio = 10;
             int simulationLen = 1000 * 50;
             Simulator simulator = new Simulator(worldSize, get2PutRatio, true);
-            List<Event<String>> scenario = simulator.generateScenario(simulationLen);
+            List<Event> scenario = simulator.generateScenario(simulationLen);
             simulator.simulate(scenario, lruCache, tlruCache);
             System.out.println("done");
         }

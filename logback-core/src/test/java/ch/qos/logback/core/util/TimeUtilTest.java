@@ -13,12 +13,13 @@
  */
 package ch.qos.logback.core.util;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 public class TimeUtilTest {
 
@@ -29,8 +30,8 @@ public class TimeUtilTest {
         // Mon Nov 20 18:05:18,000 CET 2006
         long expected = 1164042318000L;
         long computed = TimeUtil.computeStartOfNextSecond(now);
-        Assertions.assertEquals(expected - now, 478);
-        Assertions.assertEquals(expected, computed);
+        assertEquals(expected - now, 478);
+        assertEquals(expected, computed);
     }
 
     @Test
@@ -41,8 +42,8 @@ public class TimeUtilTest {
         long expected = 1164042360000L;
 
         long computed = TimeUtil.computeStartOfNextMinute(now);
-        Assertions.assertEquals(expected - now, 1000 * 42 + 478);
-        Assertions.assertEquals(expected, computed);
+        assertEquals(expected - now, 1000 * 42 + 478);
+        assertEquals(expected, computed);
     }
 
     @Test
@@ -55,8 +56,8 @@ public class TimeUtilTest {
         expected = correctBasedOnTimeZone(expected);
 
         long computed = TimeUtil.computeStartOfNextHour(now);
-        Assertions.assertEquals(expected - now, 1000 * (42 + 60 * 54) + 478);
-        Assertions.assertEquals(expected, computed);
+        assertEquals(expected - now, 1000 * (42 + 60 * 54) + 478);
+        assertEquals(expected, computed);
     }
 
     @Test
@@ -69,8 +70,8 @@ public class TimeUtilTest {
         expected = correctBasedOnTimeZone(expected);
         long computed = TimeUtil.computeStartOfNextDay(now);
 
-        Assertions.assertEquals(expected - now, 1000 * (3600 * 5 + 60 * 54 + 42) + 478);
-        Assertions.assertEquals(expected, computed);
+        assertEquals(expected - now, 1000 * (3600 * 5 + 60 * 54 + 42) + 478);
+        assertEquals(expected, computed);
     }
 
     @Test
@@ -94,8 +95,8 @@ public class TimeUtilTest {
         // System.out.println("now "+new Date(now));
         // System.out.println("computed "+new Date(computed));
         // System.out.println("expected "+new Date(expected));
-        Assertions.assertEquals(expected - now, 1000 * (3600 * (5 + 24 * (5 + dayOffset)) + 60 * 54 + 42) + 478);
-        Assertions.assertEquals(expected, computed);
+        assertEquals(expected - now, 1000 * (3600 * (5 + 24 * (5 + dayOffset)) + 60 * 54 + 42) + 478);
+        assertEquals(expected, computed);
     }
 
     @Test
@@ -108,8 +109,8 @@ public class TimeUtilTest {
         expected = correctBasedOnTimeZone(expected);
 
         long computed = TimeUtil.computeStartOfNextMonth(now);
-        Assertions.assertEquals(expected - now, 1000 * (3600 * (5 + 24 * 10) + 60 * 54 + 42) + 478);
-        Assertions.assertEquals(expected, computed);
+        assertEquals(expected - now, 1000 * (3600 * (5 + 24 * 10) + 60 * 54 + 42) + 478);
+        assertEquals(expected, computed);
     }
 
     private long correctBasedOnTimeZone(long gmtLong) {

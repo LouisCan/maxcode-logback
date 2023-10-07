@@ -29,9 +29,8 @@ class RemoteAppenderServerListener extends ServerSocketListener<RemoteAppenderCl
 
     /**
      * Constructs a new listener.
-     * 
-     * @param serverSocket the {@link ServerSocket} from which to accept new client
-     *                     connections
+     * @param serverSocket the {@link ServerSocket} from which to accept
+     *    new client connections
      */
     public RemoteAppenderServerListener(ServerSocket serverSocket) {
         super(serverSocket);

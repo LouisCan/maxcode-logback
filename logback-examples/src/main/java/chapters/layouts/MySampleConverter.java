@@ -13,6 +13,7 @@
  */
 package chapters.layouts;
 
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.pattern.ClassicConverter;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 

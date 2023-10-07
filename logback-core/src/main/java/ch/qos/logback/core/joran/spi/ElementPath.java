@@ -17,13 +17,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * An element path characterizes a traversal path in an XML document.
+ * A element path characterizes a traversal path in an XML document.
  *
  * @author Ceki Gulcu
  * @since 1.1.0
  */
 public class ElementPath {
-    
+    // contains String instances
     ArrayList<String> partList = new ArrayList<String>();
 
     public ElementPath() {
@@ -35,7 +35,7 @@ public class ElementPath {
 
     /**
      * Build an elementPath from a string.
-     * <p>
+     * <p/>
      * Note that "/x" is considered equivalent to "x" and to "x/"
      */
     public ElementPath(String pathStr) {

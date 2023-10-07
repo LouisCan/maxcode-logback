@@ -16,14 +16,12 @@ package ch.qos.logback.core.rolling;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.function.UnaryOperator;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import ch.qos.logback.core.encoder.EchoEncoder;
-import ch.qos.logback.core.rolling.testUtil.ScaffoldingForRollingTests;
 import ch.qos.logback.core.testUtil.EnvUtilForTests;
 import ch.qos.logback.core.util.StatusPrinter;
 
@@ -31,12 +29,11 @@ import ch.qos.logback.core.util.StatusPrinter;
  * A rather exhaustive set of tests. Tests include leaving the file option
  * blank, or setting it, with and without compression, and tests with or without
  * stopping/restarting the RollingFileAppender.
- * <p>
+ * <p/>
  * The regression tests log a few times using a RollingFileAppender. Then, they
  * predict the names of the files which should be generated and compare them
  * with witness files.
- * <p>
- * 
+ * <p/>
  * <pre>
  *                Compression     file option    Stop/Restart
  *     Test1      NO              BLANK           NO
@@ -68,13 +65,13 @@ public class TimeBasedRollingTest extends ScaffoldingForRollingTests {
 
     RolloverChecker rolloverChecker;
 
-    @BeforeEach
+    @Before
     @Override
     public void setUp() {
         super.setUp();
     }
 
-    @AfterEach
+    @After
     public void tearDown() {
     }
 
@@ -86,8 +83,7 @@ public class TimeBasedRollingTest extends ScaffoldingForRollingTests {
         }
     }
 
-    void initTRBP(RollingFileAppender<Object> rfa, TimeBasedRollingPolicy<Object> tbrp, String filenamePattern,
-            long givenTime) {
+    void initTRBP(RollingFileAppender<Object> rfa, TimeBasedRollingPolicy<Object> tbrp, String filenamePattern, long givenTime) {
         tbrp.setContext(context);
         tbrp.setFileNamePattern(filenamePattern);
         tbrp.setParent(rfa);
@@ -98,16 +94,11 @@ public class TimeBasedRollingTest extends ScaffoldingForRollingTests {
         rfa.start();
     }
 
-    void genericTest(String testId, String patternPrefix, String compressionSuffix,
-            UnaryOperator<String> filenameFunction, int waitDuration) throws IOException {
-
-        String fileName = filenameFunction.apply(testId);
-        // String fileName = fileOptionIsSet ? testId2FileName(testId) : null;
-
+    void genericTest(String testId, String patternPrefix, String compressionSuffix, boolean fileOptionIsSet, int waitDuration) throws IOException {
+        String fileName = fileOptionIsSet ? testId2FileName(testId) : null;
         initRFA(rfa1, fileName);
 
-        String fileNamePatternStr = randomOutputDir + patternPrefix + "-%d{" + DATE_PATTERN_WITH_SECONDS + "}"
-                + compressionSuffix;
+        String fileNamePatternStr = randomOutputDir + patternPrefix + "-%d{" + DATE_PATTERN_WITH_SECONDS + "}" + compressionSuffix;
 
         initTRBP(rfa1, tbrp1, fileNamePatternStr, currentTime);
 
@@ -129,23 +120,22 @@ public class TimeBasedRollingTest extends ScaffoldingForRollingTests {
         waitForJobsToComplete();
 
         if (waitDuration != NO_RESTART) {
-            doRestart(testId, patternPrefix, filenameFunction, waitDuration);
+            doRestart(testId, patternPrefix, fileOptionIsSet, waitDuration);
         }
         waitForJobsToComplete();
 
-        massageExpectedFilesToCorresponToCurrentTarget(testId, filenameFunction);
-        // StatusPrinter.print(context);
+        massageExpectedFilesToCorresponToCurrentTarget(fileName, fileOptionIsSet);
+        StatusPrinter.print(context);
         rolloverChecker.check(expectedFilenameList);
     }
 
-    void defaultTest(String testId, String patternPrefix, String compressionSuffix,
-            UnaryOperator<String> filenameFunction, int waitDuration) throws IOException {
+    void defaultTest(String testId, String patternPrefix, String compressionSuffix, boolean fileOptionIsSet, int waitDuration) throws IOException {
         boolean withCompression = compressionSuffix.length() > 0;
         rolloverChecker = new DefaultRolloverChecker(testId, withCompression, compressionSuffix);
-        genericTest(testId, patternPrefix, compressionSuffix, filenameFunction, waitDuration);
+        genericTest(testId, patternPrefix, compressionSuffix, fileOptionIsSet, waitDuration);
     }
 
-    void doRestart(String testId, String patternPart, UnaryOperator<String> filenameFunction, int waitDuration) {
+    void doRestart(String testId, String patternPart, boolean fileOptionIsSet, int waitDuration) {
         // change the timestamp of the currently actively file
         File activeFile = new File(rfa1.getFile());
         activeFile.setLastModified(currentTime);
@@ -154,7 +144,7 @@ public class TimeBasedRollingTest extends ScaffoldingForRollingTests {
 
         String filePatternStr = randomOutputDir + patternPart + "-%d{" + DATE_PATTERN_WITH_SECONDS + "}";
 
-        String fileName = filenameFunction.apply(testId);
+        String fileName = fileOptionIsSet ? testId2FileName(testId) : null;
         initRFA(rfa2, fileName);
         initTRBP(rfa2, tbrp2, filePatternStr, currentTime);
         for (int i = 0; i < 3; i++) {
@@ -170,48 +160,48 @@ public class TimeBasedRollingTest extends ScaffoldingForRollingTests {
 
     @Test
     public void noCompression_FileBlank_NoRestart_1() throws IOException {
-        defaultTest("test1", "test1", "", this::nullFileName, NO_RESTART);
+        defaultTest("test1", "test1", "", FILE_OPTION_BLANK, NO_RESTART);
     }
 
     @Test
     public void withCompression_FileBlank_NoRestart_2() throws IOException {
-        defaultTest("test2", "test2", ".gz", this::nullFileName, NO_RESTART);
+        defaultTest("test2", "test2", ".gz", FILE_OPTION_BLANK, NO_RESTART);
     }
 
     @Test
     public void noCompression_FileBlank_StopRestart_3() throws IOException {
-        defaultTest("test3", "test3", "", this::nullFileName, WITH_RESTART);
+        defaultTest("test3", "test3", "", FILE_OPTION_BLANK, WITH_RESTART);
     }
 
     @Test
     public void noCompression_FileSet_StopRestart_4() throws IOException {
-        defaultTest("test4", "test4", "", this::testId2FileName, WITH_RESTART);
+        defaultTest("test4", "test4", "", FILE_OPTION_SET, WITH_RESTART);
     }
 
     @Test
     public void noCompression_FileSet_StopRestart_WithLongWait_4B() throws IOException {
-        defaultTest("test4B", "test4B", "", this::testId2FileName, WITH_RESTART_AND_LONG_WAIT);
+        defaultTest("test4B", "test4B", "", FILE_OPTION_SET, WITH_RESTART_AND_LONG_WAIT);
     }
 
     @Test
     public void noCompression_FileSet_NoRestart_5() throws IOException {
-        defaultTest("test5", "test5", "", this::testId2FileName, NO_RESTART);
+        defaultTest("test5", "test5", "", FILE_OPTION_SET, NO_RESTART);
     }
 
     @Test
     public void withCompression_FileSet_NoRestart_6() throws IOException {
-        defaultTest("test6", "test6", ".gz", this::testId2FileName, NO_RESTART);
+        defaultTest("test6", "test6", ".gz", FILE_OPTION_SET, NO_RESTART);
     }
 
     // LOGBACK-168
     @Test
     public void withMissingTargetDirWithCompression() throws IOException {
-        defaultTest("test7", "%d{yyyy-MM-dd, aux}/test7", ".gz", this::testId2FileName, NO_RESTART);
+        defaultTest("test7", "%d{yyyy-MM-dd, aux}/test7", ".gz", FILE_OPTION_SET, NO_RESTART);
     }
 
     @Test
     public void withMissingTargetDirWithZipCompression() throws IOException {
-        defaultTest("test8", "%d{yyyy-MM-dd, aux}/test8", ".zip", this::testId2FileName, NO_RESTART);
+        defaultTest("test8", "%d{yyyy-MM-dd, aux}/test8", ".zip", FILE_OPTION_SET, NO_RESTART);
     }
 
     @Test
@@ -219,18 +209,17 @@ public class TimeBasedRollingTest extends ScaffoldingForRollingTests {
         if (!EnvUtilForTests.isWindows())
             return;
 
-        String testId = "failed_rename";
         FileOutputStream fos = null;
         try {
-            String fileName = testId2FileName(testId);
+            String fileName = testId2FileName("failed_rename");
             File file = new File(fileName);
             file.getParentFile().mkdirs();
 
             fos = new FileOutputStream(fileName);
 
+            String testId = "failed_rename";
             rolloverChecker = new ZRolloverChecker(testId);
-            genericTest(testId, "failed_rename", "", this::testId2FileName, NO_RESTART);
-            rolloverChecker.check(expectedFilenameList);
+            genericTest(testId, "failed_rename", "", FILE_OPTION_SET, NO_RESTART);
 
         } finally {
             StatusPrinter.print(context);
@@ -239,22 +228,6 @@ public class TimeBasedRollingTest extends ScaffoldingForRollingTests {
         }
     }
 
-//    @Test
-//    public void failed_rename2() throws IOException {
-//
-//        String testId = "failed_rename";
-//        try {
-//            String fileName = testId2FileName(testId);
-//
-//            
-//            rolloverChecker = new ZRolloverChecker(testId);
-//            genericTest(testId, "test10", ".gz", this::testId2FileName, NO_RESTART);
-//            rolloverChecker.check(expectedFilenameList);
-//
-//        } finally {
-//            StatusPrinter.print(context);
-//
-//        }
-//    }
-
+    
+    
 }

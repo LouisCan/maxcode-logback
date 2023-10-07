@@ -49,9 +49,8 @@ public class SafeModeRollingFileAppender {
 
     static void usage(String msg) {
         System.err.println(msg);
-        System.err.println("Usage: java " + SafeModeRollingFileAppender.class.getName() + " stamp runLength filename\n"
-                + " stamp JVM instance stamp\n" + "   runLength (integer) the number of logs to generate perthread"
-                + "    filename (string) the filename where to write\n");
+        System.err.println("Usage: java " + SafeModeRollingFileAppender.class.getName() + " stamp runLength filename\n" + " stamp JVM instance stamp\n"
+                        + "   runLength (integer) the number of logs to generate perthread" + "    filename (string) the filename where to write\n");
         System.exit(1);
     }
 
@@ -70,7 +69,7 @@ public class SafeModeRollingFileAppender {
         rfa.setPrudent(safetyMode);
         rfa.setContext(loggerContext);
 
-        TimeBasedRollingPolicy<ILoggingEvent> tbrp = new TimeBasedRollingPolicy<>();
+        TimeBasedRollingPolicy tbrp = new TimeBasedRollingPolicy();
 
         tbrp.setContext(loggerContext);
         tbrp.setFileNamePattern(filename + "-%d{" + DATE_PATTERN + "}.log");
@@ -99,8 +98,7 @@ public class SafeModeRollingFileAppender {
         StatusPrinter.print(lc);
         double durationPerLog = (System.nanoTime() - before) / (LEN * 1000.0);
 
-        System.out.println(
-                "Average duration of " + (durationPerLog) + " microseconds per log. Safety mode " + safetyMode);
+        System.out.println("Average duration of " + (durationPerLog) + " microseconds per log. Safety mode " + safetyMode);
         System.out.println("------------------------------------------------");
     }
 }

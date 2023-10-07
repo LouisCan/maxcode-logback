@@ -13,8 +13,8 @@
  */
 package ch.qos.logback.access.dummy;
 
-import jakarta.servlet.ServletOutputStream;
-import jakarta.servlet.WriteListener;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.WriteListener;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -51,6 +51,6 @@ public class DummyServletOutputStream extends ServletOutputStream {
     @Override
     public void setWriteListener(WriteListener listener) {
         // TODO Auto-generated method stub
-
+        
     }
 }

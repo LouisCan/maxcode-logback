@@ -9,14 +9,14 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.util.Collections;
 import java.util.Set;
 
+
 //import org.apache.commons.io.FileUtils;
 //import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.LoggerFactoryFriend;
+import org.slf4j.impl.StaticLoggerBinderFriend;
 
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
@@ -32,10 +32,10 @@ public class LogbackListenerTest {
         configurator.doConfigure(new File("src/test/input/issue/logback-1159.xml"));
     }
 
-    @AfterEach
+    @After
     public void after() {
         logFile.delete();
-        LoggerFactoryFriend.reset();
+        StaticLoggerBinderFriend.reset();
     }
 
     private void disableLogFileAccess() throws IOException {
@@ -50,12 +50,10 @@ public class LogbackListenerTest {
         }
     }
 
-    @Test
+    @Test(expected = LoggingError.class)
     public void testThatErrorIsDetectedAtLogInit() throws Exception {
-        Assertions.assertThrows(LoggingError.class, () -> {
-            disableLogFileAccess();
-            doConfigure();
-        });
+        disableLogFileAccess();
+        doConfigure();
     }
 
     @Test

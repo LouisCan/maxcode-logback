@@ -17,26 +17,20 @@ import ch.qos.logback.core.spi.AppenderAttachable;
 import ch.qos.logback.core.spi.AppenderAttachableImpl;
 import ch.qos.logback.core.util.InterruptUtil;
 
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 /**
- * This appender and derived classes, log events asynchronously. In order to
- * avoid loss of logging events, this appender should be closed. It is the
- * user's responsibility to close appenders, typically at the end of the
+ * This appender and derived classes, log events asynchronously.  In order to avoid loss of logging events, this
+ * appender should be closed. It is the user's  responsibility to close appenders, typically at the end of the
  * application lifecycle.
- * <p>
- * This appender buffers events in a {@link BlockingQueue}. {@link Worker}
- * thread created by this appender takes events from the head of the queue, and
- * dispatches them to the single appender attached to this appender.
- * <p>
- * Please refer to the
- * <a href="http://logback.qos.ch/manual/appenders.html#AsyncAppender">logback
- * manual</a> for further information about this appender.
- * </p>
+ * <p/>
+ * This appender buffers events in a {@link BlockingQueue}. {@link Worker} thread created by this appender takes
+ * events from the head of the queue, and dispatches them to the single appender attached to this appender.
+ * <p/>
+ * <p>Please refer to the <a href="http://logback.qos.ch/manual/appenders.html#AsyncAppender">logback manual</a> for
+ * further information about this appender.</p>
  *
  * @param <E>
  * @author Ceki G&uuml;lc&uuml;
@@ -63,20 +57,19 @@ public class AsyncAppenderBase<E> extends UnsynchronizedAppenderBase<E> implemen
     Worker worker = new Worker();
 
     /**
-     * The default maximum queue flush time allowed during appender stop. If the
-     * worker takes longer than this time it will exit, discarding any remaining
+     * The default maximum queue flush time allowed during appender stop. If the 
+     * worker takes longer than this time it will exit, discarding any remaining 
      * items in the queue
      */
     public static final int DEFAULT_MAX_FLUSH_TIME = 1000;
     int maxFlushTime = DEFAULT_MAX_FLUSH_TIME;
 
     /**
-     * Is the eventObject passed as parameter discardable? The base class's
-     * implementation of this method always returns 'false' but sub-classes may (and
-     * do) override this method.
-     * <p>
-     * Note that only if the buffer is nearly full are events discarded. Otherwise,
-     * when the buffer is "not full" all events are logged.
+     * Is the eventObject passed as parameter discardable? The base class's implementation of this method always returns
+     * 'false' but sub-classes may (and do) override this method.
+     * <p/>
+     * <p>Note that only if the buffer is nearly full are events discarded. Otherwise, when the buffer is "not full"
+     * all events are logged.
      *
      * @param eventObject
      * @return - true if the event can be discarded, false otherwise
@@ -86,8 +79,8 @@ public class AsyncAppenderBase<E> extends UnsynchronizedAppenderBase<E> implemen
     }
 
     /**
-     * Pre-process the event prior to queueing. The base class does no
-     * pre-processing but subclasses can override this behavior.
+     * Pre-process the event prior to queueing. The base class does no pre-processing but sub-classes can
+     * override this behavior.
      *
      * @param eventObject
      */
@@ -113,8 +106,7 @@ public class AsyncAppenderBase<E> extends UnsynchronizedAppenderBase<E> implemen
         addInfo("Setting discardingThreshold to " + discardingThreshold);
         worker.setDaemon(true);
         worker.setName("AsyncAppender-Worker-" + getName());
-        // make sure this instance is marked as "started" before staring the worker
-        // Thread
+        // make sure this instance is marked as "started" before staring the worker Thread
         super.start();
         worker.start();
     }
@@ -124,14 +116,13 @@ public class AsyncAppenderBase<E> extends UnsynchronizedAppenderBase<E> implemen
         if (!isStarted())
             return;
 
-        // mark this appender as stopped so that Worker can also processPriorToRemoval
-        // if it is invoking
+        // mark this appender as stopped so that Worker can also processPriorToRemoval if it is invoking
         // aii.appendLoopOnAppenders
         // and sub-appenders consume the interruption
         super.stop();
 
-        // interrupt the worker thread so that it can terminate. Note that the
-        // interruption can be consumed by sub-appenders
+        // interrupt the worker thread so that it can terminate. Note that the interruption can be consumed
+        // by sub-appenders
         worker.interrupt();
 
         InterruptUtil interruptUtil = new InterruptUtil(context);
@@ -143,8 +134,8 @@ public class AsyncAppenderBase<E> extends UnsynchronizedAppenderBase<E> implemen
 
             // check to see if the thread ended and if not add a warning message
             if (worker.isAlive()) {
-                addWarn("Max queue flush timeout (" + maxFlushTime + " ms) exceeded. Approximately "
-                        + blockingQueue.size() + " queued events were possibly discarded.");
+                addWarn("Max queue flush timeout (" + maxFlushTime + " ms) exceeded. Approximately " + blockingQueue.size()
+                                + " queued events were possibly discarded.");
             } else {
                 addInfo("Queue flush finished successfully within timeout.");
             }
@@ -156,6 +147,10 @@ public class AsyncAppenderBase<E> extends UnsynchronizedAppenderBase<E> implemen
             interruptUtil.unmaskInterruptFlag();
         }
     }
+
+
+
+
 
     @Override
     protected void append(E eventObject) {
@@ -239,12 +234,9 @@ public class AsyncAppenderBase<E> extends UnsynchronizedAppenderBase<E> implemen
 
     /**
      * The remaining capacity available in the blocking queue.
-     * <p>
-     * See also {@link java.util.concurrent.BlockingQueue#remainingCapacity()
-     * BlockingQueue#remainingCapacity()}
      *
      * @return the remaining capacity
-     * 
+     * @see {@link java.util.concurrent.BlockingQueue#remainingCapacity()}
      */
     public int getRemainingCapacity() {
         return blockingQueue.remainingCapacity();
@@ -294,15 +286,9 @@ public class AsyncAppenderBase<E> extends UnsynchronizedAppenderBase<E> implemen
             // loop while the parent is started
             while (parent.isStarted()) {
                 try {
-                    List<E> elements = new ArrayList<E>();
-                    E e0 = parent.blockingQueue.take();
-                    elements.add(e0);
-                    parent.blockingQueue.drainTo(elements);
-                    for (E e : elements) {
-                        aai.appendLoopOnAppenders(e);
-                    }
-                } catch (InterruptedException e1) {
-                    // exit if interrupted
+                    E e = parent.blockingQueue.take();
+                    aai.appendLoopOnAppenders(e);
+                } catch (InterruptedException ie) {
                     break;
                 }
             }

@@ -2,7 +2,6 @@
 <!DOCTYPE configuration>
 
 <configuration>
-  
   <evaluator name="IGNORE_EVAL">
    <Expression>(marker.contains("IGNORE"))</Expression>
   </evaluator>

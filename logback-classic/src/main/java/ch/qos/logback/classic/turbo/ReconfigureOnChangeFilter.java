@@ -13,26 +13,25 @@
  */
 package ch.qos.logback.classic.turbo;
 
-import static ch.qos.logback.core.CoreConstants.MILLIS_IN_ONE_SECOND;
-
 import java.io.File;
 import java.net.URL;
 import java.util.List;
 
+import ch.qos.logback.core.CoreConstants;
+import ch.qos.logback.core.joran.event.SaxEvent;
+import ch.qos.logback.core.joran.spi.ConfigurationWatchList;
+import ch.qos.logback.core.joran.util.ConfigurationWatchListUtil;
+import ch.qos.logback.core.status.StatusUtil;
 import org.slf4j.Marker;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
-import ch.qos.logback.core.CoreConstants;
-import ch.qos.logback.core.joran.spi.ConfigurationWatchList;
 import ch.qos.logback.core.joran.spi.JoranException;
-import ch.qos.logback.core.joran.util.ConfigurationWatchListUtil;
-import ch.qos.logback.core.model.Model;
-import ch.qos.logback.core.model.ModelUtil;
 import ch.qos.logback.core.spi.FilterReply;
-import ch.qos.logback.core.status.StatusUtil;
+
+import static ch.qos.logback.core.CoreConstants.MILLIS_IN_ONE_SECOND;
 
 /**
  * Reconfigure a LoggerContext when the configuration file changes.
@@ -120,23 +119,19 @@ public class ReconfigureOnChangeFilter extends TurboFilter {
         return FilterReply.NEUTRAL;
     }
 
-    // experiments indicate that even for CPU intensive applications with 200 or
-    // more threads MASK
+    // experiments indicate that even for CPU intensive applications with 200 or more threads MASK
     // values in the order of 0xFFFF is appropriate
     private static final int MAX_MASK = 0xFFFF;
 
-    // if less than MASK_INCREASE_THRESHOLD milliseconds elapse between invocations
-    // of updateMaskIfNecessary() method,
+    // if less than MASK_INCREASE_THRESHOLD milliseconds elapse between invocations of updateMaskIfNecessary() method,
     // then the mask should be increased
     private static final long MASK_INCREASE_THRESHOLD = 100;
 
-    // if more than MASK_DECREASE_THRESHOLD milliseconds elapse between invocations
-    // of updateMaskIfNecessary() method,
+    // if more than MASK_DECREASE_THRESHOLD milliseconds elapse between invocations of updateMaskIfNecessary() method,
     // then the mask should be decreased
     private static final long MASK_DECREASE_THRESHOLD = MASK_INCREASE_THRESHOLD * 8;
 
-    // update the mask so as to execute change detection code about once every 100
-    // to 8000 milliseconds.
+    // update the mask so as to execute change detection code about once every 100 to 8000 milliseconds.
     private void updateMaskIfNecessary(long now) {
         final long timeElapsedSinceLastMaskUpdateCheck = now - lastMaskCheck;
         lastMaskCheck = now;
@@ -189,42 +184,39 @@ public class ReconfigureOnChangeFilter extends TurboFilter {
             addInfo(CoreConstants.RESET_MSG_PREFIX + "named [" + context.getName() + "]");
             if (mainConfigurationURL.toString().endsWith("xml")) {
                 performXMLConfiguration(lc);
-            } else if (mainConfigurationURL.toString().endsWith("groovy")) {
-                addError("Groovy configuration disabled due to Java 9 compilation issues.");
-            }
+            } 
         }
 
         private void performXMLConfiguration(LoggerContext lc) {
             JoranConfigurator jc = new JoranConfigurator();
             jc.setContext(context);
             StatusUtil statusUtil = new StatusUtil(context);
-            Model failSafeTop = jc.recallSafeConfiguration();
+            List<SaxEvent> eventList = jc.recallSafeConfiguration();
             URL mainURL = ConfigurationWatchListUtil.getMainWatchURL(context);
             lc.reset();
             long threshold = System.currentTimeMillis();
             try {
                 jc.doConfigure(mainConfigurationURL);
                 if (statusUtil.hasXMLParsingErrors(threshold)) {
-                    fallbackConfiguration(lc, failSafeTop, mainURL);
+                    fallbackConfiguration(lc, eventList, mainURL);
                 }
             } catch (JoranException e) {
-                fallbackConfiguration(lc, failSafeTop, mainURL);
+                fallbackConfiguration(lc, eventList, mainURL);
             }
         }
 
-        private void fallbackConfiguration(LoggerContext lc, Model failSafeTop, URL mainURL) {
+        private void fallbackConfiguration(LoggerContext lc, List<SaxEvent> eventList, URL mainURL) {
             JoranConfigurator joranConfigurator = new JoranConfigurator();
             joranConfigurator.setContext(context);
-            if (failSafeTop != null) {
+            if (eventList != null) {
                 addWarn("Falling back to previously registered safe configuration.");
                 try {
                     lc.reset();
                     JoranConfigurator.informContextOfURLUsedForConfiguration(context, mainURL);
-                    ModelUtil.resetForReuse(failSafeTop);
-                    joranConfigurator.processModel(failSafeTop);
+                    joranConfigurator.doConfigure(eventList);
                     addInfo("Re-registering previous fallback configuration once more as a fallback configuration point");
-                    joranConfigurator.registerSafeConfiguration(failSafeTop);
-                } catch (Exception e) {
+                    joranConfigurator.registerSafeConfiguration(eventList);
+                } catch (JoranException e) {
                     addError("Unexpected exception thrown by a configuration considered safe.", e);
                 }
             } else {

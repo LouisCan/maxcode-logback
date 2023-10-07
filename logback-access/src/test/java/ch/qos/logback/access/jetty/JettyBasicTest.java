@@ -13,13 +13,9 @@
  */
 package ch.qos.logback.access.jetty;
 
-import ch.qos.logback.access.spi.IAccessEvent;
-import ch.qos.logback.access.spi.Util;
-import ch.qos.logback.access.testUtil.NotifyingListAppender;
-import ch.qos.logback.core.testUtil.RandomUtil;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -27,8 +23,14 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import ch.qos.logback.access.spi.IAccessEvent;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import ch.qos.logback.access.spi.Util;
+import ch.qos.logback.access.testUtil.NotifyingListAppender;
+import ch.qos.logback.core.testUtil.RandomUtil;
 
 public class JettyBasicTest {
 
@@ -38,14 +40,14 @@ public class JettyBasicTest {
     private static final int TIMEOUT = 5;
     static int RANDOM_SERVER_PORT = RandomUtil.getRandomServerPort();
 
-    @BeforeAll
+    @BeforeClass
     static public void startServer() throws Exception {
         REQUEST_LOG_IMPL = new RequestLogImpl();
         JETTY_FIXTURE = new JettyFixtureWithListAndConsoleAppenders(REQUEST_LOG_IMPL, RANDOM_SERVER_PORT);
         JETTY_FIXTURE.start();
     }
 
-    @AfterAll
+    @AfterClass
     static public void stopServer() throws Exception {
         if (JETTY_FIXTURE != null) {
             JETTY_FIXTURE.stop();
@@ -78,7 +80,7 @@ public class JettyBasicTest {
 
         NotifyingListAppender listAppender = (NotifyingListAppender) REQUEST_LOG_IMPL.getAppender("list");
         IAccessEvent event = listAppender.list.poll(TIMEOUT, TimeUnit.SECONDS);
-        assertNotNull(event, "No events received");
+        assertNotNull("No events received", event);
 
         assertEquals("127.0.0.1", event.getRemoteHost());
         assertEquals("localhost", event.getServerName());
@@ -110,7 +112,7 @@ public class JettyBasicTest {
         NotifyingListAppender listAppender = (NotifyingListAppender) REQUEST_LOG_IMPL.getAppender("list");
 
         IAccessEvent event = listAppender.list.poll(TIMEOUT, TimeUnit.SECONDS);
-        assertNotNull(event, "No events received");
+        assertNotNull("No events received", event);
 
         // we should test the contents of the requests
         // assertEquals(msg, event.getRequestContent());

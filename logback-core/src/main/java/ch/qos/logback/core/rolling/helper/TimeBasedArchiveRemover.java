@@ -16,7 +16,9 @@ package ch.qos.logback.core.rolling.helper;
 import static ch.qos.logback.core.CoreConstants.UNBOUNDED_TOTAL_SIZE_CAP;
 
 import java.io.File;
-import java.time.Instant;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
@@ -29,14 +31,13 @@ import ch.qos.logback.core.util.FileSize;
 public class TimeBasedArchiveRemover extends ContextAwareBase implements ArchiveRemover {
 
     static protected final long UNINITIALIZED = -1;
-    // aim for 32 days, except in case of hourly rollover, see
-    // MAX_VALUE_FOR_INACTIVITY_PERIODS
+    // aim for 32 days, except in case of hourly rollover
     static protected final long INACTIVITY_TOLERANCE_IN_MILLIS = 32L * (long) CoreConstants.MILLIS_IN_ONE_DAY;
     static final int MAX_VALUE_FOR_INACTIVITY_PERIODS = 14 * 24; // 14 days in case of hourly rollover
 
     final FileNamePattern fileNamePattern;
     final RollingCalendar rc;
-    private int maxHistory = CoreConstants.UNBOUNDED_HISTORY;
+    private int maxHistory = CoreConstants.UNBOUND_HISTORY;
     private long totalSizeCap = CoreConstants.UNBOUNDED_TOTAL_SIZE_CAP;
     final boolean parentClean;
     long lastHeartBeat = UNINITIALIZED;
@@ -48,27 +49,24 @@ public class TimeBasedArchiveRemover extends ContextAwareBase implements Archive
     }
 
     int callCount = 0;
-
-    @Override
-    public void clean(Instant now) {
-
-        long nowInMillis = now.toEpochMilli();
+    public void clean(Date now) {
+ 
+        long nowInMillis = now.getTime();
         // for a live appender periodsElapsed is expected to be 1
         int periodsElapsed = computeElapsedPeriodsSinceLastClean(nowInMillis);
         lastHeartBeat = nowInMillis;
         if (periodsElapsed > 1) {
-            addInfo("Multiple periods, i.e. " + periodsElapsed
-                    + " periods, seem to have elapsed. This is expected at application start.");
+            addInfo("Multiple periods, i.e. " + periodsElapsed + " periods, seem to have elapsed. This is expected at application start.");
         }
         for (int i = 0; i < periodsElapsed; i++) {
             int offset = getPeriodOffsetForDeletionTarget() - i;
-            Instant instantOfPeriodToClean = rc.getEndOfNextNthPeriod(now, offset);
-            cleanPeriod(instantOfPeriodToClean);
+            Date dateOfPeriodToClean = rc.getEndOfNextNthPeriod(now, offset);
+            cleanPeriod(dateOfPeriodToClean);
         }
     }
 
-    protected File[] getFilesInPeriod(Instant instantOfPeriodToClean) {
-        String filenameToDelete = fileNamePattern.convert(instantOfPeriodToClean);
+    protected File[] getFilesInPeriod(Date dateOfPeriodToClean) {
+        String filenameToDelete = fileNamePattern.convert(dateOfPeriodToClean);
         File file2Delete = new File(filenameToDelete);
 
         if (fileExistsAndIsFile(file2Delete)) {
@@ -82,8 +80,8 @@ public class TimeBasedArchiveRemover extends ContextAwareBase implements Archive
         return file2Delete.exists() && file2Delete.isFile();
     }
 
-    public void cleanPeriod(Instant instantOfPeriodToClean) {
-        File[] matchingFileArray = getFilesInPeriod(instantOfPeriodToClean);
+    public void cleanPeriod(Date dateOfPeriodToClean) {
+        File[] matchingFileArray = getFilesInPeriod(dateOfPeriodToClean);
 
         for (File f : matchingFileArray) {
             addInfo("deleting " + f);
@@ -96,13 +94,13 @@ public class TimeBasedArchiveRemover extends ContextAwareBase implements Archive
         }
     }
 
-    void capTotalSize(Instant now) {
+    void capTotalSize(Date now) {
         long totalSize = 0;
         long totalRemoved = 0;
         for (int offset = 0; offset < maxHistory; offset++) {
-            Instant instant = rc.getEndOfNextNthPeriod(now, -offset);
-            File[] matchingFileArray = getFilesInPeriod(instant);
-            descendingSort(matchingFileArray, instant);
+            Date date = rc.getEndOfNextNthPeriod(now, -offset);
+            File[] matchingFileArray = getFilesInPeriod(date);
+            descendingSortByLastModified(matchingFileArray);
             for (File f : matchingFileArray) {
                 long size = f.length();
                 if (totalSize + size > totalSizeCap) {
@@ -116,8 +114,21 @@ public class TimeBasedArchiveRemover extends ContextAwareBase implements Archive
         addInfo("Removed  " + new FileSize(totalRemoved) + " of files");
     }
 
-    protected void descendingSort(File[] matchingFileArray, Instant instant) {
-        // nothing to do in super class
+    private void descendingSortByLastModified(File[] matchingFileArray) {
+        Arrays.sort(matchingFileArray, new Comparator<File>() {
+            @Override
+            public int compare(final File f1, final File f2) {
+                long l1 = f1.lastModified();
+                long l2 = f2.lastModified();
+                if (l1 == l2)
+                    return 0;
+                // descending sort, i.e. newest files first
+                if (l2 < l1)
+                    return -1;
+                else
+                    return 1;
+            }
+        });
     }
 
     File getParentDir(File file) {
@@ -139,19 +150,13 @@ public class TimeBasedArchiveRemover extends ContextAwareBase implements Archive
         return (int) periodsElapsed;
     }
 
-    /**
-     * Computes whether the fileNamePattern may create sub-folders.
-     * 
-     * @param fileNamePattern
-     * @return
-     */
     boolean computeParentCleaningFlag(FileNamePattern fileNamePattern) {
         DateTokenConverter<Object> dtc = fileNamePattern.getPrimaryDateTokenConverter();
         // if the date pattern has a /, then we need parent cleaning
         if (dtc.getDatePattern().indexOf('/') != -1) {
             return true;
         }
-        // if the literal string after the dtc contains a /, we also
+        // if the literal string subsequent to the dtc contains a /, we also
         // need parent cleaning
 
         Converter<Object> p = fileNamePattern.headTokenConverter;
@@ -174,7 +179,7 @@ public class TimeBasedArchiveRemover extends ContextAwareBase implements Archive
             p = p.getNext();
         }
 
-        // no '/', so we don't need parent cleaning
+        // no /, so we don't need parent cleaning
         return false;
     }
 
@@ -218,17 +223,17 @@ public class TimeBasedArchiveRemover extends ContextAwareBase implements Archive
         return "c.q.l.core.rolling.helper.TimeBasedArchiveRemover";
     }
 
-    public Future<?> cleanAsynchronously(Instant now) {
+    public Future<?> cleanAsynchronously(Date now) {
         ArhiveRemoverRunnable runnable = new ArhiveRemoverRunnable(now);
-        ExecutorService executorService = context.getExecutorService();
+        ExecutorService executorService = context.getScheduledExecutorService();
         Future<?> future = executorService.submit(runnable);
         return future;
     }
 
     public class ArhiveRemoverRunnable implements Runnable {
-        Instant now;
+        Date now;
 
-        ArhiveRemoverRunnable(Instant now) {
+        ArhiveRemoverRunnable(Date now) {
             this.now = now;
         }
 

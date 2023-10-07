@@ -13,18 +13,19 @@
  */
 package ch.qos.logback.core.joran.event.stax;
 
-import java.io.FileInputStream;
-import java.util.List;
-
-import javax.xml.stream.events.Attribute;
-
 import ch.qos.logback.core.Context;
 import ch.qos.logback.core.ContextBase;
 import ch.qos.logback.core.status.Status;
-import ch.qos.logback.core.testUtil.CoreTestConstants;
-import ch.qos.logback.core.status.testUtil.StatusChecker;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import ch.qos.logback.core.status.StatusChecker;
+import ch.qos.logback.core.status.StatusManager;
+import ch.qos.logback.core.util.CoreTestConstants;
+import org.junit.Test;
+
+import javax.xml.stream.events.Attribute;
+import java.io.FileInputStream;
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 public class StaxEventRecorderTest {
 
@@ -47,43 +48,45 @@ public class StaxEventRecorderTest {
     @Test
     public void testParsingOfXMLWithAttributesAndBodyText() throws Exception {
         List<StaxEvent> seList = doTest("event1.xml");
-        Assertions.assertTrue(statusChecker.getHighestLevel(0) == Status.INFO);
+        assertTrue(statusChecker.getHighestLevel(0) == Status.INFO);
         // dump(seList);
-        Assertions.assertEquals(11, seList.size());
-        Assertions.assertEquals("test", seList.get(0).getName());
-        Assertions.assertEquals("badBegin", seList.get(1).getName());
+        assertEquals(11, seList.size());
+        assertEquals("test", seList.get(0).getName());
+        assertEquals("badBegin", seList.get(1).getName());
         StartEvent startEvent = (StartEvent) seList.get(7);
-        Assertions.assertEquals("John Doe", startEvent.getAttributeByName("name").getValue());
-        Assertions.assertEquals("XXX&", ((BodyEvent) seList.get(8)).getText());
+        assertEquals("John Doe", startEvent.getAttributeByName("name").getValue());
+        assertEquals("XXX&", ((BodyEvent) seList.get(8)).getText());
     }
 
     @Test
     public void testProcessingOfTextWithEntityCharacters() throws Exception {
         List<StaxEvent> seList = doTest("ampEvent.xml");
-        Assertions.assertTrue(statusChecker.getHighestLevel(0) == Status.INFO);
+        StatusManager sm = context.getStatusManager();
+        assertTrue(statusChecker.getHighestLevel(0) == Status.INFO);
         // dump(seList);
-        Assertions.assertEquals(3, seList.size());
+        assertEquals(3, seList.size());
 
         BodyEvent be = (BodyEvent) seList.get(1);
-        Assertions.assertEquals("xxx & yyy", be.getText());
+        assertEquals("xxx & yyy", be.getText());
     }
 
     @Test
     public void testAttributeProcessing() throws Exception {
         List<StaxEvent> seList = doTest("inc.xml");
-        Assertions.assertTrue(statusChecker.getHighestLevel(0) == Status.INFO);
-        Assertions.assertEquals(4, seList.size());
+        StatusManager sm = context.getStatusManager();
+        assertTrue(statusChecker.getHighestLevel(0) == Status.INFO);
+        assertEquals(4, seList.size());
         StartEvent se = (StartEvent) seList.get(1);
         Attribute attr = se.getAttributeByName("increment");
-        Assertions.assertNotNull(attr);
-        Assertions.assertEquals("1", attr.getValue());
+        assertNotNull(attr);
+        assertEquals("1", attr.getValue());
     }
 
     @Test
     public void bodyWithSpacesAndQuotes() throws Exception {
         List<StaxEvent> seList = doTest("spacesAndQuotes.xml");
-        Assertions.assertEquals(3, seList.size());
+        assertEquals(3, seList.size());
         BodyEvent be = (BodyEvent) seList.get(1);
-        Assertions.assertEquals("[x][x] \"xyz\"%n", be.getText());
+        assertEquals("[x][x] \"xyz\"%n", be.getText());
     }
 }

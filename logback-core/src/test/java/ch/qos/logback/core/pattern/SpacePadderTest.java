@@ -13,29 +13,29 @@
  */
 package ch.qos.logback.core.pattern;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import static org.junit.Assert.assertEquals;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 public class SpacePadderTest {
 
-    @BeforeAll
+    @BeforeClass
     public static void setUpBeforeClass() throws Exception {
     }
 
-    @AfterAll
+    @AfterClass
     public static void tearDownAfterClass() throws Exception {
     }
 
-    @BeforeEach
+    @Before
     public void setUp() throws Exception {
     }
 
-    @AfterEach
+    @After
     public void tearDown() throws Exception {
     }
 

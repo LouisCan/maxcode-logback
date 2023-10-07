@@ -13,20 +13,21 @@
  */
 package ch.qos.logback.access.spi;
 
-import ch.qos.logback.access.dummy.DummyAccessEventBuilder;
-import ch.qos.logback.access.dummy.DummyRequest;
-import ch.qos.logback.access.dummy.DummyResponse;
-import ch.qos.logback.access.dummy.DummyServerAdapter;
-import ch.qos.logback.access.net.HardenedAccessEventInputStream;
-import org.junit.jupiter.api.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import org.junit.Test;
+
+import ch.qos.logback.access.dummy.DummyAccessEventBuilder;
+import ch.qos.logback.access.dummy.DummyRequest;
+import ch.qos.logback.access.dummy.DummyResponse;
+import ch.qos.logback.access.dummy.DummyServerAdapter;
+import ch.qos.logback.access.net.HardenedAccessEventInputStream;
 
 public class AccessEventSerializationTest {
 
@@ -55,8 +56,7 @@ public class AccessEventSerializationTest {
 
         assertEquals(DummyResponse.DUMMY_DEFAULT_HDEADER_MAP, aeBack.getResponseHeaderMap());
         assertEquals(DummyResponse.DUMMY_DEFAULT_HDEADER_MAP.get("x"), aeBack.getResponseHeader("x"));
-        assertEquals(DummyResponse.DUMMY_DEFAULT_HDEADER_MAP.get("headerName1"),
-                aeBack.getResponseHeader("headerName1"));
+        assertEquals(DummyResponse.DUMMY_DEFAULT_HDEADER_MAP.get("headerName1"), aeBack.getResponseHeader("headerName1"));
         assertEquals(DummyResponse.DUMMY_DEFAULT_HDEADER_MAP.size(), aeBack.getResponseHeaderNameList().size());
         assertEquals(DummyResponse.DUMMY_DEFAULT_CONTENT_COUNT, aeBack.getContentLength());
         assertEquals(DummyResponse.DUMMY_DEFAULT_STATUS, aeBack.getStatusCode());
@@ -68,10 +68,8 @@ public class AccessEventSerializationTest {
         assertEquals(DummyRequest.DUMMY_DEFAULT_ATTR_MAP.get("testKey"), aeBack.getAttribute("testKey"));
     }
 
-    // Web containers may (and will) recycle requests objects. So we must make sure
-    // that after
-    // we prepared an event for deferred processing it won't be using data from the
-    // original
+    // Web containers may (and will) recycle requests objects. So we must make sure that after
+    // we prepared an event for deferred processing it won't be using data from the original
     // HttpRequest object which may at that time represent another request
     @Test
     public void testAttributesAreNotTakenFromRecycledRequestWhenProcessingDeferred() {
@@ -79,9 +77,8 @@ public class AccessEventSerializationTest {
         DummyRequest request = new DummyRequest();
         DummyResponse response = new DummyResponse();
         DummyServerAdapter adapter = new DummyServerAdapter(request, response);
-        AccessContext accessContext = new AccessContext();
 
-        IAccessEvent event = new AccessEvent(accessContext, request, response, adapter);
+        IAccessEvent event = new AccessEvent(request, response, adapter);
 
         request.setAttribute("testKey", "ORIGINAL");
 

@@ -27,7 +27,6 @@ public class CloseUtil {
 
     /**
      * Closes a closeable while suppressing any {@code IOException} that occurs.
-     * 
      * @param closeable the socket to close
      */
     public static void closeQuietly(Closeable closeable) {
@@ -42,7 +41,6 @@ public class CloseUtil {
 
     /**
      * Closes a socket while suppressing any {@code IOException} that occurs.
-     * 
      * @param socket the socket to close
      */
     public static void closeQuietly(Socket socket) {
@@ -56,8 +54,8 @@ public class CloseUtil {
     }
 
     /**
-     * Closes a server socket while suppressing any {@code IOException} that occurs.
-     * 
+     * Closes a server socket while suppressing any {@code IOException} that 
+     * occurs.
      * @param serverSocket the socket to close
      */
     public static void closeQuietly(ServerSocket serverSocket) {

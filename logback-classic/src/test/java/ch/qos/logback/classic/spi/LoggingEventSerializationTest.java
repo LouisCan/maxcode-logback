@@ -13,19 +13,9 @@
  */
 package ch.qos.logback.classic.spi;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.net.LoggingEventPreSerializationTransformer;
-import ch.qos.logback.classic.net.server.HardenedLoggingEventInputStream;
-import ch.qos.logback.classic.util.LogbackMDCAdapter;
-import ch.qos.logback.core.spi.PreSerializationTransformer;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.slf4j.MDC;
-import org.slf4j.Marker;
-import org.slf4j.MarkerFactory;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -33,17 +23,23 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.MDC;
+
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.net.LoggingEventPreSerializationTransformer;
+import ch.qos.logback.classic.net.server.HardenedLoggingEventInputStream;
+import ch.qos.logback.core.spi.PreSerializationTransformer;
 
 public class LoggingEventSerializationTest {
 
     LoggerContext loggerContext;
-    LogbackMDCAdapter logbackMDCAdapter = new LogbackMDCAdapter();
     Logger logger;
 
     ByteArrayOutputStream bos;
@@ -51,18 +47,17 @@ public class LoggingEventSerializationTest {
     ObjectInputStream inputStream;
     PreSerializationTransformer<ILoggingEvent> pst = new LoggingEventPreSerializationTransformer();
 
-    @BeforeEach
+    @Before
     public void setUp() throws Exception {
         loggerContext = new LoggerContext();
         loggerContext.setName("testContext");
-        loggerContext.setMDCAdapter(logbackMDCAdapter);
         logger = loggerContext.getLogger(Logger.ROOT_LOGGER_NAME);
         // create the byte output stream
         bos = new ByteArrayOutputStream();
         oos = new ObjectOutputStream(bos);
     }
 
-    @AfterEach
+    @After
     public void tearDown() throws Exception {
         loggerContext = null;
         logger = null;
@@ -96,7 +91,7 @@ public class LoggingEventSerializationTest {
 
     @Test
     public void MDC() throws Exception {
-        logbackMDCAdapter.put("key", "testValue");
+        MDC.put("key", "testValue");
         ILoggingEvent event = createLoggingEvent();
         ILoggingEvent remoteEvent = writeAndRead(event);
         checkForEquality(event, remoteEvent);
@@ -106,17 +101,17 @@ public class LoggingEventSerializationTest {
 
     @Test
     public void updatedMDC() throws Exception {
-        logbackMDCAdapter.put("key", "testValue");
+        MDC.put("key", "testValue");
         ILoggingEvent event1 = createLoggingEvent();
         Serializable s1 = pst.transform(event1);
         oos.writeObject(s1);
 
-        logbackMDCAdapter.put("key", "updatedTestValue");
+        MDC.put("key", "updatedTestValue");
         ILoggingEvent event2 = createLoggingEvent();
         Serializable s2 = pst.transform(event2);
         oos.writeObject(s2);
 
-        // create the input stream based on the output stream
+        // create the input stream based on the ouput stream
         ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
         inputStream = new ObjectInputStream(bis);
 
@@ -154,38 +149,6 @@ public class LoggingEventSerializationTest {
     }
 
     @Test
-    public void testWithMarker() throws Exception {
-        Marker marker = MarkerFactory.getMarker("A_MARKER");
-        LoggingEvent event = createLoggingEvent();
-
-        event.addMarker(marker);
-        assertNotNull(event.getMarkerList());
-
-        ILoggingEvent remoteEvent = writeAndRead(event);
-        checkForEquality(event, remoteEvent);
-
-        assertNotNull(remoteEvent.getMarkerList());
-        assertEquals(Arrays.asList(marker), remoteEvent.getMarkerList());
-    }
-
-    @Test
-    public void testWithTwoMarkers() throws Exception {
-        Marker marker = MarkerFactory.getMarker("A_MARKER");
-        Marker marker2 = MarkerFactory.getMarker("B_MARKER");
-        marker.add(marker2);
-        LoggingEvent event = createLoggingEvent();
-
-        event.addMarker(marker);
-        assertNotNull(event.getMarkerList());
-
-        ILoggingEvent remoteEvent = writeAndRead(event);
-        checkForEquality(event, remoteEvent);
-
-        assertNotNull(remoteEvent.getMarkerList());
-        assertEquals(Arrays.asList(marker), remoteEvent.getMarkerList());
-    }
-
-    @Test
     public void testWithCallerData() throws Exception {
         LoggingEvent event = createLoggingEvent();
         event.getCallerData();
@@ -200,6 +163,7 @@ public class LoggingEventSerializationTest {
         ThrowableProxy tp = new ThrowableProxy(throwable);
         event.setThrowableProxy(tp);
         tp.calculatePackagingData();
+
         ILoggingEvent remoteEvent = writeAndRead(event);
         checkForEquality(event, remoteEvent);
     }
@@ -251,7 +215,7 @@ public class LoggingEventSerializationTest {
         oos.writeObject(ser);
         ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
         inputStream = new HardenedLoggingEventInputStream(bis);
-
+        
         return (ILoggingEvent) inputStream.readObject();
     }
 

@@ -15,34 +15,74 @@ package ch.qos.logback.core.joran.action;
 
 import org.xml.sax.Attributes;
 
-import ch.qos.logback.core.joran.spi.SaxEventInterpretationContext;
-import ch.qos.logback.core.model.Model;
-import ch.qos.logback.core.model.ShutdownHookModel;
+import ch.qos.logback.core.CoreConstants;
+import ch.qos.logback.core.hook.ShutdownHookBase;
+import ch.qos.logback.core.joran.spi.ActionException;
+import ch.qos.logback.core.joran.spi.InterpretationContext;
+import ch.qos.logback.core.util.OptionHelper;
 
 /**
- * Action which builds {@link ShutdownHookModel} based on &lt;shutdownHook&gt;
- * elements found in configuration files.
+ * Action which handles <shutdownHook> elements in configuration files.
  * 
  * @author Mike Reinhold
- * @author Ceki G&uuml;lc&uuml;
  */
-public class ShutdownHookAction extends BaseModelAction {
+public class ShutdownHookAction extends Action {
 
-    @Override
-    protected boolean validPreconditions(SaxEventInterpretationContext interpretationContext, String name,
-            Attributes attributes) {
-        return true;
-    }
+    ShutdownHookBase hook;
+    private boolean inError;
 
+    /**
+     * Instantiates a shutdown hook of the given class and sets its name.
+     * 
+     * The hook thus generated is placed in the {@link InterpretationContext}'s
+     * shutdown hook bag.
+     */
     @Override
-    protected Model buildCurrentModel(SaxEventInterpretationContext interpretationContext, String name,
-            Attributes attributes) {
-        ShutdownHookModel shutdownHookModel = new ShutdownHookModel();
+    public void begin(InterpretationContext ic, String name, Attributes attributes) throws ActionException {
+        hook = null;
+        inError = false;
 
         String className = attributes.getValue(CLASS_ATTRIBUTE);
-        shutdownHookModel.setClassName(className);
+        if (OptionHelper.isEmpty(className)) {
+            addError("Missing class name for shutdown hook. Near [" + name + "] line " + getLineNumber(ic));
+            inError = true;
+            return;
+        }
 
-        return shutdownHookModel;
+        try {
+            addInfo("About to instantiate shutdown hook of type [" + className + "]");
+
+            hook = (ShutdownHookBase) OptionHelper.instantiateByClassName(className, ShutdownHookBase.class, context);
+            hook.setContext(context);
+
+            ic.pushObject(hook);
+        } catch (Exception e) {
+            inError = true;
+            addError("Could not create a shutdown hook of type [" + className + "].", e);
+            throw new ActionException(e);
+        }
     }
 
+    /**
+     * Once the children elements are also parsed, now is the time to activate the
+     * shutdown hook options.
+     */
+    @Override
+    public void end(InterpretationContext ic, String name) throws ActionException {
+        if (inError) {
+            return;
+        }
+
+        Object o = ic.peekObject();
+        if (o != hook) {
+            addWarn("The object at the of the stack is not the hook pushed earlier.");
+        } else {
+            ic.popObject();
+
+            Thread hookThread = new Thread(hook, "Logback shutdown hook [" + context.getName() + "]");
+
+            context.putObject(CoreConstants.SHUTDOWN_HOOK_THREAD, hookThread);
+            Runtime.getRuntime().addShutdownHook(hookThread);
+        }
+    }
 }

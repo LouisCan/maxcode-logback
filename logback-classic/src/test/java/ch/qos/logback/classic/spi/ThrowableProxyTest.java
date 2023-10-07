@@ -13,31 +13,34 @@
  */
 package ch.qos.logback.classic.spi;
 
-import ch.qos.logback.core.util.EnvUtil;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static ch.qos.logback.classic.util.TestHelper.addSuppressed;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assume.assumeNotNull;
+import static org.junit.Assume.assumeTrue;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import ch.qos.logback.classic.util.TestHelper;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 public class ThrowableProxyTest {
 
     StringWriter sw = new StringWriter();
     PrintWriter pw = new PrintWriter(sw);
 
-    @BeforeEach
+    @Before
     public void setUp() throws Exception {
     }
 
-    @AfterEach
+    @After
     public void tearDown() throws Exception {
     }
 
-    // compares Throwable.printStackTrace with output by ThrowableProxy
     public void verify(Throwable t) {
         t.printStackTrace(pw);
 
@@ -45,13 +48,14 @@ public class ThrowableProxyTest {
 
         String result = ThrowableProxyUtil.asString(tp);
         result = result.replace("common frames omitted", "more");
+
         String expected = sw.toString();
 
-        // System.out.println("========expected");
-        // System.out.println(expected);
+        System.out.println("========expected");
+        System.out.println(expected);
 
-        // System.out.println("========result");
-        // System.out.println(result);
+        System.out.println("========result");
+        System.out.println(result);
 
         assertEquals(expected, result);
     }
@@ -75,15 +79,16 @@ public class ThrowableProxyTest {
 
     @Test
     public void suppressed() throws InvocationTargetException, IllegalAccessException {
+        assumeTrue(TestHelper.suppressedSupported()); // only execute on Java 7, would work anyway but doesn't make
+                                                      // sense.
         Exception ex = null;
         try {
             someMethod();
         } catch (Exception e) {
             Exception fooException = new Exception("Foo");
             Exception barException = new Exception("Bar");
-            e.addSuppressed(fooException);
-            e.addSuppressed(barException);
-
+            addSuppressed(e, fooException);
+            addSuppressed(e, barException);
             ex = e;
         }
         verify(ex);
@@ -91,7 +96,8 @@ public class ThrowableProxyTest {
 
     @Test
     public void suppressedWithCause() throws InvocationTargetException, IllegalAccessException {
-        // sense.
+        assumeTrue(TestHelper.suppressedSupported()); // only execute on Java 7, would work anyway but doesn't make
+                                                      // sense.
         Exception ex = null;
         try {
             someMethod();
@@ -99,16 +105,16 @@ public class ThrowableProxyTest {
             ex = new Exception("Wrapper", e);
             Exception fooException = new Exception("Foo");
             Exception barException = new Exception("Bar");
-
-            ex.addSuppressed(fooException);
-            e.addSuppressed(barException);
-
+            addSuppressed(ex, fooException);
+            addSuppressed(e, barException);
         }
         verify(ex);
     }
 
     @Test
     public void suppressedWithSuppressed() throws Exception {
+        assumeTrue(TestHelper.suppressedSupported()); // only execute on Java 7, would work anyway but doesn't make
+                                                      // sense.
         Exception ex = null;
         try {
             someMethod();
@@ -116,19 +122,16 @@ public class ThrowableProxyTest {
             ex = new Exception("Wrapper", e);
             Exception fooException = new Exception("Foo");
             Exception barException = new Exception("Bar");
-            barException.addSuppressed(fooException);
-            e.addSuppressed(barException);
-
+            addSuppressed(barException, fooException);
+            addSuppressed(e, barException);
         }
         verify(ex);
     }
 
-    // see also https://jira.qos.ch/browse/LOGBACK-453
+    // see also http://jira.qos.ch/browse/LBCLASSIC-216
     @Test
     public void nullSTE() {
         Throwable t = new Exception("someMethodWithNullException") {
-            private static final long serialVersionUID = 1L;
-
             @Override
             public StackTraceElement[] getStackTrace() {
                 return null;
@@ -156,38 +159,12 @@ public class ThrowableProxyTest {
         verify(w);
     }
 
-    // see also https://jira.qos.ch/browse/LOGBACK-1454
-    @Test
-    public void cyclicCause() {
-        // Earlier JDKs may format things differently
-        if (!EnvUtil.isJDK16OrHigher())
-            return;
-        Exception e = new Exception("foo");
-        Exception e2 = new Exception(e);
-        e.initCause(e2);
-        verify(e);
-    }
-
-    // see also https://jira.qos.ch/browse/LOGBACK-1454
-    @Test
-    public void cyclicSuppressed() {
-        // Earlier JDKs may format things differently
-        if (!EnvUtil.isJDK16OrHigher())
-            return;
-        Exception e = new Exception("foo");
-        Exception e2 = new Exception(e);
-        e.addSuppressed(e2);
-        verify(e);
-    }
-
     void someMethod() throws Exception {
         throw new Exception("someMethod");
     }
 
     void someMethodWithNullException() throws Exception {
         throw new Exception("someMethodWithNullException") {
-            private static final long serialVersionUID = -2419053636101615373L;
-
             @Override
             public StackTraceElement[] getStackTrace() {
                 return null;

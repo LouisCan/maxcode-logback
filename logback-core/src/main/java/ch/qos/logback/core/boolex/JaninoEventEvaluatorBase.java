@@ -23,7 +23,7 @@ import org.codehaus.janino.ScriptEvaluator;
  * 
  * @author Ceki G&uuml;lc&uuml;
  * 
- * @param <E> event type
+ * @param <E>
  */
 abstract public class JaninoEventEvaluatorBase<E> extends EventEvaluatorBase<E> {
 
@@ -48,14 +48,13 @@ abstract public class JaninoEventEvaluatorBase<E> extends EventEvaluatorBase<E> 
 
     abstract protected Object[] getParameterValues(E event);
 
-    protected List<Matcher> matcherList = new ArrayList<>();
+    protected List<Matcher> matcherList = new ArrayList<Matcher>();
 
     @Override
     public void start() {
         try {
             assert context != null;
-            scriptEvaluator = new ScriptEvaluator(getDecoratedExpression(), EXPRESSION_TYPE, getParameterNames(),
-                    getParameterTypes(), THROWN_EXCEPTIONS);
+            scriptEvaluator = new ScriptEvaluator(getDecoratedExpression(), EXPRESSION_TYPE, getParameterNames(), getParameterTypes(), THROWN_EXCEPTIONS);
             super.start();
         } catch (Exception e) {
             addError("Could not start evaluator with expression [" + expression + "]", e);
@@ -68,7 +67,7 @@ abstract public class JaninoEventEvaluatorBase<E> extends EventEvaluatorBase<E> 
         }
         try {
             Boolean result = (Boolean) scriptEvaluator.evaluate(getParameterValues(event));
-            return result;
+            return result.booleanValue();
         } catch (Exception ex) {
             errorCount++;
             if (errorCount >= ERROR_THRESHOLD) {

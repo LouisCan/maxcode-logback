@@ -20,6 +20,9 @@ import java.util.concurrent.Executor;
 
 import javax.net.ServerSocketFactory;
 
+import ch.qos.logback.classic.net.server.RemoteAppenderClient;
+import ch.qos.logback.classic.net.server.RemoteAppenderServerListener;
+import ch.qos.logback.classic.net.server.ServerSocketReceiver;
 import ch.qos.logback.core.net.server.ServerListener;
 import ch.qos.logback.core.net.server.ServerRunner;
 
@@ -34,15 +37,13 @@ public class InstrumentedServerSocketReceiver extends ServerSocketReceiver {
     private final ServerListener<RemoteAppenderClient> listener;
     private final ServerRunner<RemoteAppenderClient> runner;
 
-    @SuppressWarnings("rawtypes")
     private ServerListener lastListener;
 
     public InstrumentedServerSocketReceiver(ServerSocket serverSocket) {
         this(serverSocket, new RemoteAppenderServerListener(serverSocket), null);
     }
 
-    public InstrumentedServerSocketReceiver(ServerSocket serverSocket, ServerListener<RemoteAppenderClient> listener,
-            ServerRunner<RemoteAppenderClient> runner) {
+    public InstrumentedServerSocketReceiver(ServerSocket serverSocket, ServerListener<RemoteAppenderClient> listener, ServerRunner<RemoteAppenderClient> runner) {
         this.serverSocket = serverSocket;
         this.listener = listener;
         this.runner = runner;
@@ -69,7 +70,6 @@ public class InstrumentedServerSocketReceiver extends ServerSocketReceiver {
         };
     }
 
-    @SuppressWarnings("rawtypes")
     @Override
     protected ServerRunner createServerRunner(ServerListener<RemoteAppenderClient> listener, Executor executor) {
         lastListener = listener;
@@ -81,7 +81,6 @@ public class InstrumentedServerSocketReceiver extends ServerSocketReceiver {
         return listener;
     }
 
-    @SuppressWarnings("rawtypes")
     public ServerListener getLastListener() {
         return lastListener;
     }

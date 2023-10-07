@@ -13,16 +13,20 @@
  */
 package ch.qos.logback.core.subst;
 
-import ch.qos.logback.core.spi.ScanException;
-import org.junit.jupiter.api.Test;
+import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+import org.junit.Test;
+
+import ch.qos.logback.core.spi.ScanException;
 
 /**
- *
+ * Created with IntelliJ IDEA.
+ * User: ceki
+ * Date: 05.08.12
+ * Time: 00:15
+ * To change this template use File | Settings | File Templates.
  */
 public class ParserTest {
 
@@ -125,19 +129,6 @@ public class ParserTest {
     }
 
     @Test
-    public void withNoClosingBraces() throws ScanException {
-        Tokenizer tokenizer = new Tokenizer("a${b");
-        Parser parser = new Parser(tokenizer.tokenize());
-        try {
-            parser.parse();
-        } catch (IllegalArgumentException e) {
-            assertEquals("All tokens consumed but was expecting \"}\"", e.getMessage());
-            return;
-        }
-        fail();
-    }
-
-    @Test
     public void nested() throws ScanException {
         Tokenizer tokenizer = new Tokenizer("a${b${c}}d");
         Parser parser = new Parser(tokenizer.tokenize());
@@ -163,17 +154,6 @@ public class ParserTest {
         witness.defaultPart = new Node(Node.Type.LITERAL, "c");
         assertEquals(witness, node);
     }
-
-    @Test
-    public void withEmptryDefault() throws ScanException {
-        Tokenizer tokenizer = new Tokenizer("${b:-}");
-        Parser parser = new Parser(tokenizer.tokenize());
-        Node node = parser.parse();
-        Node witness = new Node(Node.Type.VARIABLE, new Node(Node.Type.LITERAL, "b"));
-        witness.defaultPart = new Node(Node.Type.LITERAL, "");
-        assertEquals(witness, node);
-    }
-
 
     @Test
     public void defaultSeparatorOutsideOfAVariable() throws ScanException {

@@ -37,7 +37,7 @@ public class ConfigurationWatchList extends ContextAwareBase {
         out.lastModifiedList = new ArrayList<Long>(this.lastModifiedList);
         return out;
     }
-
+    
     public void clear() {
         this.mainURL = null;
         lastModifiedList.clear();
@@ -46,7 +46,6 @@ public class ConfigurationWatchList extends ContextAwareBase {
 
     /**
      * The mainURL for the configuration file. Null values are allowed.
-     * 
      * @param mainURL
      */
     public void setMainURL(URL mainURL) {
@@ -86,8 +85,7 @@ public class ConfigurationWatchList extends ContextAwareBase {
             }
         }
         return false;
-        // return (lastModified != fileToScan.lastModified() && lastModified !=
-        // SENTINEL);
+        // return (lastModified != fileToScan.lastModified() && lastModified != SENTINEL);
     }
 
     @SuppressWarnings("deprecation")

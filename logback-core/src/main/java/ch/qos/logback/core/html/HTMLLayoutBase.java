@@ -27,8 +27,8 @@ import ch.qos.logback.core.pattern.parser.Parser;
 import ch.qos.logback.core.spi.ScanException;
 
 /**
- * This class is a base class for HTMLLayout classes part of other logback
- * modules such as logback-classic and logback-access.
+ * This class is a base class for HTMLLayout classes part of
+ * other logback modules such as logback-classic and logback-access.
  * 
  *
  * @author S&eacute;bastien Pennec
@@ -114,8 +114,7 @@ public abstract class HTMLLayoutBase<E> extends LayoutBase<E> {
         Context context = getContext();
         if (context != null) {
             @SuppressWarnings("unchecked")
-            Map<String, String> contextMap = (Map<String, String>) context
-                    .getObject(CoreConstants.PATTERN_RULE_REGISTRY);
+            Map<String, String> contextMap = (Map<String, String>) context.getObject(CoreConstants.PATTERN_RULE_REGISTRY);
             if (contextMap != null) {
                 effectiveMap.putAll(contextMap);
             }
@@ -124,8 +123,8 @@ public abstract class HTMLLayoutBase<E> extends LayoutBase<E> {
     }
 
     /**
-     * The <b>Title </b> option takes a String value. This option sets the document
-     * title of the generated HTML document.
+     * The <b>Title </b> option takes a String value. This option sets the
+     * document title of the generated HTML document.
      * 
      * <p>
      * Defaults to 'Logback Log Messages'.
@@ -196,7 +195,7 @@ public abstract class HTMLLayoutBase<E> extends LayoutBase<E> {
     }
 
     private void buildHeaderRowForTable(StringBuilder sbuf) {
-        Converter<E> c = head;
+        Converter c = head;
         String name;
         sbuf.append("<tr class=\"header\">");
         sbuf.append(LINE_SEPARATOR);
@@ -247,7 +246,7 @@ public abstract class HTMLLayoutBase<E> extends LayoutBase<E> {
         }
     }
 
-    protected String computeConverterName(Converter<E> c) {
+    protected String computeConverterName(Converter c) {
         String className = c.getClass().getSimpleName();
         int index = className.indexOf("Converter");
         if (index == -1) {

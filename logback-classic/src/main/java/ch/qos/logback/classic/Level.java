@@ -13,15 +13,13 @@
  */
 package ch.qos.logback.classic;
 
-import org.slf4j.event.EventConstants;
 import org.slf4j.spi.LocationAwareLogger;
 
 /**
- * Defines the set of levels recognized by logback-classic, that is
- * {@link #OFF}, {@link #ERROR}, {@link #WARN}, {@link #INFO}, {@link #DEBUG},
- * {@link #TRACE} and {@link #ALL}.
- * <p/>
- * The <code>Level</code> class is final and cannot be sub-classed.
+ * Defines the set of levels recognized by logback-classic, that is {@link #OFF},
+ * {@link #ERROR}, {@link #WARN}, {@link #INFO}, {@link #DEBUG},
+ * {@link #TRACE} and {@link #ALL}. <p/> The <code>Level</code> class is
+ * final and cannot be sub-classed.
  * </p>
  */
 public final class Level implements java.io.Serializable {
@@ -50,8 +48,8 @@ public final class Level implements java.io.Serializable {
     public static final Level OFF = new Level(OFF_INT, "OFF");
 
     /**
-     * The <code>ERROR</code> level designates error events which may or not be
-     * fatal to the application.
+     * The <code>ERROR</code> level designates error events which may or not
+     * be fatal to the application.
      */
     public static final Level ERROR = new Level(ERROR_INT, "ERROR");
 
@@ -61,8 +59,8 @@ public final class Level implements java.io.Serializable {
     public static final Level WARN = new Level(WARN_INT, "WARN");
 
     /**
-     * The <code>INFO</code> level designates informational messages highlighting
-     * overall progress of the application.
+     * The <code>INFO</code> level designates informational messages
+     * highlighting overall progress of the application.
      */
     public static final Level INFO = new Level(INFO_INT, "INFO");
 
@@ -108,11 +106,6 @@ public final class Level implements java.io.Serializable {
         return levelInt;
     }
 
-    static public Level convertAnSLF4JLevel(org.slf4j.event.Level slf4jLevel) {
-        final int levelInt = slf4jLevel.toInt();
-        return fromLocationAwareLoggerInteger(levelInt);
-    }
-
     /**
      * Convert a Level to an Integer object.
      *
@@ -140,8 +133,8 @@ public final class Level implements java.io.Serializable {
     }
 
     /**
-     * Returns <code>true</code> if this Level has a higher or equal Level than the
-     * Level passed as argument, <code>false</code> otherwise.
+     * Returns <code>true</code> if this Level has a higher or equal Level than
+     * the Level passed as argument, <code>false</code> otherwise.
      */
     public boolean isGreaterOrEqual(Level r) {
         return levelInt >= r.levelInt;
@@ -202,40 +195,37 @@ public final class Level implements java.io.Serializable {
      * Convert the string passed as argument to a Level. If the conversion fails,
      * then this method returns the value of <code>defaultLevel</code>.
      */
-    public static Level toLevel(final String sArg, Level defaultLevel) {
+    public static Level toLevel(String sArg, Level defaultLevel) {
         if (sArg == null) {
             return defaultLevel;
         }
 
-        // see LOGBACK-1288
-        final String in = sArg.trim();
-
-        if (in.equalsIgnoreCase("ALL")) {
+        if (sArg.equalsIgnoreCase("ALL")) {
             return Level.ALL;
         }
-        if (in.equalsIgnoreCase("TRACE")) {
+        if (sArg.equalsIgnoreCase("TRACE")) {
             return Level.TRACE;
         }
-        if (in.equalsIgnoreCase("DEBUG")) {
+        if (sArg.equalsIgnoreCase("DEBUG")) {
             return Level.DEBUG;
         }
-        if (in.equalsIgnoreCase("INFO")) {
+        if (sArg.equalsIgnoreCase("INFO")) {
             return Level.INFO;
         }
-        if (in.equalsIgnoreCase("WARN")) {
+        if (sArg.equalsIgnoreCase("WARN")) {
             return Level.WARN;
         }
-        if (in.equalsIgnoreCase("ERROR")) {
+        if (sArg.equalsIgnoreCase("ERROR")) {
             return Level.ERROR;
         }
-        if (in.equalsIgnoreCase("OFF")) {
+        if (sArg.equalsIgnoreCase("OFF")) {
             return Level.OFF;
         }
         return defaultLevel;
     }
 
     /**
-     * Return the flyweight instance of the level received through serialization,
+     * Return the flyweight instance of the level received through serizalization,
      * i.e. 'this'.
      *
      * @return The appropriate flyweight instance
@@ -248,27 +238,26 @@ public final class Level implements java.io.Serializable {
      * Convert one of the integer values defined in {@link LocationAwareLogger}
      * interface to an instance of this class, i.e. a Level.
      *
-     * @param levelInt An integer value representing a level as defined in
-     *                 LocationAwareLogger
+     * @param levelInt An integer value representing a level as defined in LocationAwareLogger
      * @return an instance of this class, i.e. a Level.
      * @since 1.0.1
      */
     public static Level fromLocationAwareLoggerInteger(int levelInt) {
         Level level;
         switch (levelInt) {
-        case EventConstants.TRACE_INT:
+        case LocationAwareLogger.TRACE_INT:
             level = TRACE;
             break;
-        case EventConstants.DEBUG_INT:
+        case LocationAwareLogger.DEBUG_INT:
             level = DEBUG;
             break;
-        case EventConstants.INFO_INT:
+        case LocationAwareLogger.INFO_INT:
             level = INFO;
             break;
-        case EventConstants.WARN_INT:
+        case LocationAwareLogger.WARN_INT:
             level = WARN;
             break;
-        case EventConstants.ERROR_INT:
+        case LocationAwareLogger.ERROR_INT:
             level = ERROR;
             break;
         default:
@@ -278,12 +267,11 @@ public final class Level implements java.io.Serializable {
     }
 
     /**
-     * Convert this level instance to an integer value defined in the
+     * Convert this level instance to an integer  value defined in the
      * {@link LocationAwareLogger} interface.
      *
      * @param level The level to convert to LocationAwareLogger integer
-     * @return int An integer corresponding to this level as defined in
-     *         LocationAwareLogger
+     * @return int An integer corresponding to this level as defined in LocationAwareLogger
      * @since 1.0.1
      */
     public static int toLocationAwareLoggerInteger(Level level) {
@@ -291,15 +279,15 @@ public final class Level implements java.io.Serializable {
             throw new IllegalArgumentException("null level parameter is not admitted");
         switch (level.toInt()) {
         case Level.TRACE_INT:
-            return EventConstants.TRACE_INT;
+            return LocationAwareLogger.TRACE_INT;
         case Level.DEBUG_INT:
-            return EventConstants.DEBUG_INT;
+            return LocationAwareLogger.DEBUG_INT;
         case Level.INFO_INT:
-            return EventConstants.INFO_INT;
+            return LocationAwareLogger.INFO_INT;
         case Level.WARN_INT:
-            return EventConstants.WARN_INT;
+            return LocationAwareLogger.WARN_INT;
         case Level.ERROR_INT:
-            return EventConstants.ERROR_INT;
+            return LocationAwareLogger.ERROR_INT;
         default:
             throw new IllegalArgumentException(level + " not a valid level value");
         }

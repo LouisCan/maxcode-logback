@@ -21,10 +21,9 @@ import ch.qos.logback.core.CoreConstants;
 /**
  * This class is tied to the <code>fullRequest</code> conversion word.
  * <p>
- * It has been removed from the {@link ch.qos.logback.access.PatternLayout}
- * since it needs further testing before wide use.
+ * It has been removed from the {@link ch.qos.logback.access.PatternLayout} since
+ * it needs further testing before wide use.
  * <p>
- * 
  * @author Ceki G&uuml;lc&uuml;
  * @author S&eacute;bastien Pennec
  */
@@ -36,9 +35,9 @@ public class FullRequestConverter extends AccessConverter {
         buf.append(ae.getRequestURL());
         buf.append(CoreConstants.LINE_SEPARATOR);
 
-        Enumeration<String> headerNames = ae.getRequestHeaderNames();
+        Enumeration headerNames = ae.getRequestHeaderNames();
         while (headerNames.hasMoreElements()) {
-            String name = headerNames.nextElement();
+            String name = (String) headerNames.nextElement();
             buf.append(name);
             buf.append(": ");
             buf.append(ae.getRequestHeader(name));

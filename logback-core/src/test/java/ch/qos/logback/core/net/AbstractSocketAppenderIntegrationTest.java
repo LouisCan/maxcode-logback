@@ -13,7 +13,10 @@
  */
 package ch.qos.logback.core.net;
 
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.timeout;
@@ -28,17 +31,14 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import ch.qos.logback.core.net.mock.MockContext;
-import ch.qos.logback.core.net.server.test.ServerSocketUtil;
+import ch.qos.logback.core.net.server.ServerSocketUtil;
 import ch.qos.logback.core.spi.PreSerializationTransformer;
 import ch.qos.logback.core.util.ExecutorServiceUtil;
 
@@ -52,30 +52,28 @@ public class AbstractSocketAppenderIntegrationTest {
 
     private static final int TIMEOUT = 2000;
 
-    private ThreadPoolExecutor threadPoolExecutor = ExecutorServiceUtil.newThreadPoolExecutor();
-    private MockContext mockContext = new MockContext(threadPoolExecutor);
+    private ScheduledExecutorService executorService = ExecutorServiceUtil.newScheduledExecutorService();
+    private MockContext mockContext = new MockContext(executorService);
     private AutoFlushingObjectWriter objectWriter;
     private ObjectWriterFactory objectWriterFactory = new SpyProducingObjectWriterFactory();
     private LinkedBlockingDeque<String> deque = spy(new LinkedBlockingDeque<String>(1));
     private QueueFactory queueFactory = mock(QueueFactory.class);
-    private InstrumentedSocketAppender instrumentedAppender = new InstrumentedSocketAppender(queueFactory,
-            objectWriterFactory);
+    private InstrumentedSocketAppender instrumentedAppender = new InstrumentedSocketAppender(queueFactory, objectWriterFactory);
 
-    @BeforeEach
+    @Before
     public void setUp() throws Exception {
-        when(queueFactory.<String>newLinkedBlockingDeque(anyInt())).thenReturn(deque);
+        when(queueFactory.<String> newLinkedBlockingDeque(anyInt())).thenReturn(deque);
         instrumentedAppender.setContext(mockContext);
     }
 
-    @AfterEach
+    @After
     public void tearDown() throws Exception {
         instrumentedAppender.stop();
-        Assertions.assertFalse(instrumentedAppender.isStarted());
-        threadPoolExecutor.shutdownNow();
-        Assertions.assertTrue(threadPoolExecutor.awaitTermination(TIMEOUT, TimeUnit.MILLISECONDS));
+        assertFalse(instrumentedAppender.isStarted());
+        executorService.shutdownNow();
+        assertTrue(executorService.awaitTermination(TIMEOUT, TimeUnit.MILLISECONDS));
     }
 
-    @Disabled // JDK 16
     @Test
     public void dispatchesEvents() throws Exception {
 
@@ -97,7 +95,7 @@ public class AbstractSocketAppenderIntegrationTest {
 
         // then
         ObjectInputStream ois = new ObjectInputStream(appenderSocket.getInputStream());
-        Assertions.assertEquals( ois.readObject(), "some event");
+        assertEquals("some event", ois.readObject());
         appenderSocket.close();
     }
 

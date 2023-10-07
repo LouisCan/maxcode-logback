@@ -1,6 +1,6 @@
 /**
  * Logback: the reliable, generic, fast and flexible logging framework.
- * Copyright (C) 1999-2022, QOS.ch. All rights reserved.
+ * Copyright (C) 1999-2015, QOS.ch. All rights reserved.
  *
  * This program and the accompanying materials are dual-licensed under
  * either the terms of the Eclipse Public License v1.0 as published by
@@ -13,30 +13,15 @@
  */
 package ch.qos.logback.core.joran.conditional;
 
-import org.xml.sax.Attributes;
+import java.util.List;
 
-import ch.qos.logback.core.joran.action.BaseModelAction;
-import ch.qos.logback.core.joran.action.PreconditionValidator;
-import ch.qos.logback.core.joran.spi.SaxEventInterpretationContext;
-import ch.qos.logback.core.model.Model;
-import ch.qos.logback.core.model.conditional.ThenModel;
+import ch.qos.logback.core.joran.event.SaxEvent;
 
-public class ThenAction extends BaseModelAction {
+public class ThenAction extends ThenOrElseActionBase {
 
     @Override
-    protected boolean validPreconditions(SaxEventInterpretationContext interpcont, String name, Attributes attributes) {
-        PreconditionValidator pv = new PreconditionValidator(this, interpcont, name, attributes);
-        pv.validateZeroAttributes();
-        return pv.isValid();
-    }
-    
-    @Override
-    protected Model buildCurrentModel(SaxEventInterpretationContext interpretationContext, String name,
-            Attributes attributes) {
-        
-        ThenModel thenModel = new ThenModel();
-        
-        return thenModel;
+    void registerEventList(IfAction ifAction, List<SaxEvent> eventList) {
+        ifAction.setThenSaxEventList(eventList);
     }
 
 }

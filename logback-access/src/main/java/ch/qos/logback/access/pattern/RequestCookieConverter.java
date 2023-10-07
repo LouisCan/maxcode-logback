@@ -23,7 +23,7 @@ public class RequestCookieConverter extends AccessConverter {
     @Override
     public void start() {
         key = getFirstOption();
-        if (OptionHelper.isNullOrEmpty(key)) {
+        if (OptionHelper.isEmpty(key)) {
             addWarn("Missing key for the requested header");
         } else {
             super.start();

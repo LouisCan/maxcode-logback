@@ -10,9 +10,7 @@ import ch.qos.logback.core.status.InfoStatus;
 import ch.qos.logback.core.status.Status;
 
 /**
- * Add a status message to the {@link LoggerContext} returned by
- * {@link LoggerFactory#getILoggerFactory}.
- * 
+ * Add a status message to the {@link LoggerContext} returned by {@link LoggerFactory#getILoggerFactory}.
  * @author ceki
  * @since 1.1.10
  */

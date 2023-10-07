@@ -31,16 +31,7 @@ public interface Status {
 
     Throwable getThrowable();
 
-    /**
-     * @eprecated. Use getTimestamp instead.
-     * @return
-     */
-    @Deprecated
-    default Long getDate() {
-        return getTimestamp();
-    }
-
-    long getTimestamp();
+    Long getDate();
 
     boolean hasChildren();
 

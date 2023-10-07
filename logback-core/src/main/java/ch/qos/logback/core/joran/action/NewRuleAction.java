@@ -15,7 +15,7 @@ package ch.qos.logback.core.joran.action;
 
 import org.xml.sax.Attributes;
 
-import ch.qos.logback.core.joran.spi.SaxEventInterpretationContext;
+import ch.qos.logback.core.joran.spi.InterpretationContext;
 import ch.qos.logback.core.joran.spi.ElementSelector;
 import ch.qos.logback.core.util.OptionHelper;
 
@@ -23,23 +23,23 @@ public class NewRuleAction extends Action {
     boolean inError = false;
 
     /**
-     * Instantiates a layout of the given class and sets its name.
+     * Instantiates an layout of the given class and sets its name.
      */
-    public void begin(SaxEventInterpretationContext ec, String localName, Attributes attributes) {
+    public void begin(InterpretationContext ec, String localName, Attributes attributes) {
         // Let us forget about previous errors (in this object)
         inError = false;
         String errorMsg;
         String pattern = attributes.getValue(Action.PATTERN_ATTRIBUTE);
         String actionClass = attributes.getValue(Action.ACTION_CLASS_ATTRIBUTE);
 
-        if (OptionHelper.isNullOrEmpty(pattern)) {
+        if (OptionHelper.isEmpty(pattern)) {
             inError = true;
             errorMsg = "No 'pattern' attribute in <newRule>";
             addError(errorMsg);
             return;
         }
 
-        if (OptionHelper.isNullOrEmpty(actionClass)) {
+        if (OptionHelper.isEmpty(actionClass)) {
             inError = true;
             errorMsg = "No 'actionClass' attribute in <newRule>";
             addError(errorMsg);
@@ -48,7 +48,7 @@ public class NewRuleAction extends Action {
 
         try {
             addInfo("About to add new Joran parsing rule [" + pattern + "," + actionClass + "].");
-            ec.getSaxEventInterpreter().getRuleStore().addRule(new ElementSelector(pattern), actionClass);
+            ec.getJoranInterpreter().getRuleStore().addRule(new ElementSelector(pattern), actionClass);
         } catch (Exception oops) {
             inError = true;
             errorMsg = "Could not add new Joran parsing rule [" + pattern + "," + actionClass + "]";
@@ -60,9 +60,9 @@ public class NewRuleAction extends Action {
      * Once the children elements are also parsed, now is the time to activate the
      * appender options.
      */
-    public void end(SaxEventInterpretationContext ec, String n) {
+    public void end(InterpretationContext ec, String n) {
     }
 
-    public void finish(SaxEventInterpretationContext ec) {
+    public void finish(InterpretationContext ec) {
     }
 }

@@ -59,8 +59,8 @@ public class FileAppender<E> extends OutputStreamAppender<E> {
     private FileSize bufferSize = new FileSize(DEFAULT_BUFFER_SIZE);
 
     /**
-     * The <b>File</b> property takes a string value which should be the name of the
-     * file to append to.
+     * The <b>File</b> property takes a string value which should be the name of
+     * the file to append to.
      */
     public void setFile(String file) {
         if (file == null) {
@@ -101,8 +101,9 @@ public class FileAppender<E> extends OutputStreamAppender<E> {
     }
 
     /**
-     * If the value of <b>File</b> is not <code>null</code>, then {@link #openFile}
-     * is called with the values of <b>File</b> and <b>Append</b> properties.
+     * If the value of <b>File</b> is not <code>null</code>, then
+     * {@link #openFile} is called with the values of <b>File</b> and
+     * <b>Append</b> properties.
      */
     public void start() {
         int errors = 0;
@@ -140,9 +141,6 @@ public class FileAppender<E> extends OutputStreamAppender<E> {
 
     @Override
     public void stop() {
-        if(!isStarted())
-            return;
-
         super.stop();
 
         Map<String, String> map = ContextUtil.getFilenameCollisionMap(context);
@@ -158,26 +156,24 @@ public class FileAppender<E> extends OutputStreamAppender<E> {
             return false;
         }
         @SuppressWarnings("unchecked")
-        Map<String, String> previousFilesMap = (Map<String, String>) context
-                .getObject(CoreConstants.FA_FILENAME_COLLISION_MAP);
-        if (previousFilesMap == null) {
+        Map<String, String> map = (Map<String, String>) context.getObject(CoreConstants.FA_FILENAME_COLLISION_MAP);
+        if (map == null) {
             return collisionsDetected;
         }
-        for (Entry<String, String> entry : previousFilesMap.entrySet()) {
+        for (Entry<String, String> entry : map.entrySet()) {
             if (fileName.equals(entry.getValue())) {
                 addErrorForCollision("File", entry.getValue(), entry.getKey());
                 collisionsDetected = true;
             }
         }
         if (name != null) {
-            previousFilesMap.put(getName(), fileName);
+            map.put(getName(), fileName);
         }
         return collisionsDetected;
     }
 
     protected void addErrorForCollision(String optionName, String optionValue, String appenderName) {
-        addError("'" + optionName + "' option has the same value \"" + optionValue + "\" as that given for appender ["
-                + appenderName + "] defined earlier.");
+        addError("'" + optionName + "' option has the same value \"" + optionValue + "\" as that given for appender [" + appenderName + "] defined earlier.");
     }
 
     /**
@@ -186,16 +182,18 @@ public class FileAppender<E> extends OutputStreamAppender<E> {
      * file must be writable.
      * 
      * <p>
-     * If there was already an opened file, then the previous file is closed first.
+     * If there was already an opened file, then the previous file is closed
+     * first.
      * 
      * <p>
-     * <b>Do not use this method directly. To configure a FileAppender or one of its
-     * subclasses, set its properties one by one and then call start().</b>
+     * <b>Do not use this method directly. To configure a FileAppender or one of
+     * its subclasses, set its properties one by one and then call start().</b>
      * 
-     * @param file_name The path to the log file.
+     * @param file_name
+     *          The path to the log file.
      */
     public void openFile(String file_name) throws IOException {
-        streamWriteLock.lock();
+        lock.lock();
         try {
             File file = new File(file_name);
             boolean result = FileUtil.createMissingParentDirectories(file);
@@ -207,7 +205,7 @@ public class FileAppender<E> extends OutputStreamAppender<E> {
             resilientFos.setContext(context);
             setOutputStream(resilientFos);
         } finally {
-            streamWriteLock.unlock();
+            lock.unlock();
         }
     }
 
@@ -233,35 +231,13 @@ public class FileAppender<E> extends OutputStreamAppender<E> {
     public void setAppend(boolean append) {
         this.append = append;
     }
-
+    
     public void setBufferSize(FileSize bufferSize) {
-        addInfo("Setting bufferSize to [" + bufferSize.toString() + "]");
+        addInfo("Setting bufferSize to ["+bufferSize.toString()+"]");
         this.bufferSize = bufferSize;
     }
 
-    @Override
-    protected void writeOut(E event) throws IOException {
-        if (prudent) {
-            safeWriteOut(event);
-        } else {
-            super.writeOut(event);
-        }
-    }
-
-    private void safeWriteOut(E event) {
-        byte[] byteArray = this.encoder.encode(event);
-        if (byteArray == null || byteArray.length == 0)
-            return;
-
-        streamWriteLock.lock();
-        try {
-           safeWriteBytes(byteArray);
-        } finally {
-            streamWriteLock.unlock();
-        }
-    }
-
-    private void safeWriteBytes(byte[] byteArray) {
+    private void safeWrite(E event) throws IOException {
         ResilientFileOutputStream resilientFOS = (ResilientFileOutputStream) getOutputStream();
         FileChannel fileChannel = resilientFOS.getChannel();
         if (fileChannel == null) {
@@ -279,12 +255,14 @@ public class FileAppender<E> extends OutputStreamAppender<E> {
             if (size != position) {
                 fileChannel.position(size);
             }
-            writeByteArrayToOutputStreamWithPossibleFlush(byteArray);
+            super.writeOut(event);
         } catch (IOException e) {
             // Mainly to catch FileLockInterruptionExceptions (see LOGBACK-875)
             resilientFOS.postIOFailure(e);
         } finally {
-            releaseFileLock(fileLock);
+            if (fileLock != null && fileLock.isValid()) {
+                fileLock.release();
+            }
 
             // Re-interrupt if we started in an interrupted state (see LOGBACK-875)
             if (interrupted) {
@@ -293,13 +271,12 @@ public class FileAppender<E> extends OutputStreamAppender<E> {
         }
     }
 
-    private void releaseFileLock(FileLock fileLock) {
-        if (fileLock != null && fileLock.isValid()) {
-            try {
-                fileLock.release();
-            } catch (IOException e) {
-                addError("failed to release lock", e);
-            }
+    @Override
+    protected void writeOut(E event) throws IOException {
+        if (prudent) {
+            safeWrite(event);
+        } else {
+            super.writeOut(event);
         }
     }
 }

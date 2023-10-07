@@ -13,10 +13,9 @@
  */
 package ch.qos.logback.core.recovery;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.Assert.*;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.Test;
 
 public class RecoveryCoordinatorTest {
 
@@ -65,9 +64,9 @@ public class RecoveryCoordinatorTest {
             rc.setCurrentTime(now + offset);
 
             if (i % 2 == 0) {
-                assertTrue(rc.isTooSoon(), "recovery should've been needed at " + offset);
+                assertTrue("recovery should've been needed at " + offset, rc.isTooSoon());
             } else {
-                assertFalse(rc.isTooSoon(), "recovery should NOT have been needed at " + offset);
+                assertFalse("recovery should NOT have been needed at " + offset, rc.isTooSoon());
             }
             offset *= 2;
         }

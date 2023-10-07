@@ -19,8 +19,8 @@ import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.util.COWArrayList;
 
 /**
- * A {@link COWArrayList} based implementation of the {@link AppenderAttachable}
- * interface.
+ * A ReentrantReadWriteLock based implementation of the
+ * {@link AppenderAttachable} interface.
  *
  * @author Ceki G&uuml;lc&uuml;
  */
@@ -30,8 +30,8 @@ public class AppenderAttachableImpl<E> implements AppenderAttachable<E> {
     final private COWArrayList<Appender<E>> appenderList = new COWArrayList<Appender<E>>(new Appender[0]);
 
     /**
-     * Attach an appender. If the appender is already in the list in won't be added
-     * again.
+     * Attach an appender. If the appender is already in the list in won't be
+     * added again.
      */
     public void addAppender(Appender<E> newAppender) {
         if (newAppender == null) {
@@ -66,9 +66,9 @@ public class AppenderAttachableImpl<E> implements AppenderAttachable<E> {
 
     /**
      * Look for an attached appender named as <code>name</code>.
-     * 
-     * <p>
-     * Return the appender with that name if in the list. Return null otherwise.
+     * <p/>
+     * <p> Return the appender with that name if in the list. Return null
+     * otherwise.
      */
     public Appender<E> getAppender(String name) {
         if (name == null) {
@@ -109,8 +109,11 @@ public class AppenderAttachableImpl<E> implements AppenderAttachable<E> {
         appenderList.clear();
     }
 
+    static final long START = System.currentTimeMillis();
+
     /**
-     * Remove the appender passed as parameter form the list of attached appenders.
+     * Remove the appender passed as parameter form the list of attached
+     * appenders.
      */
     public boolean detachAppender(Appender<E> appender) {
         if (appender == null) {
@@ -130,7 +133,7 @@ public class AppenderAttachableImpl<E> implements AppenderAttachable<E> {
             return false;
         }
         boolean removed = false;
-        for (Appender<E> a : appenderList.asTypedArray()) {
+        for (Appender<E> a : appenderList) {
             if (name.equals((a).getName())) {
                 removed = appenderList.remove(a);
                 break;

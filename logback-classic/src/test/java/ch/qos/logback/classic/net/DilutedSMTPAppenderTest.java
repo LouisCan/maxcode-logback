@@ -13,11 +13,18 @@
  */
 package ch.qos.logback.classic.net;
 
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.util.LogbackMDCAdapter;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import javax.mail.Address;
+import javax.mail.MessagingException;
+
+import ch.qos.logback.core.helpers.CyclicBuffer;
+import ch.qos.logback.core.spi.CyclicBufferTracker;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
@@ -25,24 +32,16 @@ import ch.qos.logback.classic.PatternLayout;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Layout;
-import ch.qos.logback.core.helpers.CyclicBuffer;
-import ch.qos.logback.core.spi.CyclicBufferTracker;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class DilutedSMTPAppenderTest {
-    LoggerContext lc = new LoggerContext();
-    Logger logger = lc.getLogger(this.getClass());
-    LogbackMDCAdapter logbackMDCAdapter = new LogbackMDCAdapter();
+
     SMTPAppender appender;
     CyclicBufferTracker<ILoggingEvent> cbTracker;
     CyclicBuffer<ILoggingEvent> cb;
 
-    @BeforeEach
+    @Before
     public void setUp() throws Exception {
-
-        lc.setMDCAdapter(logbackMDCAdapter);
+        LoggerContext lc = new LoggerContext();
         appender = new SMTPAppender();
         appender.setContext(lc);
         appender.setName("smtp");
@@ -67,7 +66,7 @@ public class DilutedSMTPAppenderTest {
         return layout;
     }
 
-    @AfterEach
+    @After
     public void tearDown() throws Exception {
         appender = null;
     }
@@ -86,7 +85,6 @@ public class DilutedSMTPAppenderTest {
         LoggingEvent event = new LoggingEvent();
         event.setThreadName("thead name");
         event.setLevel(Level.DEBUG);
-        event.setLoggerContext(lc);
         appender.subAppend(cb, event);
         assertEquals(1, cb.length());
     }

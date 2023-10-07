@@ -13,10 +13,12 @@
  */
 package ch.qos.logback.core.net.server;
 
+import ch.qos.logback.core.net.server.Client;
+
 /**
  *
- * A mock {@link Client} that notifies waiting thread when it has started, and
- * waits to be interrupted before exiting.
+ * A mock {@link Client} that notifies waiting thread when it has started,
+ * and waits to be interrupted before exiting.
  *
  * @author Carl Harris
  */

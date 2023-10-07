@@ -13,12 +13,13 @@
  */
 package ch.qos.logback.core;
 
+import static org.junit.Assert.assertTrue;
+
 import java.io.ByteArrayOutputStream;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import ch.qos.logback.core.encoder.LayoutWrappingEncoder;
 import ch.qos.logback.core.pattern.parser.SamplePatternLayout;
@@ -27,11 +28,11 @@ public class OutputStreamAppenderTest {
 
     Context context = new ContextBase();
 
-    @BeforeEach
+    @Before
     public void setUp() throws Exception {
     }
 
-    @AfterEach
+    @After
     public void tearDown() throws Exception {
     }
 
@@ -80,8 +81,7 @@ public class OutputStreamAppenderTest {
         headerFooterCheck(FILE_HEADER, PRESENTATION_HEADER, PRESENTATION_FOOTER, FILE_FOOTER);
     }
 
-    public void headerFooterCheck(String fileHeader, String presentationHeader, String presentationFooter,
-            String fileFooter) {
+    public void headerFooterCheck(String fileHeader, String presentationHeader, String presentationFooter, String fileFooter) {
         OutputStreamAppender<Object> wa = new OutputStreamAppender<Object>();
         wa.setContext(context);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -109,10 +109,10 @@ public class OutputStreamAppenderTest {
         String expectedHeader = emtptyIfNull(fileHeader) + emtptyIfNull(presentationHeader);
 
         System.out.println(result);
-        Assertions.assertTrue(result.startsWith(expectedHeader), result);
+        assertTrue(result, result.startsWith(expectedHeader));
 
         String expectedFooter = emtptyIfNull(presentationFooter) + emtptyIfNull(fileFooter);
-        Assertions.assertTrue(result.endsWith(expectedFooter), result);
+        assertTrue(result, result.endsWith(expectedFooter));
     }
 
     String emtptyIfNull(String s) {

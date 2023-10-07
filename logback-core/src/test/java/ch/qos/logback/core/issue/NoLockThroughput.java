@@ -13,7 +13,6 @@
  */
 package ch.qos.logback.core.issue;
 
-import ch.qos.logback.core.contention.RunnableWithCounterAndDone;
 import ch.qos.logback.core.contention.ThreadedThroughputCalculator;
 import ch.qos.logback.core.issue.SelectiveLockRunnable.LockingModel;
 
@@ -37,9 +36,8 @@ public class NoLockThroughput {
             tp.execute(buildArray(LockingModel.NOLOCK));
         }
 
-        RunnableWithCounterAndDone[] runnableArray = buildArray(LockingModel.NOLOCK);
-        tp.execute(runnableArray);
-        tp.printThroughput(runnableArray,"No lock:   ", true);
+        tp.execute(buildArray(LockingModel.NOLOCK));
+        tp.printThroughput("No lock:   ", true);
     }
 
     static SelectiveLockRunnable[] buildArray(LockingModel model) {

@@ -13,31 +13,29 @@
  */
 package ch.qos.logback.core.joran.action.ext;
 
+import java.util.Stack;
+
 import org.xml.sax.Attributes;
 
-import ch.qos.logback.core.joran.action.BaseModelAction;
-import ch.qos.logback.core.joran.action.PreconditionValidator;
-import ch.qos.logback.core.joran.spi.SaxEventInterpretationContext;
-import ch.qos.logback.core.model.Model;
-import ch.qos.logback.core.model.StackModel;
+import ch.qos.logback.core.joran.action.Action;
+import ch.qos.logback.core.joran.spi.InterpretationContext;
 
-public class StackAction extends BaseModelAction {
+public class StackAction extends Action {
 
-    
-    @Override
-    protected boolean validPreconditions(SaxEventInterpretationContext ic, String name, Attributes attributes) {
-        PreconditionValidator validator = new PreconditionValidator(this, ic, name, attributes);
-        validator.validateNameAttribute();
-        return validator.isValid();
+    Stack<String> stack = new Stack<String>();
+
+    public Stack<String> getStack() {
+        return stack;
     }
 
-    @Override
-    protected Model buildCurrentModel(SaxEventInterpretationContext interpretationContext, String name,
-            Attributes attributes) {
-        StackModel stackModel = new StackModel();
-        stackModel.setName(attributes.getValue(NAME_ATTRIBUTE));
-        return stackModel;
+    public void begin(InterpretationContext ec, String name, Attributes attributes) {
+        stack.push(attributes.getValue("name"));
     }
-    
 
+    public void end(InterpretationContext ec, String name) {
+    }
+
+    // static public void reset() {
+    // stack.clear();
+    // }
 }

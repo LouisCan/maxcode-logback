@@ -84,7 +84,7 @@ public class NumberCruncherServer extends UnicastRemoteObject implements NumberC
             }
 
             // Placing artificial delays in tight loops will also lead to
-            // sub-optimal results. :-)
+            // sub-optimal resuts. :-)
             delay(100);
         }
 

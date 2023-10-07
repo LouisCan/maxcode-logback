@@ -13,31 +13,31 @@
  */
 package ch.qos.logback.access.joran;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import ch.qos.logback.access.spi.IAccessEvent;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
 import ch.qos.logback.access.AccessTestConstants;
 import ch.qos.logback.access.dummy.DummyAccessEventBuilder;
 import ch.qos.logback.access.spi.AccessContext;
-import ch.qos.logback.access.spi.IAccessEvent;
 import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.read.ListAppender;
 import ch.qos.logback.core.testUtil.StringListAppender;
-import ch.qos.logback.core.util.StatusPrinter;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class JoranConfiguratorTest {
 
     AccessContext context = new AccessContext();
 
-    @BeforeEach
+    @Before
     public void setUp() throws Exception {
     }
 
-    @AfterEach
+    @After
     public void tearDown() throws Exception {
     }
 
@@ -50,9 +50,8 @@ public class JoranConfiguratorTest {
     @Test
     public void smoke() throws Exception {
         configure(AccessTestConstants.TEST_DIR_PREFIX + "input/joran/smoke.xml");
-        StatusPrinter.print(context);
+
         ListAppender<IAccessEvent> listAppender = (ListAppender<IAccessEvent>) context.getAppender("LIST");
-        assertNotNull(listAppender);
         IAccessEvent event = DummyAccessEventBuilder.buildNewAccessEvent();
         listAppender.doAppend(event);
 
@@ -66,8 +65,7 @@ public class JoranConfiguratorTest {
     @Test
     public void defaultLayout() throws Exception {
         configure(AccessTestConstants.TEST_DIR_PREFIX + "input/joran/defaultLayout.xml");
-        StringListAppender<IAccessEvent> listAppender = (StringListAppender<IAccessEvent>) context
-                .getAppender("STR_LIST");
+        StringListAppender<IAccessEvent> listAppender = (StringListAppender<IAccessEvent>) context.getAppender("STR_LIST");
         IAccessEvent event = DummyAccessEventBuilder.buildNewAccessEvent();
         listAppender.doAppend(event);
         assertEquals(1, listAppender.strList.size());

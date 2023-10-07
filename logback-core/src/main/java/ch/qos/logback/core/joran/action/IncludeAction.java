@@ -26,23 +26,15 @@ import org.xml.sax.Attributes;
 import ch.qos.logback.core.joran.event.SaxEvent;
 import ch.qos.logback.core.joran.event.SaxEventRecorder;
 import ch.qos.logback.core.joran.spi.ActionException;
+import ch.qos.logback.core.joran.spi.InterpretationContext;
 import ch.qos.logback.core.joran.spi.JoranException;
-import ch.qos.logback.core.joran.spi.SaxEventInterpretationContext;
 import ch.qos.logback.core.joran.util.ConfigurationWatchListUtil;
-import ch.qos.logback.core.model.IncludeModel;
-import ch.qos.logback.core.model.Model;
 import ch.qos.logback.core.util.Loader;
 import ch.qos.logback.core.util.OptionHelper;
 
-import static ch.qos.logback.core.joran.JoranConstants.INCLUDED_TAG;
-
-/**
- * 
- * @author ceki
- *
- */
 public class IncludeAction extends Action {
 
+    private static final String INCLUDED_TAG = "included";
     private static final String FILE_ATTR = "file";
     private static final String URL_ATTR = "url";
     private static final String RESOURCE_ATTR = "resource";
@@ -51,31 +43,18 @@ public class IncludeAction extends Action {
     private String attributeInUse;
     private boolean optional;
 
-    Model parentModel;
-    IncludeModel includeModel;
-    boolean inError = false;
-    
     @Override
-    public void begin(SaxEventInterpretationContext ec, String name, Attributes attributes) throws ActionException {
+    public void begin(InterpretationContext ec, String name, Attributes attributes) throws ActionException {
 
-        parentModel = null;
-        includeModel = null;
-        
         SaxEventRecorder recorder = new SaxEventRecorder(context);
-        
-        String optionalStr = attributes.getValue(OPTIONAL_ATTR);
-        
-        createModelForAlternateUse(ec, name, attributes, optionalStr);
-        
-        
+
         this.attributeInUse = null;
-        this.optional = OptionHelper.toBoolean(optionalStr, false);
-        
+        this.optional = OptionHelper.toBoolean(attributes.getValue(OPTIONAL_ATTR), false);
+
         if (!checkAttributes(attributes)) {
-            inError = true;
             return;
         }
-         
+
         InputStream in = getInputStream(ec, attributes);
 
         try {
@@ -84,42 +63,15 @@ public class IncludeAction extends Action {
                 // remove the <included> tag from the beginning and </included> from the end
                 trimHeadAndTail(recorder);
 
-                // offset = 2, because we need to get past this element as well as the end
-                // element
-                ec.getSaxEventInterpreter().getEventPlayer().addEventsDynamically(recorder.getSaxEventList(), 2);
+                // offset = 2, because we need to get past this element as well as the end element
+                ec.getJoranInterpreter().getEventPlayer().addEventsDynamically(recorder.saxEventList, 2);
             }
-        } catch (JoranException je) {
-            addError("Error while parsing  " + attributeInUse, je);
+        } catch (JoranException e) {
+            addError("Error while parsing  " + attributeInUse, e);
         } finally {
             close(in);
         }
 
-    }
-
-    // model created for later use, not necessarily for configuration purposes.
-    private void createModelForAlternateUse(SaxEventInterpretationContext seic, String name, Attributes attributes,
-            String optionalStr) {
-        this.includeModel = new IncludeModel();
-        this.includeModel.setOptional(optionalStr);
-        fillInIncludeModelAttributes(includeModel, name, attributes);
-        if (!seic.isModelStackEmpty()) {
-            parentModel = seic.peekModel();
-        }
-        final int lineNumber = getLineNumber(seic);
-        this.includeModel.setLineNumber(lineNumber);
-        seic.pushModel(includeModel);
-    }
-
-    private void fillInIncludeModelAttributes(IncludeModel includeModel, String name, Attributes attributes) {
-        this.includeModel.setTag(name);
-        String fileAttribute = attributes.getValue(FILE_ATTR);
-        String urlAttribute = attributes.getValue(URL_ATTR);
-        String resourceAttribute = attributes.getValue(RESOURCE_ATTR);
-        
-        this.includeModel.setFile(fileAttribute);
-        this.includeModel.setUrl(urlAttribute);
-        this.includeModel.setResource(resourceAttribute);
-        
     }
 
     void close(InputStream in) {
@@ -138,13 +90,13 @@ public class IncludeAction extends Action {
 
         int count = 0;
 
-        if (!OptionHelper.isNullOrEmpty(fileAttribute)) {
+        if (!OptionHelper.isEmpty(fileAttribute)) {
             count++;
         }
-        if (!OptionHelper.isNullOrEmpty(urlAttribute)) {
+        if (!OptionHelper.isEmpty(urlAttribute)) {
             count++;
         }
-        if (!OptionHelper.isNullOrEmpty(resourceAttribute)) {
+        if (!OptionHelper.isEmpty(resourceAttribute)) {
             count++;
         }
 
@@ -205,22 +157,22 @@ public class IncludeAction extends Action {
         }
     }
 
-    URL getInputURL(SaxEventInterpretationContext ec, Attributes attributes) {
+    URL getInputURL(InterpretationContext ec, Attributes attributes) {
         String fileAttribute = attributes.getValue(FILE_ATTR);
         String urlAttribute = attributes.getValue(URL_ATTR);
         String resourceAttribute = attributes.getValue(RESOURCE_ATTR);
 
-        if (!OptionHelper.isNullOrEmpty(fileAttribute)) {
+        if (!OptionHelper.isEmpty(fileAttribute)) {
             this.attributeInUse = ec.subst(fileAttribute);
             return filePathAsURL(attributeInUse);
         }
 
-        if (!OptionHelper.isNullOrEmpty(urlAttribute)) {
+        if (!OptionHelper.isEmpty(urlAttribute)) {
             this.attributeInUse = ec.subst(urlAttribute);
             return attributeToURL(attributeInUse);
         }
 
-        if (!OptionHelper.isNullOrEmpty(resourceAttribute)) {
+        if (!OptionHelper.isEmpty(resourceAttribute)) {
             this.attributeInUse = ec.subst(resourceAttribute);
             return resourceAsURL(attributeInUse);
         }
@@ -229,7 +181,7 @@ public class IncludeAction extends Action {
 
     }
 
-    InputStream getInputStream(SaxEventInterpretationContext ec, Attributes attributes) {
+    InputStream getInputStream(InterpretationContext ec, Attributes attributes) {
         URL inputURL = getInputURL(ec, attributes);
         if (inputURL == null)
             return null;
@@ -242,9 +194,7 @@ public class IncludeAction extends Action {
         // Let's remove the two <included> events before
         // adding the events to the player.
 
-        // note saxEventList.size() changes over time as events are removed 
-        
-        List<SaxEvent> saxEventList = recorder.getSaxEventList();
+        List<SaxEvent> saxEventList = recorder.saxEventList;
 
         if (saxEventList.size() == 0) {
             return;
@@ -254,10 +204,10 @@ public class IncludeAction extends Action {
         if (first != null && first.qName.equalsIgnoreCase(INCLUDED_TAG)) {
             saxEventList.remove(0);
         }
-        
-        SaxEvent last = saxEventList.get(saxEventList.size() - 1);
+
+        SaxEvent last = saxEventList.get(recorder.saxEventList.size() - 1);
         if (last != null && last.qName.equalsIgnoreCase(INCLUDED_TAG)) {
-            saxEventList.remove(saxEventList.size() - 1);
+            saxEventList.remove(recorder.saxEventList.size() - 1);
         }
     }
 
@@ -267,23 +217,8 @@ public class IncludeAction extends Action {
     }
 
     @Override
-    public void end(SaxEventInterpretationContext seic, String name) throws ActionException {
-        
-        if(inError)
-            return;
-        
-        Model m = seic.peekModel();
-
-        if (m != includeModel) {
-            addWarn("The object at the of the stack is not the model [" + includeModel.idString()
-                    + "] pushed earlier.");
-            addWarn("This is wholly unexpected.");
-        }
-
-        // do not pop nor add to parent if there is no parent
-        if (parentModel != null) {
-            parentModel.addSubModel(includeModel);
-            seic.popModel();
-        }
+    public void end(InterpretationContext ec, String name) throws ActionException {
+        // do nothing
     }
+
 }

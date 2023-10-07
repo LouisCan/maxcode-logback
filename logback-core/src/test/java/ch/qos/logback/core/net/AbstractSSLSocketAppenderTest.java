@@ -13,9 +13,10 @@
  */
 package ch.qos.logback.core.net;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static org.junit.Assert.assertNotNull;
+
+import org.junit.Before;
+import org.junit.Test;
 
 import ch.qos.logback.core.net.mock.MockContext;
 import ch.qos.logback.core.spi.PreSerializationTransformer;
@@ -31,7 +32,7 @@ public class AbstractSSLSocketAppenderTest {
 
     private InstrumentedSSLSocketAppenderBase appender = new InstrumentedSSLSocketAppenderBase();
 
-    @BeforeEach
+    @Before
     public void setUp() throws Exception {
         appender.setContext(context);
     }
@@ -41,7 +42,7 @@ public class AbstractSSLSocketAppenderTest {
         // should be able to start and stop successfully with no SSL
         // configuration at all
         appender.start();
-        Assertions.assertNotNull(appender.getSocketFactory());
+        assertNotNull(appender.getSocketFactory());
         appender.stop();
     }
 

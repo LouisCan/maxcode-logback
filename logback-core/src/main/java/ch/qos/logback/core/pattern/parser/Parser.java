@@ -27,7 +27,7 @@ import ch.qos.logback.core.pattern.util.RegularEscapeUtil;
 import ch.qos.logback.core.spi.ContextAwareBase;
 import ch.qos.logback.core.spi.ScanException;
 
-// ~=lambda
+// ~=lamda
 // E = TE|T
 
 // Left factorization
@@ -47,12 +47,11 @@ public class Parser<E> extends ContextAwareBase {
     public final static Map<String, String> DEFAULT_COMPOSITE_CONVERTER_MAP = new HashMap<String, String>();
     public final static String REPLACE_CONVERTER_WORD = "replace";
     static {
-        DEFAULT_COMPOSITE_CONVERTER_MAP.put(Token.BARE_COMPOSITE_KEYWORD_TOKEN.getValue().toString(),
-                IdentityCompositeConverter.class.getName());
+        DEFAULT_COMPOSITE_CONVERTER_MAP.put(Token.BARE_COMPOSITE_KEYWORD_TOKEN.getValue().toString(), IdentityCompositeConverter.class.getName());
         DEFAULT_COMPOSITE_CONVERTER_MAP.put(REPLACE_CONVERTER_WORD, ReplacingCompositeConverter.class.getName());
     }
 
-    final List<Token> tokenList;
+    final List tokenList;
     int pointer = 0;
 
     Parser(TokenStream ts) throws ScanException {
@@ -79,8 +78,9 @@ public class Parser<E> extends ContextAwareBase {
      * @param top
      * @param converterMap
      * @return
+     * @throws ScanException
      */
-    public Converter<E> compile(final Node top, Map<String, String> converterMap) {
+    public Converter<E> compile(final Node top, Map converterMap) {
         Compiler<E> compiler = new Compiler<E>(top, converterMap);
         compiler.setContext(context);
         // compiler.setStatusManager(statusManager);
@@ -174,7 +174,7 @@ public class Parser<E> extends ContextAwareBase {
 
         Token ot = getCurentToken();
         if (ot != null && ot.getType() == Token.OPTION) {
-            List<String> optionList = ot.getOptionsList();
+            List<String> optionList = (List<String>) ot.getValue();
             keywordNode.setOptions(optionList);
             advanceTokenPointer();
         }
@@ -197,7 +197,7 @@ public class Parser<E> extends ContextAwareBase {
         }
         Token ot = getCurentToken();
         if (ot != null && ot.getType() == Token.OPTION) {
-            List<String> optionList = ot.getOptionsList();
+            List<String> optionList = (List<String>) ot.getValue();
             compositeNode.setOptions(optionList);
             advanceTokenPointer();
         }

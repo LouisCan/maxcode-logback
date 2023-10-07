@@ -13,9 +13,10 @@
  */
 package ch.qos.logback.core.joran.event.stax;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+import ch.qos.logback.core.Context;
+import ch.qos.logback.core.joran.spi.ElementPath;
+import ch.qos.logback.core.joran.spi.JoranException;
+import ch.qos.logback.core.spi.ContextAwareBase;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
@@ -24,11 +25,9 @@ import javax.xml.stream.events.Characters;
 import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
-
-import ch.qos.logback.core.Context;
-import ch.qos.logback.core.joran.spi.ElementPath;
-import ch.qos.logback.core.joran.spi.JoranException;
-import ch.qos.logback.core.spi.ContextAwareBase;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public class StaxEventRecorder extends ContextAwareBase {
 
@@ -74,7 +73,7 @@ public class StaxEventRecorder extends ContextAwareBase {
     private void addStartElement(XMLEvent xmlEvent) {
         StartElement se = xmlEvent.asStartElement();
         String tagName = se.getName().getLocalPart();
-        this.globalElementPath.push(tagName);
+        globalElementPath.push(tagName);
         ElementPath current = globalElementPath.duplicate();
         StartEvent startEvent = new StartEvent(current, tagName, se.getAttributes(), se.getLocation());
         eventList.add(startEvent);
@@ -101,7 +100,7 @@ public class StaxEventRecorder extends ContextAwareBase {
         String tagName = ee.getName().getLocalPart();
         EndEvent endEvent = new EndEvent(tagName, ee.getLocation());
         eventList.add(endEvent);
-        this.globalElementPath.pop();
+        globalElementPath.pop();
     }
 
     StaxEvent getLastEvent() {

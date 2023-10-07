@@ -13,11 +13,6 @@
  */
 package ch.qos.logback.core.spi;
 
-/**
- * Components supporting start/stop implement this interface.
- *
- * @since 1.0.0
- */
 public interface LifeCycle {
 
     void start();

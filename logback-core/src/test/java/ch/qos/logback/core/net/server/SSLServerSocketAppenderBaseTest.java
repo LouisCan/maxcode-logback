@@ -13,14 +13,14 @@
  */
 package ch.qos.logback.core.net.server;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static org.junit.Assert.assertNotNull;
+
+import org.junit.Before;
+import org.junit.Test;
 
 import ch.qos.logback.core.net.mock.MockContext;
 import ch.qos.logback.core.spi.PreSerializationTransformer;
 import ch.qos.logback.core.util.ExecutorServiceUtil;
-
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Unit tests for {@link SSLServerSocketAppenderBase}.
@@ -29,12 +29,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  */
 public class SSLServerSocketAppenderBaseTest {
 
-    private MockContext context = new MockContext(ExecutorServiceUtil.newThreadPoolExecutor());
+    private MockContext context = new MockContext(ExecutorServiceUtil.newScheduledExecutorService());
 
-    @SuppressWarnings("rawtypes")
     private SSLServerSocketAppenderBase appender = new InstrumentedSSLServerSocketAppenderBase();
 
-    @BeforeEach
+    @Before
     public void setUp() throws Exception {
         appender.setContext(context);
     }

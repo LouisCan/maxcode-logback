@@ -13,18 +13,17 @@
  */
 package ch.qos.logback.core.rolling.helper;
 
-import java.time.ZoneId;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
 import java.util.Calendar;
 import java.util.TimeZone;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import ch.qos.logback.core.Context;
 import ch.qos.logback.core.ContextBase;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * @author Ceki
@@ -123,9 +122,7 @@ public class FileNamePatternTest {
         }
 
         {
-            FileNamePattern fnp = new FileNamePattern(
-                    "folder/%d{yyyy/MM, aux, Australia/Perth}/test.%d{yyyy-MM-dd'T'HHmm, Australia/Perth}.log",
-                    context);
+            FileNamePattern fnp = new FileNamePattern("folder/%d{yyyy/MM, aux, Australia/Perth}/test.%d{yyyy-MM-dd'T'HHmm, Australia/Perth}.log", context);
             assertEquals("folder/2003/05/test.2003-05-20T1855.log", fnp.convert(cal.getTime()));
             assertNotNull(fnp.getPrimaryDateTokenConverter());
         }
@@ -154,12 +151,12 @@ public class FileNamePatternTest {
         {
             FileNamePattern fnp = new FileNamePattern("foo-%d{yyyy.MM.dd}-%i.txt", context);
             String regex = fnp.toRegexForFixedDate(cal.getTime());
-            assertEquals("foo-2003.05.20-(\\d+).txt", regex);
+            assertEquals("foo-2003.05.20-(\\d{1,5}).txt", regex);
         }
         {
             FileNamePattern fnp = new FileNamePattern("\\toto\\foo-%d{yyyy\\MM\\dd}-%i.txt", context);
             String regex = fnp.toRegexForFixedDate(cal.getTime());
-            assertEquals("/toto/foo-2003/05/20-(\\d+).txt", regex);
+            assertEquals("/toto/foo-2003/05/20-(\\d{1,5}).txt", regex);
         }
     }
 
@@ -168,12 +165,12 @@ public class FileNamePatternTest {
         {
             FileNamePattern fnp = new FileNamePattern("foo-%d{yyyy.MM.dd}-%i.txt", context);
             String regex = fnp.toRegex();
-            assertEquals("foo-\\d{4}\\.\\d{2}\\.\\d{2}-\\d+.txt", regex);
+            assertEquals("foo-\\d{4}\\.\\d{2}\\.\\d{2}-\\d{1,2}.txt", regex);
         }
         {
             FileNamePattern fnp = new FileNamePattern("foo-%d{yyyy.MM.dd'T'}-%i.txt", context);
             String regex = fnp.toRegex();
-            assertEquals("foo-\\d{4}\\.\\d{2}\\.\\d{2}T-\\d+.txt", regex);
+            assertEquals("foo-\\d{4}\\.\\d{2}\\.\\d{2}T-\\d{1,2}.txt", regex);
         }
     }
 
@@ -188,14 +185,14 @@ public class FileNamePatternTest {
     @Test
     public void nullTimeZoneByDefault() {
         FileNamePattern fnp = new FileNamePattern("%d{hh}", context);
-        assertNull(fnp.getPrimaryDateTokenConverter().getZoneId());
+        assertNull(fnp.getPrimaryDateTokenConverter().getTimeZone());
     }
 
     @Test
     public void settingTimeZoneOptionHasAnEffect() {
-        ZoneId tz = ZoneId.of("Australia/Perth");
+        TimeZone tz = TimeZone.getTimeZone("Australia/Perth");
 
-        FileNamePattern fnp = new FileNamePattern("%d{hh, " + tz.getId() + "}", context);
-        assertEquals(tz, fnp.getPrimaryDateTokenConverter().getZoneId());
+        FileNamePattern fnp = new FileNamePattern("%d{hh, " + tz.getID() + "}", context);
+        assertEquals(tz, fnp.getPrimaryDateTokenConverter().getTimeZone());
     }
 }

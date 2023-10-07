@@ -13,17 +13,21 @@
  */
 package ch.qos.logback.access.jetty;
 
-import java.io.IOException;
-import java.io.Writer;
+import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.server.handler.RequestLogHandler;
+import org.eclipse.jetty.server.nio.SelectChannelConnector;
+import org.eclipse.jetty.util.ByteArrayISO8859Writer;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.OutputStream;
 
 public class JettyFixtureBase {
     final protected RequestLogImpl requestLogImpl;
@@ -47,12 +51,20 @@ public class JettyFixtureBase {
     }
 
     public void start() throws Exception {
-        server = new Server(port);
+        server = new Server();
+        Connector connector = new SelectChannelConnector();
+        connector.setPort(port);
+        server.setConnectors(new Connector[] { connector });
 
-        server.setRequestLog(requestLogImpl);
+        RequestLogHandler requestLogHandler = new RequestLogHandler();
         configureRequestLogImpl();
+        requestLogHandler.setRequestLog(requestLogImpl);
 
-        server.setHandler(getRequestHandler());
+        HandlerList handlers = new HandlerList();
+        handlers.addHandler(requestLogHandler);
+        handlers.addHandler(getRequestHandler());
+
+        server.setHandler(handlers);
         server.start();
     }
 
@@ -71,12 +83,16 @@ public class JettyFixtureBase {
 
     class BasicHandler extends AbstractHandler {
         public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-            response.setCharacterEncoding("UTF-8");
-            response.setContentType("text/plain");
-            Writer writer = response.getWriter();
+            OutputStream out = response.getOutputStream();
+            ByteArrayISO8859Writer writer = new ByteArrayISO8859Writer();
             writer.write("hello world");
             writer.flush();
+            response.setContentLength(writer.size());
+            writer.writeTo(out);
+            out.flush();
+
             baseRequest.setHandled(true);
+
         }
     }
 }

@@ -17,7 +17,7 @@ import ch.qos.logback.classic.issue.lbclassic36.SelectiveDateFormattingRunnable.
 import ch.qos.logback.core.contention.ThreadedThroughputCalculator;
 
 /**
- * Measure the threaded throughput of date formatting operations
+ * Measure the threaded throughtput of date formatting operations
  * 
  * @author Joern Huxhorn
  * @author Ceki Gulcu
@@ -37,13 +37,11 @@ public class DateFormattingThreadedThroughputCalculator {
             tp.execute(buildArray(FormattingModel.JODA));
         }
 
-        SelectiveDateFormattingRunnable[] runnnableArrayJODA = buildArray(FormattingModel.JODA);
-        tp.execute(runnnableArrayJODA);
-        tp.printThroughput(runnnableArrayJODA, "JODA: ");
+        tp.execute(buildArray(FormattingModel.JODA));
+        tp.printThroughput("JODA: ");
 
-        SelectiveDateFormattingRunnable[] runnnableArraySDF =  buildArray(FormattingModel.JODA);
-        tp.execute(runnnableArraySDF);
-        tp.printThroughput(runnnableArraySDF, "SDF:  ");
+        tp.execute(buildArray(FormattingModel.SDF));
+        tp.printThroughput("SDF:  ");
 
     }
 

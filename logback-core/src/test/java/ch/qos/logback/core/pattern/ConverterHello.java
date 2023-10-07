@@ -13,19 +13,9 @@
  */
 package ch.qos.logback.core.pattern;
 
-import java.util.List;
+import ch.qos.logback.core.pattern.DynamicConverter;
 
-public class ConverterHello extends DynamicConverter<Object> {
-
-    String firstOption;
-
-    @Override
-    public void start() {
-        List<String> options = getOptionList();
-        if (options != null && !options.isEmpty())
-            firstOption = options.get(0);
-        super.start();
-    }
+public class ConverterHello extends DynamicConverter {
 
     public String convert(Object event) {
         return "Hello";

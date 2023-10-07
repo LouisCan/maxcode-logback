@@ -13,24 +13,24 @@
  */
 package ch.qos.logback.classic.pattern;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.PatternLayout;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.classic.spi.LoggingEvent;
-import ch.qos.logback.core.util.EnvUtil;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.PatternLayout;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.spi.LoggingEvent;
 
 public class ExtendedThrowableProxyConverterTest {
 
@@ -39,20 +39,19 @@ public class ExtendedThrowableProxyConverterTest {
     StringWriter sw = new StringWriter();
     PrintWriter pw = new PrintWriter(sw);
 
-    @BeforeEach
+    @Before
     public void setUp() throws Exception {
         lc.setPackagingDataEnabled(true);
         etpc.setContext(lc);
         etpc.start();
     }
 
-    @AfterEach
+    @After
     public void tearDown() throws Exception {
     }
 
     private ILoggingEvent createLoggingEvent(Throwable t) {
-        return new LoggingEvent(this.getClass().getName(), lc.getLogger(Logger.ROOT_LOGGER_NAME), Level.DEBUG,
-                "test message", t, null);
+        return new LoggingEvent(this.getClass().getName(), lc.getLogger(Logger.ROOT_LOGGER_NAME), Level.DEBUG, "test message", t, null);
     }
 
     @Test
@@ -86,42 +85,13 @@ public class ExtendedThrowableProxyConverterTest {
         verify(t);
     }
 
-    @Test
-    public void cyclicCause() {
-        // the identical formatting check, see verify(e) call below, fails
-        // under JDK 11. this does not mean that the presently tested code is wrong
-        // but that JDK 11 formats things differently
-        if (!EnvUtil.isJDK16OrHigher())
-            return;
-
-        Exception e = new Exception("foo");
-        Exception e2 = new Exception(e);
-        e.initCause(e2);
-        verify(e);
-    }
-
-    @Test
-    public void cyclicSuppressed() {
-        // the identical formatting check, see verify(e) call below, fails
-        // under JDK 11. this does not mean that the presently tested code is wrong
-        // but that JDK 11 formats things differently
-        if (!EnvUtil.isJDK16OrHigher())
-            return;
-
-        Exception e = new Exception("foo");
-        Exception e2 = new Exception(e);
-        e.addSuppressed(e2);
-        verify(e);
-    }
-
     void verify(Throwable t) {
         t.printStackTrace(pw);
 
         ILoggingEvent le = createLoggingEvent(t);
         String result = etpc.convert(le);
         result = result.replace("common frames omitted", "more");
-        // replace ~[something:other] with "" but not if it contains "CIRCULAR"
-        result = result.replaceAll(" ~?\\[(?!CIRCULAR).*\\]", "");
+        result = result.replaceAll(" ~?\\[.*\\]", "");
         assertEquals(sw.toString(), result);
     }
 

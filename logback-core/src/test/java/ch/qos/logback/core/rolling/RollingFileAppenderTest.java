@@ -13,21 +13,25 @@
  */
 package ch.qos.logback.core.rolling;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.Context;
 import ch.qos.logback.core.ContextBase;
 import ch.qos.logback.core.appender.AbstractAppenderTest;
-import ch.qos.logback.core.testUtil.DummyEncoder;
+import ch.qos.logback.core.encoder.DummyEncoder;
 import ch.qos.logback.core.status.Status;
-import ch.qos.logback.core.testUtil.CoreTestConstants;
+import ch.qos.logback.core.status.StatusChecker;
 import ch.qos.logback.core.testUtil.RandomUtil;
-import ch.qos.logback.core.status.testUtil.StatusChecker;
-//import ch.qos.logback.core.util.StatusPrinter;
+import ch.qos.logback.core.util.CoreTestConstants;
+import ch.qos.logback.core.util.StatusPrinter;
 
 public class RollingFileAppenderTest extends AbstractAppenderTest<Object> {
 
@@ -38,7 +42,7 @@ public class RollingFileAppenderTest extends AbstractAppenderTest<Object> {
     int diff = RandomUtil.getPositiveInt();
     String randomOutputDir = CoreTestConstants.OUTPUT_DIR_PREFIX + diff + "/";
 
-    @BeforeEach
+    @Before
     public void setUp() throws Exception {
         // noStartTest fails if the context is set in setUp
         // rfa.setContext(context);
@@ -49,7 +53,7 @@ public class RollingFileAppenderTest extends AbstractAppenderTest<Object> {
         tbrp.setParent(rfa);
     }
 
-    @AfterEach
+    @After
     public void tearDown() throws Exception {
     }
 
@@ -83,9 +87,9 @@ public class RollingFileAppenderTest extends AbstractAppenderTest<Object> {
 
         rfa.start();
 
-        Assertions.assertTrue(rfa.isAppend());
-        Assertions.assertNull(rfa.rawFileProperty());
-        Assertions.assertTrue(rfa.isStarted());
+        assertTrue(rfa.isAppend());
+        assertNull(rfa.rawFileProperty());
+        assertTrue(rfa.isStarted());
     }
 
     @Test
@@ -101,8 +105,8 @@ public class RollingFileAppenderTest extends AbstractAppenderTest<Object> {
         rfa.start();
 
         StatusChecker checker = new StatusChecker(context);
-        Assertions.assertFalse(rfa.isStarted());
-        Assertions.assertEquals(Status.ERROR, checker.getHighestLevel(0));
+        assertFalse(rfa.isStarted());
+        assertEquals(Status.ERROR, checker.getHighestLevel(0));
     }
 
     @Test
@@ -110,7 +114,7 @@ public class RollingFileAppenderTest extends AbstractAppenderTest<Object> {
         rfa.setContext(context);
         rfa.setRollingPolicy(tbrp);
         rfa.setFile("x");
-        // StatusPrinter.print(context);
+        StatusPrinter.print(context);
         StatusChecker statusChecker = new StatusChecker(context.getStatusManager());
         statusChecker.assertContainsMatch(Status.ERROR, "File property must be set before any triggeringPolicy ");
     }
@@ -127,8 +131,7 @@ public class RollingFileAppenderTest extends AbstractAppenderTest<Object> {
     @Test
     public void testFileNameWithParenthesis() {
         // if ')' is not escaped, the test throws
-        // java.lang.IllegalStateException: FileNamePattern
-        // [.../program(x86)/toto-%d.log] does not contain a valid
+        // java.lang.IllegalStateException: FileNamePattern [.../program(x86)/toto-%d.log] does not contain a valid
         // DateToken
         rfa.setContext(context);
         tbrp.setFileNamePattern(randomOutputDir + "program(x86)/toto-%d.log");
@@ -147,12 +150,12 @@ public class RollingFileAppenderTest extends AbstractAppenderTest<Object> {
         rfa.setRollingPolicy(tbrp);
         rfa.start();
 
-        //StatusPrinter.print(context);
-        Assertions.assertTrue(tbrp.isStarted());
-        Assertions.assertTrue(rfa.isStarted());
+        StatusPrinter.print(context);
+        assertTrue(tbrp.isStarted());
+        assertTrue(rfa.isStarted());
         rfa.stop();
-        Assertions.assertFalse(rfa.isStarted());
-        Assertions.assertFalse(tbrp.isStarted());
+        assertFalse(rfa.isStarted());
+        assertFalse(tbrp.isStarted());
 
     }
 
@@ -175,14 +178,14 @@ public class RollingFileAppenderTest extends AbstractAppenderTest<Object> {
 
         rfa.start();
 
-        // StatusPrinter.print(context);
-        Assertions.assertTrue(fwRollingPolicy.isStarted());
-        Assertions.assertTrue(sbTriggeringPolicy.isStarted());
-        Assertions.assertTrue(rfa.isStarted());
+        StatusPrinter.print(context);
+        assertTrue(fwRollingPolicy.isStarted());
+        assertTrue(sbTriggeringPolicy.isStarted());
+        assertTrue(rfa.isStarted());
         rfa.stop();
-        Assertions.assertFalse(rfa.isStarted());
-        Assertions.assertFalse(fwRollingPolicy.isStarted());
-        Assertions.assertFalse(sbTriggeringPolicy.isStarted());
+        assertFalse(rfa.isStarted());
+        assertFalse(fwRollingPolicy.isStarted());
+        assertFalse(sbTriggeringPolicy.isStarted());
 
     }
 
@@ -201,7 +204,7 @@ public class RollingFileAppenderTest extends AbstractAppenderTest<Object> {
         StatusChecker statusChecker = new StatusChecker(context);
         final String msg = "File property collides with fileNamePattern. Aborting.";
         boolean containsMatch = statusChecker.containsMatch(Status.ERROR, msg);
-        Assertions.assertTrue(containsMatch, "Missing error: " + msg);
+        assertTrue("Missing error: " + msg, containsMatch);
     }
 
     @Test
@@ -217,9 +220,9 @@ public class RollingFileAppenderTest extends AbstractAppenderTest<Object> {
         rfa.start();
 
         StatusChecker checker = new StatusChecker(context);
-        Assertions.assertFalse(rfa.isStarted());
-        Assertions.assertEquals(Status.ERROR, checker.getHighestLevel(0));
-        // StatusPrinter.print(context);
+        assertFalse(rfa.isStarted());
+        assertEquals(Status.ERROR, checker.getHighestLevel(0));
+        StatusPrinter.print(context);
         checker.assertContainsMatch("The date format in FileNamePattern will result");
     }
 
@@ -238,7 +241,7 @@ public class RollingFileAppenderTest extends AbstractAppenderTest<Object> {
         tbrp0.start();
         appender0.setRollingPolicy(tbrp0);
         appender0.start();
-        Assertions.assertTrue(appender0.isStarted());
+        assertTrue(appender0.isStarted());
 
         RollingFileAppender<Object> appender1 = new RollingFileAppender<Object>();
         appender1.setName("FA1");
@@ -255,9 +258,9 @@ public class RollingFileAppenderTest extends AbstractAppenderTest<Object> {
 
         // StatusPrinter.print(context);
 
-        Assertions.assertFalse(appender1.isStarted());
+        assertFalse(appender1.isStarted());
         StatusChecker checker = new StatusChecker(context);
         checker.assertContainsMatch(Status.ERROR, "'FileNamePattern' option has the same value");
     }
-
+    
 }

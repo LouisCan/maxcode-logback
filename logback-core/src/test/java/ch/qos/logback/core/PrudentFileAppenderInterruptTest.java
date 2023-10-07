@@ -18,16 +18,15 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
-
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.Before;
+import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 import ch.qos.logback.core.contention.RunnableWithCounterAndDone;
 import ch.qos.logback.core.encoder.EchoEncoder;
 import ch.qos.logback.core.status.OnConsoleStatusListener;
-import ch.qos.logback.core.testUtil.CoreTestConstants;
 import ch.qos.logback.core.testUtil.RandomUtil;
-import org.junit.jupiter.api.Test;
+import ch.qos.logback.core.util.CoreTestConstants;
 
 public class PrudentFileAppenderInterruptTest {
 
@@ -37,7 +36,7 @@ public class PrudentFileAppenderInterruptTest {
     String outputDirStr = CoreTestConstants.OUTPUT_DIR_PREFIX + "resilience-" + diff + "/";
     String logfileStr = outputDirStr + "output.log";
 
-    @BeforeEach
+    @Before
     public void setUp() throws InterruptedException {
         context.getStatusManager().add(new OnConsoleStatusListener());
 
@@ -54,7 +53,7 @@ public class PrudentFileAppenderInterruptTest {
 
     @Test
     public void smoke() throws InterruptedException, IOException {
-        InterruptAndLogRunner runner = new InterruptAndLogRunner(fa);
+        Runner runner = new Runner(fa);
         Thread t = new Thread(runner);
         t.start();
 
@@ -72,15 +71,15 @@ public class PrudentFileAppenderInterruptTest {
         fr.close();
         br.close();
 
-        Assertions.assertEquals(2, totalLines, "Incorrect number of logged lines "+outputDirStr);
+        assertEquals("Incorrect number of logged lines", 2, totalLines);
     }
 
-    class InterruptAndLogRunner extends RunnableWithCounterAndDone {
+    class Runner extends RunnableWithCounterAndDone {
         FileAppender<Object> fa;
         CountDownLatch latch = new CountDownLatch(1); // Just to make sure this is executed before we log in the test
                                                       // method
 
-        InterruptAndLogRunner(FileAppender<Object> fa) {
+        Runner(FileAppender<Object> fa) {
             this.fa = fa;
         }
 

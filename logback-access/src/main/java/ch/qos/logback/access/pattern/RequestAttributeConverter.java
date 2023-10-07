@@ -23,7 +23,7 @@ public class RequestAttributeConverter extends AccessConverter {
     @Override
     public void start() {
         key = getFirstOption();
-        if (OptionHelper.isNullOrEmpty(key)) {
+        if (OptionHelper.isEmpty(key)) {
             addWarn("Missing key for the request attribute");
         } else {
             super.start();

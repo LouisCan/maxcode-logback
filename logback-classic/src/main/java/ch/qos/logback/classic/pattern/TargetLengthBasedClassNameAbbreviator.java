@@ -13,7 +13,8 @@
  */
 package ch.qos.logback.classic.pattern;
 
-import static ch.qos.logback.core.CoreConstants.DOT;
+import ch.qos.logback.classic.ClassicConstants;
+import ch.qos.logback.core.CoreConstants;
 
 public class TargetLengthBasedClassNameAbbreviator implements Abbreviator {
 
@@ -24,6 +25,7 @@ public class TargetLengthBasedClassNameAbbreviator implements Abbreviator {
     }
 
     public String abbreviate(String fqClassName) {
+        StringBuilder buf = new StringBuilder(targetLength);
         if (fqClassName == null) {
             throw new IllegalArgumentException("Class name may not be null");
         }
@@ -33,50 +35,92 @@ public class TargetLengthBasedClassNameAbbreviator implements Abbreviator {
             return fqClassName;
         }
 
-        StringBuilder buf = new StringBuilder(inLen);
+        int[] dotIndexesArray = new int[ClassicConstants.MAX_DOTS];
+        // a.b.c contains 2 dots but 2+1 parts.
+        // see also http://jira.qos.ch/browse/LBCLASSIC-110
+        int[] lengthArray = new int[ClassicConstants.MAX_DOTS + 1];
 
-        int rightMostDotIndex = fqClassName.lastIndexOf(DOT);
+        int dotCount = computeDotIndexes(fqClassName, dotIndexesArray);
 
-        if (rightMostDotIndex == -1)
+        // System.out.println();
+        // System.out.println("Dot count for [" + className + "] is " + dotCount);
+        // if there are not dots than abbreviation is not possible
+        if (dotCount == 0) {
             return fqClassName;
-
-        // length of last segment including the dot
-        int lastSegmentLength = inLen - rightMostDotIndex;
-
-        int leftSegments_TargetLen = targetLength - lastSegmentLength;
-        if (leftSegments_TargetLen < 0)
-            leftSegments_TargetLen = 0;
-
-        int leftSegmentsLen = inLen - lastSegmentLength;
-
-        // maxPossibleTrim denotes the maximum number of characters we aim to trim
-        // the actual number of character trimmed may be higher since segments, when
-        // reduced, are reduced to just one character
-        int maxPossibleTrim = leftSegmentsLen - leftSegments_TargetLen;
-
-        int trimmed = 0;
-        boolean inDotState = true;
-
-        int i = 0;
-        for (; i < rightMostDotIndex; i++) {
-            char c = fqClassName.charAt(i);
-            if (c == DOT) {
-                // if trimmed too many characters, let us stop
-                if (trimmed >= maxPossibleTrim)
-                    break;
-                buf.append(c);
-                inDotState = true;
+        }
+        // printArray("dotArray: ", dotArray);
+        computeLengthArray(fqClassName, dotIndexesArray, lengthArray, dotCount);
+        // printArray("lengthArray: ", lengthArray);
+        for (int i = 0; i <= dotCount; i++) {
+            if (i == 0) {
+                buf.append(fqClassName.substring(0, lengthArray[i] - 1));
             } else {
-                if (inDotState) {
-                    buf.append(c);
-                    inDotState = false;
-                } else {
-                    trimmed++;
-                }
+                buf.append(fqClassName.substring(dotIndexesArray[i - 1], dotIndexesArray[i - 1] + lengthArray[i]));
+            }
+            // System.out.println("i=" + i + ", buf=" + buf);
+        }
+
+        return buf.toString();
+    }
+
+    static int computeDotIndexes(final String className, int[] dotArray) {
+        int dotCount = 0;
+        int k = 0;
+        while (true) {
+            // ignore the $ separator in our computations. This is both convenient
+            // and sensible.
+            k = className.indexOf(CoreConstants.DOT, k);
+            if (k != -1 && dotCount < ClassicConstants.MAX_DOTS) {
+                dotArray[dotCount] = k;
+                dotCount++;
+                k++;
+            } else {
+                break;
             }
         }
-        // append from the position of i which may include the last seen DOT
-        buf.append(fqClassName.substring(i));
-        return buf.toString();
+        return dotCount;
+    }
+
+    void computeLengthArray(final String className, int[] dotArray, int[] lengthArray, int dotCount) {
+        int toTrim = className.length() - targetLength;
+        // System.out.println("toTrim=" + toTrim);
+
+        // int toTrimAvarage = 0;
+
+        int len;
+        for (int i = 0; i < dotCount; i++) {
+            int previousDotPosition = -1;
+            if (i > 0) {
+                previousDotPosition = dotArray[i - 1];
+            }
+            int available = dotArray[i] - previousDotPosition - 1;
+            // System.out.println("i=" + i + ", available = " + available);
+
+            len = (available < 1) ? available : 1;
+            // System.out.println("i=" + i + ", toTrim = " + toTrim);
+
+            if (toTrim > 0) {
+                len = (available < 1) ? available : 1;
+            } else {
+                len = available;
+            }
+            toTrim -= (available - len);
+            lengthArray[i] = len + 1;
+        }
+
+        int lastDotIndex = dotCount - 1;
+        lengthArray[dotCount] = className.length() - dotArray[lastDotIndex];
+    }
+
+    static void printArray(String msg, int[] ia) {
+        System.out.print(msg);
+        for (int i = 0; i < ia.length; i++) {
+            if (i == 0) {
+                System.out.print(ia[i]);
+            } else {
+                System.out.print(", " + ia[i]);
+            }
+        }
+        System.out.println();
     }
 }

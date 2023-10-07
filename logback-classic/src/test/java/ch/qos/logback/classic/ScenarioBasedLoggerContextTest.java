@@ -13,11 +13,14 @@
  */
 package ch.qos.logback.classic;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
 import java.util.List;
 import java.util.Map;
 
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import org.junit.Ignore;
+import org.junit.Test;
 
 import ch.qos.logback.classic.control.ControlLogger;
 import ch.qos.logback.classic.control.ControlLoggerContext;
@@ -26,9 +29,6 @@ import ch.qos.logback.classic.control.ScenarioAction;
 import ch.qos.logback.classic.control.ScenarioMaker;
 import ch.qos.logback.classic.control.SetLevel;
 import ch.qos.logback.classic.control.Scenario;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class ScenarioBasedLoggerContextTest {
     LoggerContext lc;
@@ -49,7 +49,7 @@ public class ScenarioBasedLoggerContextTest {
     }
 
     @Test
-    @Disabled
+    @Ignore
     public void testLengthLong() {
         doScenarioedTest(100 * 1000);
     }
@@ -58,7 +58,7 @@ public class ScenarioBasedLoggerContextTest {
         LoggerContext lc = new LoggerContext();
         ControlLoggerContext controlContext = new ControlLoggerContext();
         Scenario s = ScenarioMaker.makeRealisticCreationScenario(len);
-        List<ScenarioAction> actionList = s.getActionList();
+        List actionList = s.getActionList();
         int size = actionList.size();
         for (int i = 0; i < size; i++) {
             ScenarioAction action = (ScenarioAction) actionList.get(i);

@@ -20,8 +20,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Reduce a file consisting of lock and unlock operations by removing matching
- * lock/unlocks.
+ * Reduce a file consisting of lock and unlock operations by removing matching lock/unlocks.
  */
 public class Reduce {
 
@@ -51,7 +50,7 @@ public class Reduce {
 
     private static List<String> readFile(File inputFile) throws IOException {
         BufferedReader reader = null;
-        List<String> lines = new ArrayList<>();
+        List<String> lines = new ArrayList();
         try {
             reader = new BufferedReader(new FileReader(inputFile));
             String line;
@@ -69,7 +68,7 @@ public class Reduce {
     }
 
     private static List<Structure> reduce(List<Structure> structuredLines) {
-        List<Structure> matching = new ArrayList<>();
+        List<Structure> matching = new ArrayList<Structure>();
         int lockIndex = 0;
         while (lockIndex < structuredLines.size()) {
             lockIndex = findNearestLock(structuredLines, lockIndex);
@@ -118,7 +117,7 @@ public class Reduce {
     }
 
     static List<Structure> structure(List<String> lines) {
-        List<Structure> structuredLines = new ArrayList<>();
+        List<Structure> structuredLines = new ArrayList();
         Pattern p = Pattern.compile("(\\d{2,5})\\ +(.*) (LOCK|UNLOCK)");
 
         for (String line : lines) {
@@ -163,8 +162,7 @@ public class Reduce {
 
         @Override
         public String toString() {
-            return "Structure{" + "time=" + time + ", thread='" + thread + '\'' + ", operationType=" + operationType
-                    + '}';
+            return "Structure{" + "time=" + time + ", thread='" + thread + '\'' + ", operationType=" + operationType + '}';
         }
     }
 

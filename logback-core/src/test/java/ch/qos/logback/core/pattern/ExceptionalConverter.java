@@ -13,10 +13,9 @@
  */
 package ch.qos.logback.core.pattern;
 
-/**
- * Testing purposes only
- */
-public class ExceptionalConverter extends DynamicConverter<Object> {
+import ch.qos.logback.core.pattern.DynamicConverter;
+
+public class ExceptionalConverter extends DynamicConverter {
 
     public String convert(Object event) {
         if (!isStarted()) {
@@ -24,4 +23,5 @@ public class ExceptionalConverter extends DynamicConverter<Object> {
         }
         return "";
     }
+
 }

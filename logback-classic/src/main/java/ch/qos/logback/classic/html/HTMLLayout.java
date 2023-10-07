@@ -18,6 +18,7 @@ import java.util.Map;
 import ch.qos.logback.classic.PatternLayout;
 import ch.qos.logback.classic.pattern.MDCConverter;
 import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.html.DefaultCssBuilder;
 import ch.qos.logback.core.helpers.Transform;
 import ch.qos.logback.core.html.HTMLLayoutBase;
 import ch.qos.logback.core.html.IThrowableRenderer;
@@ -26,13 +27,11 @@ import static ch.qos.logback.core.CoreConstants.LINE_SEPARATOR;
 
 /**
  * 
- * HTMLLayout outputs events in an HTML table.
- * <p>
- * The content of the table columns are specified using a conversion pattern.
- * See {@link ch.qos.logback.classic.PatternLayout} for documentation on the
- * available patterns.
- * <p>
- * For more information about this layout, please refer to the online manual at
+ * HTMLLayout outputs events in an HTML table. <p> The content of the table
+ * columns are specified using a conversion pattern. See
+ * {@link ch.qos.logback.classic.PatternLayout} for documentation on the
+ * available patterns. <p> For more information about this layout, please refer
+ * to the online manual at
  * http://logback.qos.ch/manual/layouts.html#ClassicHTMLLayout
  * 
  * @author Ceki G&uuml;lc&uuml;
@@ -118,7 +117,7 @@ public class HTMLLayout extends HTMLLayoutBase<ILoggingEvent> {
         buf.append(LINE_SEPARATOR);
     }
 
-    public IThrowableRenderer<ILoggingEvent> getThrowableRenderer() {
+    public IThrowableRenderer getThrowableRenderer() {
         return throwableRenderer;
     }
 
@@ -127,7 +126,7 @@ public class HTMLLayout extends HTMLLayoutBase<ILoggingEvent> {
     }
 
     @Override
-    protected String computeConverterName(Converter<ILoggingEvent> c) {
+    protected String computeConverterName(Converter c) {
         if (c instanceof MDCConverter) {
             MDCConverter mc = (MDCConverter) c;
             String key = mc.getFirstOption();

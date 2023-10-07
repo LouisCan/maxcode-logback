@@ -13,22 +13,23 @@
  */
 package ch.qos.logback.access.tomcat;
 
-import ch.qos.logback.access.AccessTestConstants;
-import ch.qos.logback.core.status.Status;
-import ch.qos.logback.core.status.testUtil.StatusChecker;
+import static org.junit.Assert.*;
+
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.core.ContainerBase;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Test;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import ch.qos.logback.access.AccessTestConstants;
+import ch.qos.logback.core.status.Status;
+import ch.qos.logback.core.status.StatusChecker;
 
 public class LogbackValveTest {
 
     LogbackValve valve = new LogbackValve();
     StatusChecker checker = new StatusChecker(valve);
 
-    @AfterEach
+    @After
     public void tearDown() {
         System.clearProperty(LogbackValve.CATALINA_BASE_KEY);
         System.clearProperty(LogbackValve.CATALINA_HOME_KEY);
@@ -50,18 +51,6 @@ public class LogbackValveTest {
         valve.start();
         checker.assertContainsMatch("Found configuration file");
         checker.assertContainsMatch("Done configuring");
-        checker.assertIsErrorFree();
-    }
-
-    @Test
-    public void nonExistingConfigFileUnderCatalinaBaseShouldResultInWarning() throws LifecycleException {
-        final String path = AccessTestConstants.JORAN_INPUT_PREFIX + "tomcat/";
-        final String fileName = "logback-test2-config.xml";
-        final String fullPath = path + fileName;
-        System.setProperty(LogbackValve.CATALINA_BASE_KEY, path);
-        setupValve(fileName);
-        valve.start();
-        checker.assertContainsMatch("Could NOT find configuration file");
         checker.assertIsErrorFree();
     }
 
@@ -92,9 +81,9 @@ public class LogbackValveTest {
         setupValve(fileName);
         valve.start();
         assertNotNull(valve.getScheduledExecutorService());
-
+        
     }
-
+    
     private void setupValve(final String resourceName) {
         valve.setFilename(resourceName);
         valve.setName("test");

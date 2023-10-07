@@ -37,7 +37,7 @@ public class XHTMLEntityResolver implements EntityResolver {
         final String relativePath = (String) entityMap.get(publicId);
 
         if (relativePath != null) {
-            Class<?> clazz = getClass();
+            Class clazz = getClass();
             InputStream in = clazz.getResourceAsStream(relativePath);
             if (in == null) {
                 return null;

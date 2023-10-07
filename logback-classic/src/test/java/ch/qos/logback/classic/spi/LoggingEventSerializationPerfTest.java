@@ -1,35 +1,36 @@
 /**
  * Logback: the reliable, generic, fast and flexible logging framework.
  * Copyright (C) 1999-2015, QOS.ch. All rights reserved.
- * <p>
+ *
  * This program and the accompanying materials are dual-licensed under
  * either the terms of the Eclipse Public License v1.0 as published by
  * the Eclipse Foundation
- * <p>
- * or (per the licensee's choosing)
- * <p>
+ *
+ *   or (per the licensee's choosing)
+ *
  * under the terms of the GNU Lesser General Public License version 2.1
  * as published by the Free Software Foundation.
  */
 package ch.qos.logback.classic.spi;
+
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+
+import ch.qos.logback.core.testUtil.EnvUtilForTests;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.MDC;
+import org.slf4j.helpers.BogoPerf;
 
 import ch.qos.logback.classic.net.NOPOutputStream;
 import ch.qos.logback.classic.net.testObjectBuilders.Builder;
 import ch.qos.logback.classic.net.testObjectBuilders.LoggingEventWithParametersBuilder;
 import ch.qos.logback.classic.net.testObjectBuilders.TrivialLoggingEventBuilder;
 import ch.qos.logback.core.CoreConstants;
-import ch.qos.logback.core.testUtil.EnvUtilForTests;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-import org.slf4j.MDC;
-
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 // As of logback 0.9.15, 
 //   average time  per logging event: 3979 nanoseconds
@@ -44,7 +45,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 //   average time per logging event: 4034
 //   average size 57, with params, average size=148
 
-@Disabled
 public class LoggingEventSerializationPerfTest {
 
     static int LOOP_LEN = 10 * 1000;
@@ -52,22 +52,22 @@ public class LoggingEventSerializationPerfTest {
     NOPOutputStream noos = new NOPOutputStream();
     ObjectOutputStream oos;
 
-    @BeforeEach
+    @Before
     public void setUp() throws Exception {
         MDC.clear();
         oos = new ObjectOutputStream(noos);
     }
 
-    @AfterEach
+    @After
     public void tearDown() throws Exception {
     }
 
-    double doLoop(Builder<LoggingEvent> builder, int loopLen) {
+    double doLoop(Builder builder, int loopLen) {
         long start = System.nanoTime();
         int resetCounter = 0;
         for (int i = 0; i < loopLen; i++) {
             try {
-                ILoggingEvent le = builder.build(i);
+                ILoggingEvent le = (ILoggingEvent) builder.build(i);
                 oos.writeObject(LoggingEventVO.build(le));
 
                 oos.flush();
@@ -102,12 +102,11 @@ public class LoggingEventSerializationPerfTest {
         System.out.println("noos size " + noos.size() + " average size=" + averageSize);
         double averageSizeLimit = 62.1;
 
-        assertTrue(averageSizeLimit > averageSize, "average size " + averageSize + " should be less than " + averageSizeLimit);
+        assertTrue("average size " + averageSize + " should be less than " + averageSizeLimit, averageSizeLimit > averageSize);
 
         // the reference was computed on Orion (Ceki's computer)
-        @SuppressWarnings("unused")
         long referencePerf = 5000;
-        // BogoPerf.assertDuration(rt, referencePerf, CoreConstants.REFERENCE_BIPS);
+        BogoPerf.assertDuration(rt, referencePerf, CoreConstants.REFERENCE_BIPS);
     }
 
     @Test
@@ -122,19 +121,16 @@ public class LoggingEventSerializationPerfTest {
             doLoop(builder, LOOP_LEN);
             noos.reset();
         }
-        @SuppressWarnings("unused")
         double rt = doLoop(builder, LOOP_LEN);
         long averageSize = (long) (noos.size() / (LOOP_LEN));
 
         System.out.println("noos size " + noos.size() + " average size=" + averageSize);
 
         double averageSizeLimit = 160;
-        assertTrue(averageSizeLimit > averageSize,
-                "averageSize " + averageSize + " should be less than " + averageSizeLimit);
+        assertTrue("averageSize " + averageSize + " should be less than " + averageSizeLimit, averageSizeLimit > averageSize);
 
         // the reference was computed on Orion (Ceki's computer)
-        @SuppressWarnings("unused")
         long referencePerf = 7000;
-        // BogoPerf.assertDuration(rt, referencePerf, CoreConstants.REFERENCE_BIPS);
+        BogoPerf.assertDuration(rt, referencePerf, CoreConstants.REFERENCE_BIPS);
     }
 }

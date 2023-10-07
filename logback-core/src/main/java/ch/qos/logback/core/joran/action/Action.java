@@ -17,19 +17,17 @@ import org.xml.sax.Attributes;
 import org.xml.sax.Locator;
 
 import ch.qos.logback.core.joran.spi.ActionException;
-import ch.qos.logback.core.joran.spi.SaxEventInterpretationContext;
-import ch.qos.logback.core.joran.spi.SaxEventInterpreter;
+import ch.qos.logback.core.joran.spi.InterpretationContext;
+import ch.qos.logback.core.joran.spi.Interpreter;
 import ch.qos.logback.core.spi.ContextAwareBase;
 
 /**
  *
  * Most of the work for configuring logback is done by Actions.
  *
- * <p>
- * Action methods are invoked as the XML file is parsed.
+ * <p>Action methods are invoked as the XML file is parsed.
  *
- * <p>
- * This class is largely inspired from the relevant class in the
+ * <p>This class is largely inspired from the relevant class in the
  * commons-digester project of the Apache Software Foundation.
  *
  * @author Craig McClanahan
@@ -53,63 +51,47 @@ public abstract class Action extends ContextAwareBase {
      * Called when the parser encounters an element matching a
      * {@link ch.qos.logback.core.joran.spi.ElementSelector Pattern}.
      */
-    public abstract void begin(SaxEventInterpretationContext intercon, String name, Attributes attributes)
-            throws ActionException;
+    public abstract void begin(InterpretationContext ic, String name, Attributes attributes) throws ActionException;
 
     /**
      * Called to pass the body (as text) contained within an element.
-     * 
      * @param ic
      * @param body
      * @throws ActionException
      */
-    public void body(SaxEventInterpretationContext intercon, String body) throws ActionException {
+    public void body(InterpretationContext ic, String body) throws ActionException {
         // NOP
     }
 
     /*
-     * Called when the parser encounters an endElement event matching a {@link
-     * ch.qos.logback.core.joran.spi.Pattern Pattern}.
+     * Called when the parser encounters an endElement event matching a {@link ch.qos.logback.core.joran.spi.Pattern
+     * Pattern}.
      */
-    public abstract void end(SaxEventInterpretationContext intercon, String name) throws ActionException;
+    public abstract void end(InterpretationContext ic, String name) throws ActionException;
 
     public String toString() {
         return this.getClass().getName();
     }
 
-    protected int getColumnNumber(SaxEventInterpretationContext intercon) {
-        SaxEventInterpreter interpreter = intercon.getSaxEventInterpreter();
-        if (interpreter == null)
-            return -1;
-
-        Locator locator = interpreter.getLocator();
+    protected int getColumnNumber(InterpretationContext ic) {
+        Interpreter ji = ic.getJoranInterpreter();
+        Locator locator = ji.getLocator();
         if (locator != null) {
             return locator.getColumnNumber();
         }
         return -1;
     }
 
-    // move to InterpretationContext
-    static public int getLineNumber(SaxEventInterpretationContext intercon) {
-        SaxEventInterpreter interpreter = intercon.getSaxEventInterpreter();
-        if (interpreter == null)
-            return -1;
-        Locator locator = interpreter.getLocator();
+    protected int getLineNumber(InterpretationContext ic) {
+        Interpreter ji = ic.getJoranInterpreter();
+        Locator locator = ji.getLocator();
         if (locator != null) {
             return locator.getLineNumber();
         }
         return -1;
     }
 
-    protected String getLineColStr(SaxEventInterpretationContext intercon) {
-        return "line: " + getLineNumber(intercon) + ", column: " + getColumnNumber(intercon);
-    }
-
-    protected String atLine(SaxEventInterpretationContext intercon) {
-        return "At line " + getLineNumber(intercon);
-    }
-
-    protected String nearLine(SaxEventInterpretationContext intercon) {
-        return "Near line " + getLineNumber(intercon);
+    protected String getLineColStr(InterpretationContext ic) {
+        return "line: " + getLineNumber(ic) + ", column: " + getColumnNumber(ic);
     }
 }

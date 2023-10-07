@@ -13,7 +13,7 @@
  */
 package ch.qos.logback.core.pattern.parser;
 
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 public class OptionTokenizerTest {
 

@@ -16,9 +16,8 @@ package ch.qos.logback.core.net;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.InOrder;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.spy;
@@ -29,12 +28,11 @@ import static org.mockito.Mockito.verify;
  *
  * @author Sebastian Gr&ouml;bler
  */
-@Disabled
 public class AutoFlushingObjectWriterTest {
 
     private InstrumentedObjectOutputStream objectOutputStream;
 
-    @BeforeEach
+    @Before
     public void beforeEachTest() throws IOException {
         objectOutputStream = spy(new InstrumentedObjectOutputStream());
     }
@@ -95,7 +93,6 @@ public class AutoFlushingObjectWriterTest {
     private static class InstrumentedObjectOutputStream extends ObjectOutputStream {
 
         protected InstrumentedObjectOutputStream() throws IOException, SecurityException {
-            super();
         }
 
         @Override

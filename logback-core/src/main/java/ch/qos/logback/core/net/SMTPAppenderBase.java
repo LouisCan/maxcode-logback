@@ -18,17 +18,16 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
-import java.util.concurrent.Future;
 
-import jakarta.mail.Message;
-import jakarta.mail.Multipart;
-import jakarta.mail.Session;
-import jakarta.mail.Transport;
-import jakarta.mail.internet.AddressException;
-import jakarta.mail.internet.InternetAddress;
-import jakarta.mail.internet.MimeBodyPart;
-import jakarta.mail.internet.MimeMessage;
-import jakarta.mail.internet.MimeMultipart;
+import javax.mail.Message;
+import javax.mail.Multipart;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 import javax.naming.Context;
 
 import ch.qos.logback.core.AppenderBase;
@@ -51,7 +50,8 @@ import ch.qos.logback.core.util.OptionHelper;
 /**
  * An abstract class that provides support for sending events to an email
  * address.
- * <p>
+ * <p/>
+ * <p/>
  * See http://logback.qos.ch/manual/appenders.html#SMTPAppender for further
  * documentation.
  *
@@ -85,7 +85,7 @@ public abstract class SMTPAppenderBase<E> extends AppenderBase<E> {
     String localhost;
 
     boolean asynchronousSending = true;
-    protected Future<?> asynchronousSendingFuture = null;
+
     private String charsetEncoding = "UTF-8";
 
     protected Session session;
@@ -135,10 +135,10 @@ public abstract class SMTPAppenderBase<E> extends AppenderBase<E> {
         addInfo("Looking up javax.mail.Session at JNDI location [" + jndiLocation + "]");
         try {
             Context initialContext = JNDIUtil.getInitialContext();
-            Object obj = JNDIUtil.lookupObject(initialContext, jndiLocation);
+            Object obj = JNDIUtil.lookup(initialContext, jndiLocation);
             return (Session) obj;
         } catch (Exception e) {
-            addError("Failed to obtain javax.mail.Session from JNDI location [" + jndiLocation + "]", e);
+            addError("Failed to obtain javax.mail.Session from JNDI location [" + jndiLocation + "]");
             return null;
         }
     }
@@ -156,7 +156,7 @@ public abstract class SMTPAppenderBase<E> extends AppenderBase<E> {
 
         LoginAuthenticator loginAuthenticator = null;
 
-        if (!OptionHelper.isNullOrEmpty(username)) {
+        if (username != null) {
             loginAuthenticator = new LoginAuthenticator(username, password);
             props.put("mail.smtp.auth", "true");
         }
@@ -165,12 +165,14 @@ public abstract class SMTPAppenderBase<E> extends AppenderBase<E> {
             addError("Both SSL and StartTLS cannot be enabled simultaneously");
         } else {
             if (isSTARTTLS()) {
-                // see also http://jira.qos.ch/browse/LOGBACK-193
+                // see also http://jira.qos.ch/browse/LBCORE-225
                 props.put("mail.smtp.starttls.enable", "true");
-                props.put("mail.transport.protocol", "true");
             }
             if (isSSL()) {
-                props.put("mail.smtp.ssl.enable", "true");
+                String SSL_FACTORY = "javax.net.ssl.SSLSocketFactory";
+                props.put("mail.smtp.socketFactory.port", Integer.toString(smtpPort));
+                props.put("mail.smtp.socketFactory.class", SSL_FACTORY);
+                props.put("mail.smtp.socketFactory.fallback", "true");
             }
         }
 
@@ -180,8 +182,8 @@ public abstract class SMTPAppenderBase<E> extends AppenderBase<E> {
     }
 
     /**
-     * Perform SMTPAppender specific appending actions, delegating some of them to a
-     * subclass and checking if the event triggers an e-mail to be sent.
+     * Perform SMTPAppender specific appending actions, delegating some of them to
+     * a subclass and checking if the event triggers an e-mail to be sent.
      */
     protected void append(E eventObject) {
 
@@ -204,7 +206,7 @@ public abstract class SMTPAppenderBase<E> extends AppenderBase<E> {
                 if (asynchronousSending) {
                     // perform actual sending asynchronously
                     SenderRunnable senderRunnable = new SenderRunnable(cbClone, eventObject);
-                    this.asynchronousSendingFuture = context.getExecutorService().submit(senderRunnable);
+                    context.getScheduledExecutorService().execute(senderRunnable);
                 } else {
                     // synchronous sending
                     sendBuffer(cbClone, eventObject);
@@ -240,7 +242,8 @@ public abstract class SMTPAppenderBase<E> extends AppenderBase<E> {
 
     /**
      * This method determines if there is a sense in attempting to append.
-     * <p>
+     * <p/>
+     * <p/>
      * It checks whether there is a set output target and also if there is a set
      * layout. If these checks fail, then the boolean value <code>false</code> is
      * returned.
@@ -257,8 +260,7 @@ public abstract class SMTPAppenderBase<E> extends AppenderBase<E> {
         }
 
         if (this.layout == null) {
-            addError("No layout set for appender named [" + name
-                    + "]. For more information, please visit http://logback.qos.ch/codes.html#smtp_no_layout");
+            addError("No layout set for appender named [" + name + "]. For more information, please visit http://logback.qos.ch/codes.html#smtp_no_layout");
             return false;
         }
         return true;
@@ -292,8 +294,7 @@ public abstract class SMTPAppenderBase<E> extends AppenderBase<E> {
                 InternetAddress[] tmp = InternetAddress.parse(emailAdrr, true);
                 iaList.addAll(Arrays.asList(tmp));
             } catch (AddressException e) {
-                addError("Could not parse email address for [" + toPatternLayoutList.get(i) + "] for event [" + event
-                        + "]", e);
+                addError("Could not parse email address for [" + toPatternLayoutList.get(i) + "] for event [" + event + "]", e);
                 return iaList;
             }
         }
@@ -309,15 +310,8 @@ public abstract class SMTPAppenderBase<E> extends AppenderBase<E> {
     }
 
     /**
-     * Allows to extend classes to update mime message (e.g.: Add headers)
-     */
-    protected void updateMimeMsg(MimeMessage mimeMsg, CyclicBuffer<E> cb, E lastEventObject) {
-    }
-
-    /**
      * Send the contents of the cyclic buffer as an e-mail message.
      */
-    @SuppressWarnings("null")
     protected void sendBuffer(CyclicBuffer<E> cb, E lastEventObject) {
 
         // Note: this code already owns the monitor for this
@@ -389,9 +383,6 @@ public abstract class SMTPAppenderBase<E> extends AppenderBase<E> {
             mp.addBodyPart(part);
             mimeMsg.setContent(mp);
 
-            // Added the feature to update mime message before sending the email
-            updateMimeMsg(mimeMsg, cb, lastEventObject);
-
             mimeMsg.setSentDate(new Date());
             addInfo("About to send out SMTP message \"" + subjectStr + "\" to " + Arrays.toString(toAddressArray));
             Transport.send(mimeMsg);
@@ -417,16 +408,16 @@ public abstract class SMTPAppenderBase<E> extends AppenderBase<E> {
     }
 
     /**
-     * The <b>From</b> option takes a string value which should be an e-mail address
-     * of the sender.
+     * The <b>From</b> option takes a string value which should be a e-mail
+     * address of the sender.
      */
     public void setFrom(String from) {
         this.from = from;
     }
 
     /**
-     * The <b>Subject</b> option takes a string value which should be the subject
-     * of the e-mail message.
+     * The <b>Subject</b> option takes a string value which should be a the
+     * subject of the e-mail message.
      */
     public void setSubject(String subject) {
         this.subjectStr = subject;
@@ -442,7 +433,7 @@ public abstract class SMTPAppenderBase<E> extends AppenderBase<E> {
     }
 
     /**
-     * The <b>smtpHost</b> option takes a string value which should be the host
+     * The <b>smtpHost</b> option takes a string value which should be a the host
      * name of the SMTP server that will send the e-mail message.
      */
     public void setSmtpHost(String smtpHost) {
@@ -506,10 +497,9 @@ public abstract class SMTPAppenderBase<E> extends AppenderBase<E> {
     /**
      * Set the "mail.smtp.localhost" property to the value passed as parameter to
      * this method.
-     * 
-     * <p>
-     * Useful in case the hostname for the client host is not fully qualified and as
-     * a consequence the SMTP server rejects the clients HELO/EHLO command.
+     * <p/>
+     * <p>Useful in case the hostname for the client host is not fully qualified
+     * and as a consequence the SMTP server rejects the clients HELO/EHLO command.
      * </p>
      *
      * @param localhost
@@ -539,11 +529,10 @@ public abstract class SMTPAppenderBase<E> extends AppenderBase<E> {
     }
 
     /**
-     * By default, SMTAppender transmits emails asynchronously. For synchronous
-     * email transmission set asynchronousSending to 'false'.
+     * By default, SMTAppender transmits emails asynchronously. For synchronous email transmission set
+     * asynchronousSending to 'false'.
      *
-     * @param asynchronousSending determines whether sending is done asynchronously
-     *                            or not
+     * @param asynchronousSending determines whether sending is done asynchronously or not
      * @since 1.0.4
      */
     public void setAsynchronousSending(boolean asynchronousSending) {
@@ -554,7 +543,7 @@ public abstract class SMTPAppenderBase<E> extends AppenderBase<E> {
         if (to == null || to.length() == 0) {
             throw new IllegalArgumentException("Null or empty <to> property");
         }
-        PatternLayoutBase<E> plb = makeNewToPatternLayout(to.trim());
+        PatternLayoutBase plb = makeNewToPatternLayout(to.trim());
         plb.setContext(context);
         plb.start();
         this.toPatternLayoutList.add(plb);
@@ -564,7 +553,7 @@ public abstract class SMTPAppenderBase<E> extends AppenderBase<E> {
 
     public List<String> getToAsListOfString() {
         List<String> toList = new ArrayList<String>();
-        for (PatternLayoutBase<E> plb : toPatternLayoutList) {
+        for (PatternLayoutBase plb : toPatternLayoutList) {
             toList.add(plb.getPattern());
         }
         return toList;
@@ -589,8 +578,8 @@ public abstract class SMTPAppenderBase<E> extends AppenderBase<E> {
     /**
      * The <b>EventEvaluator</b> option takes a string value representing the name
      * of the class implementing the {@link EventEvaluator} interface. A
-     * corresponding object will be instantiated and assigned as the event evaluator
-     * for the SMTPAppender.
+     * corresponding object will be instantiated and assigned as the event
+     * evaluator for the SMTPAppender.
      */
     public void setEvaluator(EventEvaluator<E> eventEvaluator) {
         this.eventEvaluator = eventEvaluator;
@@ -625,8 +614,8 @@ public abstract class SMTPAppenderBase<E> extends AppenderBase<E> {
     }
 
     /**
-     * Set the location where a {@link jakarta.mail.Session} resource is located in
-     * JNDI. Default value is "java:comp/env/mail/Session".
+     * Set the location where a {@link javax.mail.Session} resource is located in JNDI. Default value is
+     * "java:comp/env/mail/Session".
      *
      * @param jndiLocation
      * @since 1.0.6
@@ -640,8 +629,7 @@ public abstract class SMTPAppenderBase<E> extends AppenderBase<E> {
     }
 
     /**
-     * If set to true, a {@link jakarta.mail.Session} resource will be retrieved from
-     * JNDI. Default is false.
+     * If set to true, a {@link javax.mail.Session} resource will be retrieved from JNDI. Default is false.
      *
      * @param sessionViaJNDI whether to obtain a javax.mail.Session by JNDI
      * @since 1.0.6

@@ -35,8 +35,8 @@ public class StatusPrinter {
     }
 
     /**
-     * Print the contents of the context statuses, but only if they contain warnings
-     * or errors.
+     * Print the contents of the context statuses, but only if they contain
+     * warnings or errors.
      *
      * @param context
      */
@@ -45,8 +45,8 @@ public class StatusPrinter {
     }
 
     /**
-     * Print the contents of the context status, but only if they contain warnings
-     * or errors occurring later than the threshold.
+     * Print the contents of the context status, but only if they contain
+     * warnings or errors occurring later then the threshold.
      *
      * @param context
      */
@@ -67,7 +67,8 @@ public class StatusPrinter {
     }
 
     /**
-     * Print the contents of the context statuses, but only if they contain errors.
+     * Print the contents of the context statuses, but only if they contain
+     * errors.
      *
      * @param context
      */
@@ -97,10 +98,9 @@ public class StatusPrinter {
     }
 
     /**
-     * Print context's status data with a timestamp higher than the threshold.
-     * 
-     * @param context
-     */
+    * Print context's status data with a timestamp higher than the threshold.
+    * @param context
+    */
     public static void print(Context context, long threshold) {
         if (context == null) {
             throw new IllegalArgumentException("Context argument cannot be null");
@@ -139,8 +139,7 @@ public class StatusPrinter {
         }
     }
 
-    // private static void buildStrFromStatusManager(StringBuilder sb, StatusManager
-    // sm) {
+    // private static void buildStrFromStatusManager(StringBuilder sb, StatusManager sm) {
     // }
 
     private static void appendThrowable(StringBuilder sb, Throwable t) {
@@ -169,7 +168,7 @@ public class StatusPrinter {
         }
 
         if (cachingDateFormat != null) {
-            String dateStr = cachingDateFormat.format(s.getTimestamp());
+            String dateStr = cachingDateFormat.format(s.getDate());
             sb.append(dateStr).append(" ");
         }
         sb.append(prefix).append(s).append(CoreConstants.LINE_SEPARATOR);

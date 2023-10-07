@@ -34,7 +34,6 @@ public class SSLSocketReceiver extends SocketReceiver implements SSLComponent {
     /**
      * Gets an {@link SocketFactory} that produces SSL sockets using an
      * {@link SSLContext} that is derived from the receiver's configuration.
-     * 
      * @return socket factory
      */
     @Override
@@ -61,9 +60,8 @@ public class SSLSocketReceiver extends SocketReceiver implements SSLComponent {
 
     /**
      * Gets the SSL configuration.
-     * 
-     * @return SSL configuration; if no configuration has been set, a default
-     *         configuration is returned
+     * @return SSL configuration; if no configuration has been set, a
+     *    default configuration is returned
      */
     public SSLConfiguration getSsl() {
         if (ssl == null) {
@@ -74,7 +72,6 @@ public class SSLSocketReceiver extends SocketReceiver implements SSLComponent {
 
     /**
      * Sets the SSL configuration.
-     * 
      * @param ssl the SSL configuration to set
      */
     public void setSsl(SSLConfiguration ssl) {

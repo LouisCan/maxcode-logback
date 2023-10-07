@@ -15,13 +15,13 @@ package ch.qos.logback.classic.helpers;
 
 import java.io.IOException;
 
-import jakarta.servlet.Filter;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.FilterConfig;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
-import jakarta.servlet.http.HttpServletRequest;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.MDC;
 
@@ -42,8 +42,7 @@ public class MDCInsertingServletFilter implements Filter {
         // do nothing
     }
 
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-            throws IOException, ServletException {
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
 
         insertIntoMDC(request);
         try {
@@ -76,7 +75,7 @@ public class MDCInsertingServletFilter implements Filter {
         MDC.remove(ClassicConstants.REQUEST_REMOTE_HOST_MDC_KEY);
         MDC.remove(ClassicConstants.REQUEST_REQUEST_URI);
         MDC.remove(ClassicConstants.REQUEST_QUERY_STRING);
-        // removing possibly nonexistent item is OK
+        // removing possibly inexistent item is OK
         MDC.remove(ClassicConstants.REQUEST_REQUEST_URL);
         MDC.remove(ClassicConstants.REQUEST_METHOD);
         MDC.remove(ClassicConstants.REQUEST_USER_AGENT_MDC_KEY);

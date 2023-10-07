@@ -18,15 +18,12 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
-
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author Ceki G&uuml;lc&uuml;
  */
-@Disabled
 public class Lbcore211 {
 
     @Test

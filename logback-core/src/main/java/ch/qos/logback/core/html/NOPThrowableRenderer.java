@@ -13,7 +13,9 @@
  */
 package ch.qos.logback.core.html;
 
-public class NOPThrowableRenderer implements IThrowableRenderer<Object> {
+import ch.qos.logback.core.html.IThrowableRenderer;
+
+public class NOPThrowableRenderer implements IThrowableRenderer {
 
     public void render(StringBuilder sbuf, Object event) {
         return;

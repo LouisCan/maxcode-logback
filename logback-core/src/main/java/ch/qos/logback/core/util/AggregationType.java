@@ -14,12 +14,13 @@
 package ch.qos.logback.core.util;
 
 /**
- * AggregationType classifies how one object is contained within another object.
+ * AggregationType classifies how one object is contained within 
+ * another object.
  * 
  * 
  * 
- * See also http://en.wikipedia.org/wiki/Class_diagram and
- * http://en.wikipedia.org/wiki/Object_composition
+ * See also http://en.wikipedia.org/wiki/Class_diagram
+ * and http://en.wikipedia.org/wiki/Object_composition
  * 
  * @author Ceki Gulcu
  */

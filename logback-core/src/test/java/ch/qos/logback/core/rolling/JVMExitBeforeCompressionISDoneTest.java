@@ -1,33 +1,35 @@
 package ch.qos.logback.core.rolling;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
 import java.util.Date;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
 
 import ch.qos.logback.core.CoreConstants;
 import ch.qos.logback.core.encoder.EchoEncoder;
-import ch.qos.logback.core.hook.DefaultShutdownHook;
-import ch.qos.logback.core.rolling.testUtil.ScaffoldingForRollingTests;
+import ch.qos.logback.core.hook.DelayingShutdownHook;
 import ch.qos.logback.core.status.OnConsoleStatusListener;
 import ch.qos.logback.core.testUtil.RandomUtil;
 import ch.qos.logback.core.util.StatusListenerConfigHelper;
 import ch.qos.logback.core.util.StatusPrinter;
-import org.junit.jupiter.api.Test;
-
-@Disabled
+@Ignore
 public class JVMExitBeforeCompressionISDoneTest extends ScaffoldingForRollingTests {
 
     RollingFileAppender<Object> rfa = new RollingFileAppender<Object>();
     TimeBasedRollingPolicy<Object> tbrp = new TimeBasedRollingPolicy<Object>();
-    DefaultShutdownHook delayingShutdownHook = new DefaultShutdownHook();
-
+    DelayingShutdownHook delayingShutdownHook = new DelayingShutdownHook();
+    
     static final long FRI_2016_05_13_T_170415_GMT = 1463159055630L;
-
+                                                    
     EchoEncoder<Object> encoder = new EchoEncoder<Object>();
 
-    @BeforeEach
+    @Before
     @Override
     public void setUp() {
         super.setUp();
@@ -41,8 +43,7 @@ public class JVMExitBeforeCompressionISDoneTest extends ScaffoldingForRollingTes
         rfa.setEncoder(encoder);
     }
 
-    void initTRBP(RollingFileAppender<Object> rfa, TimeBasedRollingPolicy<Object> tbrp, String filenamePattern,
-            long givenTime) {
+    void initTRBP(RollingFileAppender<Object> rfa, TimeBasedRollingPolicy<Object> tbrp, String filenamePattern, long givenTime) {
         tbrp.setContext(context);
         tbrp.setFileNamePattern(filenamePattern);
         tbrp.setParent(rfa);
@@ -53,33 +54,32 @@ public class JVMExitBeforeCompressionISDoneTest extends ScaffoldingForRollingTes
         rfa.start();
     }
 
-    @AfterEach
+    @After
     public void tearDown() throws Exception {
         StatusPrinter.print(context);
     }
 
-    @Disabled
+    @Ignore
     @Test
     public void test1() {
         Thread shutdownThread = new Thread(delayingShutdownHook);
         Runtime.getRuntime().addShutdownHook(shutdownThread);
-
+        
         String patternPrefix = "test1";
         String compressionSuffix = ".zip";
 
         this.currentTime = FRI_2016_05_13_T_170415_GMT;
-
-        Date d = new Date(FRI_2016_05_13_T_170415_GMT); // WED_2016_03_23_T_230705_CET);
+        
+        Date d = new Date(FRI_2016_05_13_T_170415_GMT); //WED_2016_03_23_T_230705_CET);
         System.out.println(d);
         System.out.print(d.getTime());
-
+        
         int ticksPerHour = 100;
         int hours = 7;
-        int totalTicks = ticksPerHour * hours;
-        long singleTickDuration = CoreConstants.MILLIS_IN_ONE_HOUR / ticksPerHour;
-
-        String fileNamePatternStr = randomOutputDir + patternPrefix + "-%d{" + DATE_PATTERN_BY_DAY + ", GMT}"
-                + compressionSuffix;
+        int totalTicks = ticksPerHour*hours;
+        long singleTickDuration = CoreConstants.MILLIS_IN_ONE_HOUR/ticksPerHour;
+        
+        String fileNamePatternStr = randomOutputDir + patternPrefix + "-%d{" + DATE_PATTERN_BY_DAY + ", GMT}" + compressionSuffix;
         initTRBP(rfa, tbrp, fileNamePatternStr, currentTime);
 
         incCurrentTime(singleTickDuration);
@@ -88,23 +88,24 @@ public class JVMExitBeforeCompressionISDoneTest extends ScaffoldingForRollingTes
         for (int i = 0; i < totalTicks; i++) {
             StringBuilder sb = new StringBuilder(1000);
             sb.append("Hello");
-            for (int j = 0; j < 100; j++) {
+            for(int j = 0; j < 100; j++) {
                 sb.append(RandomUtil.getPositiveInt());
             }
             sb.append(i);
-
+            
             rfa.doAppend(sb.toString());
             addExpectedFileNamedIfItsTime_ByDate(fileNamePatternStr);
             incCurrentTime(singleTickDuration);
             tbrp.timeBasedFileNamingAndTriggeringPolicy.setCurrentTime(currentTime);
         }
+        
 
-        // String nameOfExpectedZipFile = randomOutputDir +
-        // patternPrefix+"-2016-05-13.zip";;
-
+            
+        
+        String nameOfExpectedZipFile = randomOutputDir + patternPrefix+"-2016-05-13.zip";;
+        
         // File expectedZipFile = new File(nameOfExpectedZipFile);
-        // assertTrue("expecting file ["+nameOfExpectedZipFile+"] to exist",
-        // expectedZipFile.exists());
+        // assertTrue("expecting file ["+nameOfExpectedZipFile+"] to exist", expectedZipFile.exists());
         // File[] files = getFilesInDirectory(randomOutputDir);
         // assertEquals(2, files.length);
     }

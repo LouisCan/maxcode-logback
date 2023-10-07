@@ -8,7 +8,7 @@
   <parent>
     <groupId>ch.qos.logback</groupId>
     <artifactId>logback-parent</artifactId>
-    <version>1.4.12-SNAPSHOT</version>
+    <version>1.2.9</version>
   </parent>
 
   <artifactId>logback-access</artifactId>
@@ -16,18 +16,7 @@
   <name>Logback Access Module</name>
   <description>logback-access module</description>
 
-  <properties>
-    <module-name>ch.qos.logback.access</module-name>
-  </properties>
-  
   <dependencies>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-params</artifactId>
-      <version>${junit-jupiter-params.version}</version>
-      <scope>test</scope>
-    </dependency>
-
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-core</artifactId>
@@ -39,13 +28,6 @@
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>
-
-    <dependency>
-      <groupId>jakarta.servlet</groupId>
-      <artifactId>jakarta.servlet-api</artifactId>
-      <scope>provided</scope>
-    </dependency>
-
     <dependency>
       <groupId>org.apache.tomcat</groupId>
       <artifactId>tomcat-catalina</artifactId>
@@ -70,21 +52,12 @@
       <scope>compile</scope>
       <optional>true</optional>
     </dependency>
-
     <dependency>
-      <groupId>jakarta.mail</groupId>
-      <artifactId>jakarta.mail-api</artifactId>
+      <groupId>javax.mail</groupId>
+      <artifactId>mail</artifactId>
       <scope>compile</scope>
       <optional>true</optional>
     </dependency>
-
-    <dependency>
-      <groupId>jakarta.activation</groupId>
-      <artifactId>jakarta.activation-api</artifactId>
-      <scope>compile</scope>
-      <optional>true</optional>
-    </dependency>
-
   </dependencies>
 
   <build>
@@ -109,10 +82,8 @@
         <artifactId>maven-jar-plugin</artifactId>
         <configuration>
           <archive>
-            <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
-            <manifestEntries>
-              <!--<Automatic-Module-Name>ch.qos.logack.access</Automatic-Module-Name>-->
-            </manifestEntries>
+            <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF
+            </manifestFile>
           </archive>
         </configuration>
         <executions>
@@ -120,6 +91,7 @@
             <id>bundle-test-jar</id>
             <phase>package</phase>
             <goals>
+              <goal>jar</goal>
               <goal>test-jar</goal>
             </goals>
           </execution>
@@ -128,6 +100,7 @@
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
+        <extensions>true</extensions>
         <executions>
           <execution>
             <id>bundle-manifest</id>
@@ -146,13 +119,16 @@
                 Bnd's analysis of java code.
             -->
             <Import-Package>
-              ch.qos.logback.access*;version="${range;[==,+);${version_cleanup;${project.version}}}",
               ch.qos.logback.core.rolling,
               ch.qos.logback.core.rolling.helper,
+              javax.servlet.*;version="2.5",
+              javax.*;resolution:=optional,
               org.apache.catalina.*;version="${tomcat.version}";resolution:=optional,
               org.eclipse.jetty.*;version="${jetty.version}";resolution:=optional,
               *
             </Import-Package>
+            <Bundle-RequiredExecutionEnvironment>JavaSE-1.6
+            </Bundle-RequiredExecutionEnvironment>
           </instructions>
         </configuration>
       </plugin>
@@ -160,6 +136,37 @@
   </build>
 
   <profiles>
+    <profile>
+      <!-- Integration tests require the host-orion profile -->
+      <id>host-orion</id>
+      <dependencies>
+        <dependency>
+          <groupId>mysql</groupId>
+          <artifactId>mysql-connector-java</artifactId>
+          <version>5.0.8</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>postgresql</groupId>
+          <artifactId>postgresql</artifactId>
+          <version>8.2-507.jdbc3</version>
+        </dependency>
+        <!-- locally installed artifact -->
+        <dependency>
+          <groupId>com.microsoft.sqlserver</groupId>
+          <artifactId>sqljdbc4</artifactId>
+          <version>2.0</version>
+          <scope>test</scope>
+        </dependency>
+        <!-- locally installed artifact -->
+        <dependency>
+          <groupId>com.oracle</groupId>
+          <artifactId>ojdbc14</artifactId>
+          <version>10.2.0.1</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+    </profile>
   </profiles>
 
 </project>

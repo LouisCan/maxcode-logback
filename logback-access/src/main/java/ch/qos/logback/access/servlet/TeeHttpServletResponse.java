@@ -17,9 +17,9 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 
-import jakarta.servlet.ServletOutputStream;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpServletResponseWrapper;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletResponseWrapper;
 
 public class TeeHttpServletResponse extends HttpServletResponseWrapper {
 
@@ -41,8 +41,7 @@ public class TeeHttpServletResponse extends HttpServletResponseWrapper {
     @Override
     public PrintWriter getWriter() throws IOException {
         if (this.teeWriter == null) {
-            this.teeWriter = new PrintWriter(
-                    new OutputStreamWriter(getOutputStream(), this.getResponse().getCharacterEncoding()), true);
+            this.teeWriter = new PrintWriter(new OutputStreamWriter(getOutputStream(), this.getResponse().getCharacterEncoding()), true);
         }
         return this.teeWriter;
     }

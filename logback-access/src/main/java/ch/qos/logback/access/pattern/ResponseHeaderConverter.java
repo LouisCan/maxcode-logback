@@ -23,7 +23,7 @@ public class ResponseHeaderConverter extends AccessConverter {
     @Override
     public void start() {
         key = getFirstOption();
-        if (OptionHelper.isNullOrEmpty(key)) {
+        if (OptionHelper.isEmpty(key)) {
             addWarn("Missing key for the response header");
         } else {
             super.start();

@@ -25,7 +25,7 @@ public class RequestParameterConverter extends AccessConverter {
     @Override
     public void start() {
         key = getFirstOption();
-        if (OptionHelper.isNullOrEmpty(key)) {
+        if (OptionHelper.isEmpty(key)) {
             addWarn("Missing key for the request parameter");
         } else {
             super.start();
@@ -42,8 +42,7 @@ public class RequestParameterConverter extends AccessConverter {
         if (paramArray.length == 1) {
             return paramArray[0];
         } else {
-            // for an array string {"a", "b"} named 'sa', Array.toString(sa) returns the
-            // string
+            // for an array string {"a", "b"} named 'sa', Array.toString(sa) returns the string
             // "[a, b]".
             return Arrays.toString(paramArray);
         }

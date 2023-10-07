@@ -20,10 +20,10 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import ch.qos.logback.core.CoreConstants;
 import ch.qos.logback.core.helpers.Transform;
@@ -160,7 +160,7 @@ abstract public class ViewStatusMessagesServletBase extends HttpServlet {
             trClass = "odd";
         }
         buf.append("  <tr class=\"").append(trClass).append("\">\r\n");
-        String dateStr = SDF.format(s.getTimestamp());
+        String dateStr = SDF.format(s.getDate());
         buf.append("    <td class=\"date\">").append(dateStr).append("</td>\r\n");
         buf.append("    <td class=\"level\">").append(statusLevelAsString(s)).append("</td>\r\n");
         buf.append("    <td>").append(abbreviatedOrigin(s)).append("</td>\r\n");

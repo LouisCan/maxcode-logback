@@ -47,15 +47,15 @@ public class FelixHost {
         this.myBundleListener = myBundleListener;
     }
 
+    @SuppressWarnings("unchecked")
     public void doLaunch() {
         // Create a case-insensitive configuration property map.
-        Map<String, Object> configMap = new StringMap();
+        Map configMap = new StringMap(false);
         // Configure the Felix instance to be embedded.
         // configMap.put(FelixConstants.EMBEDDED_EXECUTION_PROP, "true");
         // Add core OSGi packages to be exported from the class path
         // via the system bundle.
-        configMap.put(Constants.FRAMEWORK_SYSTEMPACKAGES,
-                "org.osgi.framework; version=1.3.0," + "org.osgi.service.packageadmin; version=1.2.0,"
+        configMap.put(Constants.FRAMEWORK_SYSTEMPACKAGES, "org.osgi.framework; version=1.3.0," + "org.osgi.service.packageadmin; version=1.2.0,"
                         + "org.osgi.service.startlevel; version=1.0.0," + "org.osgi.service.url; version=1.0.0");
 
         configMap.put(Constants.FRAMEWORK_STORAGE_CLEAN, Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT);
@@ -66,11 +66,10 @@ public class FelixHost {
         try {
             // Create host activator;
 
-            List<Object> list = new ArrayList<Object>();
+            List list = new ArrayList();
 
             // list.add(new HostActivator());
-            configMap.put(Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA,
-                    "org.xml.sax, org.xml.sax.helpers, javax.xml.parsers, javax.naming");
+            configMap.put(Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA, "org.xml.sax, org.xml.sax.helpers, javax.xml.parsers, javax.naming");
             configMap.put(FelixConstants.SYSTEMBUNDLE_ACTIVATORS_PROP, list);
             configMap.put("felix.log.level", "4");
 
@@ -81,9 +80,8 @@ public class FelixHost {
 
             // otherProps.put(Constants.FRAMEWORK_STORAGE, "bundles");
 
-            otherProps.put(AutoProcessor.AUTO_DEPLOY_DIR_PROPERTY, AutoProcessor.AUTO_DEPLOY_DIR_VALUE);
-            otherProps.put(AutoProcessor.AUTO_DEPLOY_ACTION_PROPERTY,
-                    AutoProcessor.AUTO_DEPLOY_START_VALUE + "," + AutoProcessor.AUTO_DEPLOY_INSTALL_VALUE);
+            otherProps.put(AutoProcessor.AUTO_DEPLOY_DIR_PROPERY, AutoProcessor.AUTO_DEPLOY_DIR_VALUE);
+            otherProps.put(AutoProcessor.AUTO_DEPLOY_ACTION_PROPERY, AutoProcessor.AUTO_DEPLOY_START_VALUE + "," + AutoProcessor.AUTO_DEPLOY_INSTALL_VALUE);
 
             BundleContext felixBudleContext = felix.getBundleContext();
 

@@ -31,7 +31,6 @@ public abstract class ServerSocketListener<T extends Client> implements ServerLi
 
     /**
      * Constructs a new listener.
-     * 
      * @param serverSocket server socket delegate
      */
     public ServerSocketListener(ServerSocket serverSocket) {
@@ -48,8 +47,7 @@ public abstract class ServerSocketListener<T extends Client> implements ServerLi
 
     /**
      * Creates the client object for a new socket connection
-     * 
-     * @param id     identifier string for the client
+     * @param id identifier string for the client
      * @param socket client's socket connection
      * @return client object
      * @throws IOException
@@ -73,7 +71,6 @@ public abstract class ServerSocketListener<T extends Client> implements ServerLi
 
     /**
      * Converts a socket address to a reasonable display string.
-     * 
      * @param address the subject socket address
      * @return display string
      */

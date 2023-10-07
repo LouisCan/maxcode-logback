@@ -8,7 +8,7 @@
   <parent>
     <groupId>ch.qos.logback</groupId>
     <artifactId>logback-parent</artifactId>
-    <version>1.4.12-SNAPSHOT</version>
+    <version>1.2.9</version>
   </parent>
 
   <artifactId>logback-core</artifactId>
@@ -16,21 +16,10 @@
   <name>Logback Core Module</name>
   <description>logback-core module</description>
 
-  <properties>
-    <module-name>ch.qos.logback.core</module-name>
-  </properties>
-
   <dependencies>
-
     <dependency>
        <groupId>org.codehaus.janino</groupId>
       <artifactId>janino</artifactId>
-      <scope>compile</scope>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.janino</groupId>
-      <artifactId>commons-compiler</artifactId>
       <scope>compile</scope>
       <optional>true</optional>
     </dependency>
@@ -39,95 +28,74 @@
       <artifactId>jansi</artifactId>
       <optional>true</optional>
     </dependency>
-
     <dependency>
-      <groupId>jakarta.mail</groupId>
-      <artifactId>jakarta.mail-api</artifactId>
+      <groupId>javax.mail</groupId>
+      <artifactId>mail</artifactId>
       <scope>compile</scope>
       <optional>true</optional>
     </dependency>
-
-    <dependency>
-      <groupId>org.eclipse.angus</groupId>
-      <artifactId>angus-mail</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>jakarta.servlet</groupId>
-      <artifactId>jakarta.servlet-api</artifactId>
-      <scope>compile</scope>
-      <optional>true</optional>
-    </dependency>
-
-
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
       <scope>test</scope>
     </dependency>
-
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <scope>compile</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
     <plugins>
-
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
-
-          <!--<argLine>XXadd-opens ch.qos.logback.core/ch.qos.logback.core.testUtil=java.naming</argLine>-->
-          <!--<argLine>add-opens ch.qos.logback.core/ch.qos.logback.core.testUtil=java.naming
-                       add-reads ch.qos.logback.core=ALL-UNNAMED</argLine>-->
-          <argLine>
-            --add-opens ch.qos.logback.core/ch.qos.logback.core.testUtil=java.naming
-            --add-reads ch.qos.logback.core=ALL-UNNAMED
-          </argLine>
-          <parallel>classes</parallel>
-          <threadCount>8</threadCount>
-          <!--<useUnlimitedThreads>false</useUnlimitedThreads>-->
-          <forkCount>1</forkCount>
+          <forkCount>1C</forkCount>
           <reuseForks>true</reuseForks>
+          <parallel>classes</parallel>
+          <threadCount>20</threadCount>
           <reportFormat>plain</reportFormat>
           <trimStackTrace>false</trimStackTrace>
-          <!-- See https://issues.apache.org/jira/browse/SUREFIRE-1265 -->
-          <childDelegation>true</childDelegation>
           <excludes>
             <exclude>**/All*Test.java</exclude>
             <exclude>**/PackageTest.java</exclude>
             <!-- ConsoleAppenderTest redirects System.out which is not well tolerated by Maven -->
             <exclude>**/ConsoleAppenderTest.java</exclude>
-
-
+            <!--<exclude>**/TimeBasedRollingTest.java</exclude>-->
           </excludes>
         </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-
         <configuration>
           <archive>
             <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
           </archive>
         </configuration>
-
         <executions>
           <execution>
             <id>bundle-test-jar</id>
             <phase>package</phase>
             <goals>
+              <goal>jar</goal>
               <goal>test-jar</goal>
             </goals>
           </execution>
         </executions>
       </plugin>
-
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
-
+        <extensions>true</extensions>
         <executions>
           <execution>
             <id>bundle-manifest</id>
@@ -139,16 +107,17 @@
         </executions>
         <configuration>
           <instructions>
-            <Export-Package>ch.qos.logback.core*</Export-Package>
+            <Export-Package>ch.qos.logback.core.*</Export-Package>
             <Import-Package>
-              ch.qos.logback.core*;version="${range;[==,+);${version_cleanup;${project.version}}}",
-              jakarta.*;resolution:=optional,
+              javax.*;resolution:=optional,
               org.xml.*;resolution:=optional,
               org.fusesource.jansi;resolution:=optional,
               org.codehaus.janino;resolution:=optional,
               org.codehaus.commons.compiler;resolution:=optional,
               *
             </Import-Package>
+            <Bundle-RequiredExecutionEnvironment>JavaSE-1.6
+            </Bundle-RequiredExecutionEnvironment>
           </instructions>
         </configuration>
       </plugin>

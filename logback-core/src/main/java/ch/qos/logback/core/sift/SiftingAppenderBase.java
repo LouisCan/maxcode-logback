@@ -1,6 +1,6 @@
 /**
  * Logback: the reliable, generic, fast and flexible logging framework.
- * Copyright (C) 1999-2002, QOS.ch. All rights reserved.
+ * Copyright (C) 1999-2015, QOS.ch. All rights reserved.
  *
  * This program and the accompanying materials are dual-licensed under
  * either the terms of the Eclipse Public License v1.0 as published by
@@ -15,7 +15,6 @@ package ch.qos.logback.core.sift;
 
 import ch.qos.logback.core.Appender;
 import ch.qos.logback.core.AppenderBase;
-import ch.qos.logback.core.model.SiftModel;
 import ch.qos.logback.core.util.Duration;
 
 /**
@@ -26,7 +25,7 @@ import ch.qos.logback.core.util.Duration;
  * processed. The appender to build (dynamically) is specified as part of a
  * configuration file.
  *
- * @author Ceki G&uuml;lc&uuml;
+ * @author Ceki Gulcu
  */
 public abstract class SiftingAppenderBase<E> extends AppenderBase<E> {
 
@@ -35,7 +34,6 @@ public abstract class SiftingAppenderBase<E> extends AppenderBase<E> {
     Duration timeout = new Duration(AppenderTracker.DEFAULT_TIMEOUT);
     int maxAppenderCount = AppenderTracker.DEFAULT_MAX_COMPONENTS;
 
-    SiftModel siftModel;
     Discriminator<E> discriminator;
 
     public Duration getTimeout() {
@@ -46,14 +44,6 @@ public abstract class SiftingAppenderBase<E> extends AppenderBase<E> {
         this.timeout = timeout;
     }
 
-    public SiftModel getSiftModel() {
-        return siftModel;
-    }
-
-    public void setSiftModel(SiftModel siftModel) {
-        this.siftModel = siftModel;
-    }
-    
     public int getMaxAppenderCount() {
         return maxAppenderCount;
     }
@@ -63,8 +53,8 @@ public abstract class SiftingAppenderBase<E> extends AppenderBase<E> {
     }
 
     /**
-     * This setter is intended to be invoked by SiftModelHandler. Users have no 
-     * reason to invoke this method directly.
+     * This setter is intended to be invoked by SiftAction. Customers have no reason to invoke
+     * this method directly.
      */
     public void setAppenderFactory(AppenderFactory<E> appenderFactory) {
         this.appenderFactory = appenderFactory;
@@ -96,8 +86,6 @@ public abstract class SiftingAppenderBase<E> extends AppenderBase<E> {
 
     @Override
     public void stop() {
-        if(!isStarted())
-            return;
         for (Appender<E> appender : appenderTracker.allComponents()) {
             appender.stop();
         }

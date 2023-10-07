@@ -16,18 +16,18 @@ package ch.qos.logback.classic.spi;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static junit.framework.Assert.assertNull;
+import static org.junit.Assert.assertEquals;
 
 public class LoggingEventTest {
 
     LoggerContext loggerContext = new LoggerContext();
     Logger logger = loggerContext.getLogger(Logger.ROOT_LOGGER_NAME);
 
-    @BeforeEach
+    @Before
     public void setUp() {
     }
 

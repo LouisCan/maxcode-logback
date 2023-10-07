@@ -17,7 +17,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -26,10 +25,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
-import ch.qos.logback.core.spi.ConfigurationEvent;
-import ch.qos.logback.core.spi.ConfigurationEventListener;
-import jakarta.servlet.ServletContext;
-import jakarta.servlet.ServletException;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
 
 import org.apache.catalina.Lifecycle;
 import org.apache.catalina.LifecycleException;
@@ -58,7 +55,6 @@ import ch.qos.logback.core.spi.FilterAttachableImpl;
 import ch.qos.logback.core.spi.FilterReply;
 import ch.qos.logback.core.spi.LifeCycle;
 import ch.qos.logback.core.spi.LogbackLock;
-import ch.qos.logback.core.spi.SequenceNumberGenerator;
 import ch.qos.logback.core.status.ErrorStatus;
 import ch.qos.logback.core.status.InfoStatus;
 import ch.qos.logback.core.status.OnConsoleStatusListener;
@@ -78,15 +74,13 @@ import ch.qos.logback.core.util.StatusListenerConfigHelper;
  * 
  * <p>
  * For more information on using LogbackValve please refer to the online
- * documentation on
- * <a href="http://logback.qos.ch/access.html#tomcat">logback-access and
- * tomcat</a>.
+ * documentation on <a
+ * href="http://logback.qos.ch/access.html#tomcat">logback-acces and tomcat</a>.
  * 
  * @author Ceki G&uuml;lc&uuml;
  * @author S&eacute;bastien Pennec
  */
-public class LogbackValve extends ValveBase
-        implements Lifecycle, Context, AppenderAttachable<IAccessEvent>, FilterAttachable<IAccessEvent> {
+public class LogbackValve extends ValveBase implements Lifecycle, Context, AppenderAttachable<IAccessEvent>, FilterAttachable<IAccessEvent> {
 
     public final static String DEFAULT_FILENAME = "logback-access.xml";
     public final static String DEFAULT_CONFIG_FILE = "conf" + File.separatorChar + DEFAULT_FILENAME;
@@ -96,10 +90,7 @@ public class LogbackValve extends ValveBase
     private final LifeCycleManager lifeCycleManager = new LifeCycleManager();
 
     private long birthTime = System.currentTimeMillis();
-
     LogbackLock configurationLock = new LogbackLock();
-
-    final private List<ConfigurationEventListener> configurationEventListenerList = new ArrayList<>();
 
     // Attributes from ContextBase:
     private String name;
@@ -116,7 +107,6 @@ public class LogbackValve extends ValveBase
     boolean quiet;
     boolean started;
     boolean alreadySetLogbackStatusManager = false;
-    private SequenceNumberGenerator sequenceNumberGenerator;
 
     private ScheduledExecutorService scheduledExecutorService;
 
@@ -190,8 +180,7 @@ public class LogbackValve extends ValveBase
         String propertyValue = OptionHelper.getSystemProperty(propertyKey);
         String candidatePath = propertyValue + File.separatorChar + filename;
         if (propertyValue == null) {
-            addInfo("System property \"" + propertyKey + "\" is not set. Skipping configuration file search with ${"
-                    + propertyKey + "} path prefix.");
+            addInfo("System property \"" + propertyKey + "\" is not set. Skipping configuration file search with ${" + propertyKey + "} path prefix.");
             return null;
         }
         File candidateFile = new File(candidatePath);
@@ -199,7 +188,7 @@ public class LogbackValve extends ValveBase
             addInfo("Found configuration file [" + candidatePath + "] using property \"" + propertyKey + "\"");
             return candidateFile;
         } else {
-            addInfo("Could NOT find configuration file [" + candidatePath + "] using property \"" + propertyKey + "\"");
+            addInfo("Could NOT configuration file [" + candidatePath + "] using property \"" + propertyKey + "\"");
             return null;
         }
     }
@@ -267,7 +256,7 @@ public class LogbackValve extends ValveBase
             getNext().invoke(request, response);
 
             TomcatServerAdapter adapter = new TomcatServerAdapter(request, response);
-            IAccessEvent accessEvent = new AccessEvent(this, request, response, adapter);
+            IAccessEvent accessEvent = new AccessEvent(request, response, adapter);
 
             addThreadName(accessEvent);
 
@@ -465,24 +454,5 @@ public class LogbackValve extends ValveBase
     @Override
     public void addScheduledFuture(ScheduledFuture<?> scheduledFuture) {
         throw new UnsupportedOperationException();
-    }
-
-    public SequenceNumberGenerator getSequenceNumberGenerator() {
-        return sequenceNumberGenerator;
-    }
-
-    public void setSequenceNumberGenerator(SequenceNumberGenerator sequenceNumberGenerator) {
-        this.sequenceNumberGenerator = sequenceNumberGenerator;
-    }
-
-
-    @Override
-    public void addConfigurationEventListener(ConfigurationEventListener listener) {
-        configurationEventListenerList.add(listener);
-    }
-
-    @Override
-    public void fireConfigurationEvent(ConfigurationEvent configurationEvent) {
-        configurationEventListenerList.forEach( l -> l.listen(configurationEvent));
     }
 }

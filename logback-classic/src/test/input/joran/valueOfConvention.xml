@@ -1,5 +1,4 @@
-<configuration debug="false">
-
+<configuration debug="true">
 	<appender name="FILE_INFO" class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<file>target/test-output/valueOfConvention_${diff}/infoLog.log</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">

@@ -15,8 +15,8 @@ package ch.qos.logback.access.spi;
 
 import ch.qos.logback.core.spi.DeferredProcessingAware;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
@@ -26,8 +26,8 @@ import java.util.Map;
 /**
  * The Access module's internal representation of logging events. When the
  * logging component instance is called in the container to log then a
- * <code>AccessEvent</code> instance is created. This instance is passed around
- * to the different logback components.
+ * <code>AccessEvent</code> instance is created. This instance is passed
+ * around to the different logback components.
  *
  * @author Ceki G&uuml;lc&uuml;
  * @author S&eacute;bastien Pennec
@@ -61,25 +61,13 @@ public interface IAccessEvent extends DeferredProcessingAware {
     long getTimeStamp();
 
     /**
-     * The sequence number associated with this event.
-     * 
-     * <p>
-     * Sequence numbers, if present, should be increasing monotonically.
-     * 
-     * @since 1.3.0
-     */
-
-    long getSequenceNumber();
-
-    /**
-     * The time elapsed between receiving the request and logging it in
-     * milliseconds.
+     * The time elapsed between receiving the request and logging it in milliseconds.
      */
     long getElapsedTime();
 
     /**
-     * The number of seconds elapsed between receiving the request and logging it.
-     */
+    * The number of seconds elapsed between receiving the request and logging it.
+    */
     long getElapsedSeconds();
 
     String getRequestURI();
@@ -102,11 +90,10 @@ public interface IAccessEvent extends DeferredProcessingAware {
     String getSessionID();
 
     void setThreadName(String threadName);
-
     String getThreadName();
-
+    
     String getQueryString();
-
+    
     String getRemoteAddr();
 
     String getRequestHeader(String key);

@@ -16,8 +16,6 @@ package ch.qos.logback.classic.issue.lbclassic323;
 import ch.qos.logback.core.Context;
 import ch.qos.logback.core.ContextBase;
 
-
-// LOGBACK-329
 public class Barebones {
 
     public static void main(String[] args) {

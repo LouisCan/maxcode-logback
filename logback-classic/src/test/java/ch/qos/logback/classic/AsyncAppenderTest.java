@@ -15,18 +15,15 @@ package ch.qos.logback.classic;
 
 import ch.qos.logback.classic.net.testObjectBuilders.LoggingEventBuilderInContext;
 import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.classic.util.LogbackMDCAdapter;
 import ch.qos.logback.core.UnsynchronizedAppenderBase;
 import ch.qos.logback.core.read.ListAppender;
 import ch.qos.logback.core.status.OnConsoleStatusListener;
 import ch.qos.logback.core.testUtil.RandomUtil;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.slf4j.MDC;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author Ceki G&uuml;lc&uuml;
@@ -35,24 +32,21 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class AsyncAppenderTest {
 
     String thisClassName = this.getClass().getName();
-    LoggerContext loggerContext = new LoggerContext();
-    LogbackMDCAdapter logbackMDCAdapter = new LogbackMDCAdapter();
+    LoggerContext context = new LoggerContext();
     AsyncAppender asyncAppender = new AsyncAppender();
     ListAppender<ILoggingEvent> listAppender = new ListAppender<ILoggingEvent>();
     OnConsoleStatusListener onConsoleStatusListener = new OnConsoleStatusListener();
-    LoggingEventBuilderInContext builder = new LoggingEventBuilderInContext(loggerContext, thisClassName,
-            UnsynchronizedAppenderBase.class.getName());
+    LoggingEventBuilderInContext builder = new LoggingEventBuilderInContext(context, thisClassName, UnsynchronizedAppenderBase.class.getName());
     int diff = RandomUtil.getPositiveInt();
 
-    @BeforeEach
+    @Before
     public void setUp() {
-        loggerContext.setMDCAdapter(logbackMDCAdapter);
-        onConsoleStatusListener.setContext(loggerContext);
-        loggerContext.getStatusManager().add(onConsoleStatusListener);
+        onConsoleStatusListener.setContext(context);
+        context.getStatusManager().add(onConsoleStatusListener);
         onConsoleStatusListener.start();
 
-        asyncAppender.setContext(loggerContext);
-        listAppender.setContext(loggerContext);
+        asyncAppender.setContext(context);
+        listAppender.setContext(context);
         listAppender.setName("list");
         listAppender.start();
     }
@@ -63,7 +57,7 @@ public class AsyncAppenderTest {
         asyncAppender.start();
 
         String k = "k" + diff;
-        logbackMDCAdapter.put(k, "v");
+        MDC.put(k, "v");
         asyncAppender.doAppend(builder.build(diff));
         MDC.clear();
 

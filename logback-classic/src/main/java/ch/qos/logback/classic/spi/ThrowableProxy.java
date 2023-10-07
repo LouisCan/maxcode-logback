@@ -14,17 +14,11 @@
 package ch.qos.logback.classic.spi;
 
 import ch.qos.logback.core.CoreConstants;
-import ch.qos.logback.core.util.OptionHelper;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Set;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 public class ThrowableProxy implements IThrowableProxy {
-
-    static final StackTraceElementProxy[] EMPTY_STEP = new StackTraceElementProxy[0];
 
     private Throwable throwable;
     private String className;
@@ -36,69 +30,58 @@ public class ThrowableProxy implements IThrowableProxy {
     private ThrowableProxy cause;
     private ThrowableProxy[] suppressed = NO_SUPPRESSED;
 
-    // private final Set<Throwable> alreadyProcessedSet;
-
     private transient PackagingDataCalculator packagingDataCalculator;
     private boolean calculatedPackageData = false;
 
-    // the getter is called isCyclic
-    private boolean cyclic;
+    private static final Method GET_SUPPRESSED_METHOD;
+
+    static {
+        Method method = null;
+        try {
+            method = Throwable.class.getMethod("getSuppressed");
+        } catch (NoSuchMethodException e) {
+            // ignore, will get thrown in Java < 7
+        }
+        GET_SUPPRESSED_METHOD = method;
+    }
 
     private static final ThrowableProxy[] NO_SUPPRESSED = new ThrowableProxy[0];
 
     public ThrowableProxy(Throwable throwable) {
-        // use an identity set to detect cycles in the throwable chain
-        this(throwable, Collections.newSetFromMap(new IdentityHashMap<>()));
-    }
-
-    // used for circular exceptions
-    private ThrowableProxy(Throwable circular, boolean isCyclic) {
-        this.throwable = circular;
-        this.className = circular.getClass().getName();
-        this.message = circular.getMessage();
-        this.stackTraceElementProxyArray = EMPTY_STEP;
-        this.cyclic = true;
-    }
-
-    public ThrowableProxy(Throwable throwable, Set<Throwable> alreadyProcessedSet) {
 
         this.throwable = throwable;
         this.className = throwable.getClass().getName();
         this.message = throwable.getMessage();
         this.stackTraceElementProxyArray = ThrowableProxyUtil.steArrayToStepArray(throwable.getStackTrace());
-        this.cyclic = false;
-
-        alreadyProcessedSet.add(throwable);
 
         Throwable nested = throwable.getCause();
+
         if (nested != null) {
-            if (alreadyProcessedSet.contains(nested)) {
-                this.cause = new ThrowableProxy(nested, true);
-            } else {
-                this.cause = new ThrowableProxy(nested, alreadyProcessedSet);
-                this.cause.commonFrames = ThrowableProxyUtil.findNumberOfCommonFrames(nested.getStackTrace(),
-                        stackTraceElementProxyArray);
+            this.cause = new ThrowableProxy(nested);
+            this.cause.commonFrames = ThrowableProxyUtil.findNumberOfCommonFrames(nested.getStackTrace(), stackTraceElementProxyArray);
+        }
+        if (GET_SUPPRESSED_METHOD != null) {
+            // this will only execute on Java 7
+            try {
+                Object obj = GET_SUPPRESSED_METHOD.invoke(throwable);
+                if (obj instanceof Throwable[]) {
+                    Throwable[] throwableSuppressed = (Throwable[]) obj;
+                    if (throwableSuppressed.length > 0) {
+                        suppressed = new ThrowableProxy[throwableSuppressed.length];
+                        for (int i = 0; i < throwableSuppressed.length; i++) {
+                            this.suppressed[i] = new ThrowableProxy(throwableSuppressed[i]);
+                            this.suppressed[i].commonFrames = ThrowableProxyUtil.findNumberOfCommonFrames(throwableSuppressed[i].getStackTrace(),
+                                            stackTraceElementProxyArray);
+                        }
+                    }
+                }
+            } catch (IllegalAccessException e) {
+                // ignore
+            } catch (InvocationTargetException e) {
+                // ignore
             }
         }
 
-        Throwable[] throwableSuppressed = throwable.getSuppressed();
-        // while JDK's implementation of getSuppressed() will always return a non-null array,
-        // this might not be the case in mocked throwables. We are being extra defensive here.
-        if (OptionHelper.isNotEmtpy(throwableSuppressed)) {
-            List<ThrowableProxy> suppressedList = new ArrayList<>(throwableSuppressed.length);
-            for (Throwable sup : throwableSuppressed) {
-                if (alreadyProcessedSet.contains(sup)) {
-                    ThrowableProxy throwableProxy = new ThrowableProxy(sup, true);
-                    suppressedList.add(throwableProxy);
-                } else {
-                    ThrowableProxy throwableProxy = new ThrowableProxy(sup, alreadyProcessedSet);
-                    throwableProxy.commonFrames = ThrowableProxyUtil.findNumberOfCommonFrames(sup.getStackTrace(),
-                            stackTraceElementProxyArray);
-                    suppressedList.add(throwableProxy);
-                }
-            }
-            this.suppressed = suppressedList.toArray(new ThrowableProxy[suppressedList.size()]);
-        }
     }
 
     public Throwable getThrowable() {
@@ -120,11 +103,6 @@ public class ThrowableProxy implements IThrowableProxy {
 
     public StackTraceElementProxy[] getStackTraceElementProxyArray() {
         return stackTraceElementProxyArray;
-    }
-
-    @Override
-    public boolean isCyclic() {
-        return cyclic;
     }
 
     public int getCommonFrames() {

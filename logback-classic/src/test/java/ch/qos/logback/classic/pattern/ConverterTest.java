@@ -1,6 +1,6 @@
 /**
  * Logback: the reliable, generic, fast and flexible logging framework.
- * Copyright (C) 1999-2022, QOS.ch. All rights reserved.
+ * Copyright (C) 1999-2015, QOS.ch. All rights reserved.
  *
  * This program and the accompanying materials are dual-licensed under
  * either the terms of the Eclipse Public License v1.0 as published by
@@ -13,55 +13,49 @@
  */
 package ch.qos.logback.classic.pattern;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.MDC;
+import org.slf4j.MarkerFactory;
+
 import ch.qos.logback.classic.ClassicConstants;
-import ch.qos.logback.classic.ClassicTestConstants;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.ClassicTestConstants;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
-import ch.qos.logback.classic.util.LogbackMDCAdapter;
 import ch.qos.logback.core.CoreConstants;
 import ch.qos.logback.core.net.SyslogConstants;
 import ch.qos.logback.core.pattern.DynamicConverter;
 import ch.qos.logback.core.pattern.FormatInfo;
-import ch.qos.logback.core.util.EnvUtil;
-import ch.qos.logback.core.util.StatusPrinter;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.slf4j.MarkerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Pattern;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.*;
 
 public class ConverterTest {
 
-    LoggerContext loggerContext = new LoggerContext();
-    LogbackMDCAdapter logbackMDCAdapter = new LogbackMDCAdapter();
-    Logger logger = loggerContext.getLogger(ConverterTest.class);
+    LoggerContext lc = new LoggerContext();
+    Logger logger = lc.getLogger(ConverterTest.class);
     LoggingEvent le;
     List<String> optionList = new ArrayList<String>();
 
     // The LoggingEvent is massaged with an FCQN of FormattingConverter. This
-    // forces the returned caller information to match the caller stack for
+    // forces the returned caller information to match the caller stack for this
     // this particular test.
     LoggingEvent makeLoggingEvent(Exception ex) {
-        return new LoggingEvent(ch.qos.logback.core.pattern.FormattingConverter.class.getName(), logger, Level.INFO,
-                "Some message", ex, null);
+        return new LoggingEvent(ch.qos.logback.core.pattern.FormattingConverter.class.getName(), logger, Level.INFO, "Some message", ex, null);
     }
 
     Exception getException(String msg, Exception cause) {
         return new Exception(msg, cause);
     }
 
-    @BeforeEach
+    @Before
     public void setUp() throws Exception {
-        loggerContext.setMDCAdapter(logbackMDCAdapter);
         Exception rootEx = getException("Innermost", null);
         Exception nestedEx = getException("Nested", rootEx);
 
@@ -77,7 +71,7 @@ public class ConverterTest {
             StringBuilder buf = new StringBuilder();
             converter.write(buf, le);
             // the number below should be the line number of the previous line
-            assertEquals("78", buf.toString());
+            assertEquals("72", buf.toString());
         }
     }
 
@@ -188,7 +182,11 @@ public class ConverterTest {
 
         for (int i = 0; i < totalParts; i++) {
             loggerNameBuf.append(c).append(c).append(c);
-            witness.append(c);
+            if (i < ClassicConstants.MAX_DOTS) {
+                witness.append(c);
+            } else {
+                witness.append(c).append(c).append(c);
+            }
             loggerNameBuf.append('.');
             witness.append('.');
         }
@@ -246,7 +244,7 @@ public class ConverterTest {
 
             StringBuilder buf = new StringBuilder();
             LoggingEvent event = makeLoggingEvent(null);
-            event.addMarker(MarkerFactory.getMarker("XXX"));
+            event.setMarker(MarkerFactory.getMarker("XXX"));
             converter.write(buf, event);
             if (buf.length() < 10) {
                 fail("buf is too short");
@@ -264,7 +262,7 @@ public class ConverterTest {
 
             StringBuilder buf = new StringBuilder();
             LoggingEvent event = makeLoggingEvent(null);
-            event.addMarker(MarkerFactory.getMarker("YYY"));
+            event.setMarker(MarkerFactory.getMarker("YYY"));
             converter.write(buf, event);
             if (buf.length() < 10) {
                 fail("buf is too short");
@@ -281,7 +279,7 @@ public class ConverterTest {
 
             StringBuilder buf = new StringBuilder();
             LoggingEvent event = makeLoggingEvent(null);
-            event.addMarker(MarkerFactory.getMarker("YYY"));
+            event.setMarker(MarkerFactory.getMarker("YYY"));
             converter.write(buf, event);
             if (buf.length() < 10) {
                 fail("buf is too short");
@@ -308,29 +306,17 @@ public class ConverterTest {
         {
             DynamicConverter<ILoggingEvent> converter = new CallerDataConverter();
             this.optionList.clear();
-            
-            boolean jdk18 = EnvUtil.isJDK18OrHigher();
-            // jdk 18EA creates a different stack trace
-            if(jdk18) {
-               this.optionList.add("2..3");
-            } else {
-                this.optionList.add("4..5");
-            }
+            this.optionList.add("4..5");
             converter.setOptionList(this.optionList);
             converter.start();
 
             StringBuilder buf = new StringBuilder();
             converter.write(buf, le);
-            assertTrue( buf.length() >= 10, "buf is too short");
+            assertTrue("buf is too short", buf.length() >= 10);
 
-            String expectedRegex = "Caller\\+4";
-            if(jdk18) {
-                expectedRegex = "Caller\\+2";
-            }
-            expectedRegex+="\t at (java.base\\/)?java.lang.reflect.Method.invoke.*$";
-            String actual = buf.toString();
-            assertTrue( Pattern.compile(expectedRegex).matcher(actual).find(), "actual: " + actual);
-
+            String expected = "Caller+4\t at java.lang.reflect.Method.invoke(";
+            String actual = buf.toString().substring(0, expected.length());
+            assertThat(actual, is(expected));
         }
     }
 
@@ -368,8 +354,8 @@ public class ConverterTest {
 
     @Test
     public void testMDCConverter() throws Exception {
-        logbackMDCAdapter.clear();
-        logbackMDCAdapter.put("someKey", "someValue");
+        MDC.clear();
+        MDC.put("someKey", "someValue");
         MDCConverter converter = new MDCConverter();
         this.optionList.clear();
         this.optionList.add("someKey");
@@ -390,7 +376,7 @@ public class ConverterTest {
         lcOther.setName("another");
         converter.setContext(lcOther);
 
-        loggerContext.setName("aValue");
+        lc.setName("aValue");
         ILoggingEvent event = makeLoggingEvent(null);
 
         String result = converter.convert(event);
@@ -400,31 +386,16 @@ public class ConverterTest {
     @Test
     public void contextProperty() {
         PropertyConverter converter = new PropertyConverter();
-        converter.setContext(loggerContext);
+        converter.setContext(lc);
         List<String> ol = new ArrayList<String>();
         ol.add("k");
         converter.setOptionList(ol);
         converter.start();
-        loggerContext.setName("aValue");
-        loggerContext.putProperty("k", "v");
+        lc.setName("aValue");
+        lc.putProperty("k", "v");
         ILoggingEvent event = makeLoggingEvent(null);
 
         String result = converter.convert(event);
         assertEquals("v", result);
-    }
-    
-    @Test
-    public void testSequenceNumber() {
-        //lc.setSequenceNumberGenerator(new BasicSequenceNumberGenerator());
-        SequenceNumberConverter converter = new SequenceNumberConverter();
-        converter.setContext(loggerContext);
-        converter.start();
-
-        assertTrue(converter.isStarted());
-        LoggingEvent event = makeLoggingEvent(null);
-
-        event.setSequenceNumber(123);
-        assertEquals("123", converter.convert(event));
-        StatusPrinter.print(loggerContext);
     }
 }

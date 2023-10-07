@@ -13,12 +13,18 @@
  */
 package ch.qos.logback.core.net.ssl;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
+
+import ch.qos.logback.core.net.ssl.SSL;
+import ch.qos.logback.core.net.ssl.SecureRandomFactoryBean;
 
 /**
  * Unit tests for {@link SecureRandomFactoryBean}.
@@ -31,14 +37,14 @@ public class SecureRandomFactoryBeanTest {
 
     @Test
     public void testDefaults() throws Exception {
-        Assertions.assertNotNull(factoryBean.createSecureRandom());
+        assertNotNull(factoryBean.createSecureRandom());
     }
 
     @Test
     public void testExplicitProvider() throws Exception {
         SecureRandom secureRandom = SecureRandom.getInstance(SSL.DEFAULT_SECURE_RANDOM_ALGORITHM);
         factoryBean.setProvider(secureRandom.getProvider().getName());
-        Assertions.assertNotNull(factoryBean.createSecureRandom());
+        assertNotNull(factoryBean.createSecureRandom());
     }
 
     @Test
@@ -46,9 +52,9 @@ public class SecureRandomFactoryBeanTest {
         factoryBean.setProvider(SSLTestConstants.FAKE_PROVIDER_NAME);
         try {
             factoryBean.createSecureRandom();
-            Assertions.fail("expected NoSuchProviderException");
+            fail("expected NoSuchProviderException");
         } catch (NoSuchProviderException ex) {
-            Assertions.assertTrue(ex.getMessage().contains(SSLTestConstants.FAKE_PROVIDER_NAME));
+            assertTrue(ex.getMessage().contains(SSLTestConstants.FAKE_PROVIDER_NAME));
         }
     }
 
@@ -57,9 +63,9 @@ public class SecureRandomFactoryBeanTest {
         factoryBean.setAlgorithm(SSLTestConstants.FAKE_ALGORITHM_NAME);
         try {
             factoryBean.createSecureRandom();
-            Assertions.fail("expected NoSuchAlgorithmException");
+            fail("expected NoSuchAlgorithmException");
         } catch (NoSuchAlgorithmException ex) {
-            Assertions.assertTrue(ex.getMessage().contains(SSLTestConstants.FAKE_ALGORITHM_NAME));
+            assertTrue(ex.getMessage().contains(SSLTestConstants.FAKE_ALGORITHM_NAME));
         }
     }
 

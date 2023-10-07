@@ -15,7 +15,6 @@ package ch.qos.logback.classic.pattern;
 
 import ch.qos.logback.classic.spi.CallerData;
 import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.CoreConstants;
 
 public class FileOfCallerConverter extends ClassicConverter {
 
@@ -24,7 +23,7 @@ public class FileOfCallerConverter extends ClassicConverter {
         if (cda != null && cda.length > 0) {
             return cda[0].getFileName();
         } else {
-            return CoreConstants.NA;
+            return CallerData.NA;
         }
     }
 

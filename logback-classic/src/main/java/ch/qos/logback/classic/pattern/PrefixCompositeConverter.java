@@ -31,19 +31,19 @@ public class PrefixCompositeConverter extends CompositeConverter<ILoggingEvent> 
                 String key = mdcConverter.getKey();
                 if (key != null) {
                     buf.append(key).append("=");
-                }
+                } 
             } else if (c instanceof PropertyConverter) {
-                PropertyConverter pc = (PropertyConverter) c;
-                String key = pc.getKey();
-                if (key != null) {
+            	PropertyConverter pc = (PropertyConverter) c;
+            	String key = pc.getKey();
+            	if (key != null) {
                     buf.append(key).append("=");
-                }
+                } 
             } else {
-                String classOfConverter = c.getClass().getName();
-
-                String key = PatternLayout.CONVERTER_CLASS_TO_KEY_MAP.get(classOfConverter);
-                if (key != null)
-                    buf.append(key).append("=");
+            	String classOfConverter = c.getClass().getName();
+            	
+            	String key = PatternLayout.CONVERTER_CLASS_TO_KEY_MAP.get(classOfConverter);
+                if(key != null) 
+                	buf.append(key).append("=");
             }
             buf.append(c.convert(event));
         }
@@ -53,4 +53,5 @@ public class PrefixCompositeConverter extends CompositeConverter<ILoggingEvent> 
     protected String transform(ILoggingEvent event, String in) {
         throw new UnsupportedOperationException();
     }
+
 }

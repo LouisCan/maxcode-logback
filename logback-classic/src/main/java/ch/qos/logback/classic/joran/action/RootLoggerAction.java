@@ -13,42 +13,49 @@
  */
 package ch.qos.logback.classic.joran.action;
 
-import ch.qos.logback.core.joran.action.PreconditionValidator;
 import org.xml.sax.Attributes;
 
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.model.RootLoggerModel;
-import ch.qos.logback.core.joran.JoranConstants;
-import ch.qos.logback.core.joran.action.BaseModelAction;
-import ch.qos.logback.core.joran.spi.SaxEventInterpretationContext;
-import ch.qos.logback.core.model.Model;
-import static ch.qos.logback.core.joran.JoranConstants.NULL;
-import static ch.qos.logback.core.joran.JoranConstants.INHERITED;
-import static ch.qos.logback.core.spi.ErrorCodes.ROOT_LEVEL_CANNOT_BE_SET_TO_NULL;
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.core.joran.action.Action;
+import ch.qos.logback.core.joran.action.ActionConst;
+import ch.qos.logback.core.joran.spi.InterpretationContext;
+import ch.qos.logback.core.util.OptionHelper;
 
-public class RootLoggerAction extends BaseModelAction {
+public class RootLoggerAction extends Action {
 
     Logger root;
     boolean inError = false;
 
-    @Override
-    protected boolean validPreconditions(SaxEventInterpretationContext interpcont, String name, Attributes attributes) {
-        PreconditionValidator pv;
-        String levelStr = attributes.getValue(JoranConstants.LEVEL_ATTRIBUTE);
-        if(NULL.equalsIgnoreCase(levelStr) || INHERITED.equalsIgnoreCase(levelStr)) {
-            addError(ROOT_LEVEL_CANNOT_BE_SET_TO_NULL);
-            return false;
+    public void begin(InterpretationContext ec, String name, Attributes attributes) {
+        inError = false;
+
+        LoggerContext loggerContext = (LoggerContext) this.context;
+        root = loggerContext.getLogger(Logger.ROOT_LOGGER_NAME);
+
+        String levelStr = ec.subst(attributes.getValue(ActionConst.LEVEL_ATTRIBUTE));
+        if (!OptionHelper.isEmpty(levelStr)) {
+            Level level = Level.toLevel(levelStr);
+            addInfo("Setting level of ROOT logger to " + level);
+            root.setLevel(level);
         }
-        return true;
-    }
-    @Override
-    protected Model buildCurrentModel(SaxEventInterpretationContext interpretationContext, String name,
-            Attributes attributes) {
-        RootLoggerModel rootLoggerModel = new RootLoggerModel();
-        String levelStr = attributes.getValue(JoranConstants.LEVEL_ATTRIBUTE);
-        rootLoggerModel.setLevel(levelStr);
-
-        return rootLoggerModel;
+        ec.pushObject(root);
     }
 
+    public void end(InterpretationContext ec, String name) {
+        if (inError) {
+            return;
+        }
+        Object o = ec.peekObject();
+        if (o != root) {
+            addWarn("The object on the top the of the stack is not the root logger");
+            addWarn("It is: " + o);
+        } else {
+            ec.popObject();
+        }
+    }
+
+    public void finish(InterpretationContext ec) {
+    }
 }

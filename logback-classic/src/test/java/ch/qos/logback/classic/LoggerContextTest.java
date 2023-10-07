@@ -13,28 +13,27 @@
  */
 package ch.qos.logback.classic;
 
-import static ch.qos.logback.core.CoreConstants.FA_FILENAME_COLLISION_MAP;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Map;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.Before;
+import org.junit.Test;
 
 import ch.qos.logback.classic.turbo.NOPTurboFilter;
 import ch.qos.logback.core.CoreConstants;
 import ch.qos.logback.core.rolling.helper.FileNamePattern;
 import ch.qos.logback.core.status.StatusManager;
-import org.junit.jupiter.api.Test;
 
 public class LoggerContextTest {
     LoggerContext lc;
 
-    @BeforeEach
+    @Before
     public void setUp() throws Exception {
         lc = new LoggerContext();
         lc.setName("x");
@@ -166,7 +165,7 @@ public class LoggerContextTest {
         }
 
         StatusManager sm = lc.getStatusManager();
-        assertTrue(sm.getCount() == 1, "StatusManager has recieved too many messages");
+        assertTrue("StatusManager has recieved too many messages", sm.getCount() == 1);
     }
 
     @Test
@@ -218,7 +217,7 @@ public class LoggerContextTest {
             Logger logger = lc.getLogger(loggerName);
             assertEquals(loggerName, logger.getName());
         }
-
+        
         {
             String loggerName = "toto.x$";
             Logger logger = lc.getLogger(loggerName);
@@ -247,12 +246,11 @@ public class LoggerContextTest {
     public void collisionMapsPostReset() {
         lc.reset();
 
-        Map<String, String> fileCollisions = (Map<String, String>) lc.getObject(FA_FILENAME_COLLISION_MAP);
+        Map<String, String> fileCollisions = (Map<String, String>) lc.getObject(CoreConstants.FA_FILENAME_COLLISION_MAP);
         assertNotNull(fileCollisions);
         assertTrue(fileCollisions.isEmpty());
 
-        Map<String, FileNamePattern> filenamePatternCollisionMap = (Map<String, FileNamePattern>) lc
-                .getObject(CoreConstants.RFA_FILENAME_PATTERN_COLLISION_MAP);
+        Map<String, FileNamePattern> filenamePatternCollisionMap = (Map<String, FileNamePattern>) lc.getObject(CoreConstants.RFA_FILENAME_PATTERN_COLLISION_MAP);
         assertNotNull(filenamePatternCollisionMap);
         assertTrue(filenamePatternCollisionMap.isEmpty());
     }

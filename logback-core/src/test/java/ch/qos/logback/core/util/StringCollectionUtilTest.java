@@ -13,14 +13,14 @@
  */
 package ch.qos.logback.core.util;
 
+import static org.junit.Assert.assertTrue;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.Test;
 
 /**
  * Unit tests for {@link StringCollectionUtil}.
@@ -71,6 +71,7 @@ public class StringCollectionUtilTest {
         assertTrue(values.contains("A"));
     }
 
+    @SuppressWarnings("unchecked")
     private List<String> stringToList(String... values) {
         List<String> result = new ArrayList<String>(values.length);
         result.addAll(Arrays.asList(values));

@@ -13,6 +13,8 @@
  */
 package ch.qos.logback.classic;
 
+import ch.qos.logback.classic.Level;
+
 /**
  * @author ceki
  */
@@ -76,8 +78,8 @@ public class HLoggerContext {
     }
 
     /**
-     * Check if the named logger exists in the hierarchy. If so return its
-     * reference, otherwise returns <code>null</code>.
+     * Check if the named logger exists in the hierarchy. If so return
+     * its reference, otherwise returns <code>null</code>.
      *
      * @param name the name of the logger to search for.
      */

@@ -1,6 +1,6 @@
-/*
+/**
  * Logback: the reliable, generic, fast and flexible logging framework.
- * Copyright (C) 1999-2022, QOS.ch. All rights reserved.
+ * Copyright (C) 1999-2015, QOS.ch. All rights reserved.
  *
  * This program and the accompanying materials are dual-licensed under
  * either the terms of the Eclipse Public License v1.0 as published by
@@ -11,23 +11,21 @@
  * under the terms of the GNU Lesser General Public License version 2.1
  * as published by the Free Software Foundation.
  */
-
 package ch.qos.logback.core;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Before;
+import org.junit.Test;
 
 import ch.qos.logback.core.helpers.NOPAppender;
 import ch.qos.logback.core.read.ListAppender;
 import ch.qos.logback.core.status.OnConsoleStatusListener;
+import ch.qos.logback.core.status.StatusChecker;
 import ch.qos.logback.core.testUtil.DelayingListAppender;
 import ch.qos.logback.core.testUtil.NPEAppender;
-import ch.qos.logback.core.status.testUtil.StatusChecker;
-import org.junit.jupiter.api.Timeout;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Ceki G&uuml;lc&uuml;
@@ -43,7 +41,7 @@ public class AsyncAppenderBaseTest {
     OnConsoleStatusListener onConsoleStatusListener = new OnConsoleStatusListener();
     StatusChecker statusChecker = new StatusChecker(context);
 
-    @BeforeEach
+    @Before
     public void setUp() {
         onConsoleStatusListener.setContext(context);
         context.getStatusManager().add(onConsoleStatusListener);
@@ -61,8 +59,7 @@ public class AsyncAppenderBaseTest {
         delayingListAppender.start();
     }
 
-    @Test
-    @Timeout(value=2, unit = TimeUnit.SECONDS)
+    @Test(timeout = 2000)
     public void smoke() {
         asyncAppenderBase.addAppender(listAppender);
         asyncAppenderBase.start();
@@ -80,17 +77,16 @@ public class AsyncAppenderBaseTest {
 
         asyncAppenderBase.addAppender(npeAppender);
         asyncAppenderBase.start();
-        Assertions.assertTrue(asyncAppenderBase.isStarted());
+        assertTrue(asyncAppenderBase.isStarted());
         for (int i = 0; i < 10; i++)
             asyncAppenderBase.append(i);
 
         asyncAppenderBase.stop();
-        Assertions.assertFalse(asyncAppenderBase.isStarted());
-        Assertions.assertEquals(AppenderBase.ALLOWED_REPEATS, statusChecker.matchCount("Appender \\[bad\\] failed to append."));
+        assertFalse(asyncAppenderBase.isStarted());
+        assertEquals(AppenderBase.ALLOWED_REPEATS, statusChecker.matchCount("Appender \\[bad\\] failed to append."));
     }
 
-    @Test
-    @Timeout(value=2, unit = TimeUnit.SECONDS)
+    @Test(timeout = 2000)
     public void emptyQueueShouldBeStoppable() {
         asyncAppenderBase.addAppender(listAppender);
         asyncAppenderBase.start();
@@ -98,8 +94,7 @@ public class AsyncAppenderBaseTest {
         verify(listAppender, 0);
     }
 
-    @Test
-    @Timeout(value=2, unit = TimeUnit.SECONDS)
+    @Test(timeout = 2000)
     public void workerShouldStopEvenIfInterruptExceptionConsumedWithinSubappender() {
         delayingListAppender.delay = 100;
         asyncAppenderBase.addAppender(delayingListAppender);
@@ -107,29 +102,25 @@ public class AsyncAppenderBaseTest {
         asyncAppenderBase.doAppend(0);
         asyncAppenderBase.stop();
         verify(delayingListAppender, 1);
-        Assertions.assertTrue(delayingListAppender.interrupted);
+        assertTrue(delayingListAppender.interrupted);
         Thread.interrupted();
     }
 
-    @Test
-    @Timeout(value=2, unit = TimeUnit.SECONDS)
-    public void noEventLoss() throws InterruptedException {
+    @Test(timeout = 2000)
+    public void noEventLoss() {
         int bufferSize = 10;
         int loopLen = bufferSize * 2;
         asyncAppenderBase.addAppender(delayingListAppender);
         asyncAppenderBase.setQueueSize(bufferSize);
-        asyncAppenderBase.setMaxFlushTime(2000);
         asyncAppenderBase.start();
         for (int i = 0; i < loopLen; i++) {
             asyncAppenderBase.doAppend(i);
         }
-
         asyncAppenderBase.stop();
         verify(delayingListAppender, loopLen);
     }
 
-    @Test
-    @Timeout(value=2, unit = TimeUnit.SECONDS)
+    @Test(timeout = 2000)
     public void eventLossIfNeverBlock() {
         int bufferSize = 10;
         int loopLen = bufferSize * 200;
@@ -147,8 +138,7 @@ public class AsyncAppenderBaseTest {
         statusChecker.assertIsErrorFree();
     }
 
-    @Test
-    @Timeout(value=2, unit = TimeUnit.SECONDS)
+    @Test(timeout = 2000)
     public void lossyAppenderShouldOnlyLoseCertainEvents() {
         int bufferSize = 5;
         int loopLen = bufferSize * 2;
@@ -161,13 +151,12 @@ public class AsyncAppenderBaseTest {
         }
         lossyAsyncAppender.stop();
         // events 0, 3, 6 and 9 are discardable. However, for events 0 and 3
-        // the buffer is not yet full. Thus, only events 6 and 9 will be
+        // the buffer is not not yet full. Thus, only events 6 and 9 will be
         // effectively discarded.
         verify(delayingListAppender, loopLen - 2);
     }
 
-    @Test
-    @Timeout(value=2, unit = TimeUnit.SECONDS)
+    @Test(timeout = 2000)
     public void lossyAppenderShouldBeNonLossyIfDiscardingThresholdIsZero() {
         int bufferSize = 5;
         int loopLen = bufferSize * 2;
@@ -186,15 +175,15 @@ public class AsyncAppenderBaseTest {
     public void invalidQueueCapacityShouldResultInNonStartedAppender() {
         asyncAppenderBase.addAppender(new NOPAppender<Integer>());
         asyncAppenderBase.setQueueSize(0);
-        Assertions.assertEquals(0, asyncAppenderBase.getQueueSize());
+        assertEquals(0, asyncAppenderBase.getQueueSize());
         asyncAppenderBase.start();
-        Assertions.assertFalse(asyncAppenderBase.isStarted());
+        assertFalse(asyncAppenderBase.isStarted());
         statusChecker.assertContainsMatch("Invalid queue size");
     }
 
+    @SuppressWarnings("deprecation")
     @Test
-    @Disabled
-    public void workerThreadFlushesOnStop() throws InterruptedException {
+    public void workerThreadFlushesOnStop() {
         int loopLen = 5;
         int maxRuntime = (loopLen + 1) * Math.max(1000, delayingListAppender.delay);
         ListAppender<Integer> la = delayingListAppender;
@@ -207,16 +196,17 @@ public class AsyncAppenderBaseTest {
         for (int i = 0; i < loopLen; i++) {
             asyncAppenderBase.doAppend(i);
         }
-        Assertions.assertEquals(loopLen, asyncAppenderBase.getNumberOfElementsInQueue());
-        Assertions.assertEquals(0, la.list.size());
+        assertEquals(loopLen, asyncAppenderBase.getNumberOfElementsInQueue());
+        assertEquals(0, la.list.size());
 
         asyncAppenderBase.worker.resume();
         asyncAppenderBase.stop();
 
-        Assertions.assertEquals(0, asyncAppenderBase.getNumberOfElementsInQueue());
+        assertEquals(0, asyncAppenderBase.getNumberOfElementsInQueue());
         verify(la, loopLen);
     }
 
+    // @SuppressWarnings("deprecation")
     @Test
     public void stopExitsWhenMaxRuntimeReached() throws InterruptedException {
         int maxFlushTime = 1; // runtime of 0 means wait forever, so use 1 ms instead
@@ -248,63 +238,60 @@ public class AsyncAppenderBaseTest {
         asyncAppenderBase.addAppender(delayingListAppender);
         asyncAppenderBase.start();
         Thread.currentThread().interrupt();
-        asyncAppenderBase.doAppend(Integer.valueOf(0));
-        Assertions.assertTrue(Thread.currentThread().isInterrupted());
+        asyncAppenderBase.doAppend(new Integer(0));
+        assertTrue(Thread.currentThread().isInterrupted());
         // clear interrupt flag for subsequent tests
         Thread.interrupted();
     }
 
-    // Interruption of current thread should not prevent logging.
+    // Interruption of current thread should not prevent logging. 
     // See also http://jira.qos.ch/browse/LOGBACK-910
     // and https://jira.qos.ch/browse/LOGBACK-1247
     @Test
     public void verifyInterruptionDoesNotPreventLogging() {
         asyncAppenderBase.addAppender(listAppender);
         asyncAppenderBase.start();
-        asyncAppenderBase.doAppend(Integer.valueOf(0));
+        asyncAppenderBase.doAppend(new Integer(0));
         Thread.currentThread().interrupt();
-        asyncAppenderBase.doAppend(Integer.valueOf(1));
-        asyncAppenderBase.doAppend(Integer.valueOf(1));
-        Assertions.assertTrue(Thread.currentThread().isInterrupted());
+        asyncAppenderBase.doAppend(new Integer(1));
+        asyncAppenderBase.doAppend(new Integer(1));
+        assertTrue(Thread.currentThread().isInterrupted());
         // the interruption needs to be consumed
         Thread.interrupted();
         asyncAppenderBase.stop();
         verify(listAppender, 3);
     }
-
+   
     @Test
     public void verifyInterruptionFlagWhenStopping_INTERUPPTED() {
         asyncAppenderBase.addAppender(listAppender);
         asyncAppenderBase.start();
         Thread.currentThread().interrupt();
         asyncAppenderBase.stop();
-        Assertions.assertTrue(Thread.currentThread().isInterrupted());
+        assertTrue(Thread.currentThread().isInterrupted());
         Thread.interrupted();
     }
-
+    
     @Test
     public void verifyInterruptionFlagWhenStopping_NOT_INTERUPPTED() {
         asyncAppenderBase.addAppender(listAppender);
         asyncAppenderBase.start();
         asyncAppenderBase.stop();
-        Assertions.assertFalse(Thread.currentThread().isInterrupted());
+        assertFalse(Thread.currentThread().isInterrupted());
     }
-
-    // In JDK non started threads can be interrupted
-    @Disabled
+    
+    
     @Test
     public void verifyInterruptionOfWorkerIsSwallowed() {
         asyncAppenderBase.addAppender(delayingListAppender);
         asyncAppenderBase.start();
-        Thread.yield();
         asyncAppenderBase.stop();
-        Assertions.assertFalse(asyncAppenderBase.worker.isInterrupted());
+        assertFalse(asyncAppenderBase.worker.isInterrupted());
     }
 
     private void verify(ListAppender<Integer> la, int atLeast) {
-        // ListAppender passes as parameter should be stopped at this stage
-        Assertions.assertFalse(la.isStarted());
-        Assertions.assertTrue( atLeast <= la.list.size(), atLeast + " <= " + la.list.size());
+        assertFalse(la.isStarted());
+        assertTrue(atLeast + " <= " + la.list.size(), atLeast <= la.list.size());
         statusChecker.assertIsErrorFree();
         statusChecker.assertContainsMatch("Worker thread will flush remaining events before exiting.");
     }
@@ -323,12 +310,10 @@ public class AsyncAppenderBaseTest {
 
         // we don't need mockito for this test, but if we did here is how it would look
         // AsyncAppenderBase<Integer> spied = Mockito.spy(asyncAppenderBase);
-        // Mockito.doThrow(new IllegalStateException("non idempotent
-        // start")).when((UnsynchronizedAppenderBase<Integer>)
+        // Mockito.doThrow(new IllegalStateException("non idempotent start")).when((UnsynchronizedAppenderBase<Integer>)
         // spied).start();
 
-        // a second invocation of start will cause a IllegalThreadStateException thrown
-        // by the asyncAppenderBase.worker
+        // a second invocation of start will cause a IllegalThreadStateException thrown by the asyncAppenderBase.worker
         // thread
         asyncAppenderBase.start();
     }

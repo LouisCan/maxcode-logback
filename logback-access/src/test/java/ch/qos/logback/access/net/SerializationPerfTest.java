@@ -17,16 +17,10 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 
 import ch.qos.logback.access.spi.IAccessEvent;
+import junit.framework.TestCase;
 import ch.qos.logback.access.dummy.DummyAccessEventBuilder;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.fail;
-
-@Disabled
-public class SerializationPerfTest {
+public class SerializationPerfTest extends TestCase {
 
     ObjectOutputStream oos;
 
@@ -35,18 +29,18 @@ public class SerializationPerfTest {
     int pauseFrequency = 10;
     long pauseLengthInMillis = 20;
 
-    @BeforeEach
     public void setUp() throws Exception {
+        super.setUp();
         oos = new ObjectOutputStream(new NOPOutputStream());
+
     }
 
-    @AfterEach
     public void tearDown() throws Exception {
+        super.tearDown();
         oos.close();
         oos = null;
     }
 
-    @Test
     public void test1() throws Exception {
         // first run for just in time compiler
         int resetCounter = 0;
@@ -78,7 +72,7 @@ public class SerializationPerfTest {
         Long total = 0L;
         resetCounter = 0;
         pauseCounter = 0;
-        // System.out.println("Beginning measured run");
+        // System.out.println("Beginning mesured run");
         for (int i = 0; i < loopNumber; i++) {
             try {
                 IAccessEvent ae = DummyAccessEventBuilder.buildNewAccessEvent();
@@ -103,8 +97,7 @@ public class SerializationPerfTest {
         }
 
         total /= (1000);// nanos -> micros
-        System.out.println(
-                "Loop done : average time = " + total / loopNumber + " microsecs after " + loopNumber + " writes.");
+        System.out.println("Loop done : average time = " + total / loopNumber + " microsecs after " + loopNumber + " writes.");
         // average time: 26-30 microsec = 0.030 millis
     }
 

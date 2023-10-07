@@ -13,16 +13,19 @@
  */
 package ch.qos.logback.core.net.server;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 
-import ch.qos.logback.core.net.server.test.ServerSocketUtil;
+import ch.qos.logback.core.net.server.Client;
+import ch.qos.logback.core.net.server.ServerSocketListener;
 
 /**
  * Unit tests for {@link ServerSocketListener}.
@@ -32,13 +35,12 @@ import ch.qos.logback.core.net.server.test.ServerSocketUtil;
 public class ServerSocketListenerTest {
 
     private ServerSocket serverSocket;
-    @SuppressWarnings("rawtypes")
     private ServerSocketListener listener;
 
-    @BeforeEach
+    @Before
     public void setUp() throws Exception {
         serverSocket = ServerSocketUtil.createServerSocket();
-        Assertions.assertNotNull(serverSocket);
+        assertNotNull(serverSocket);
         listener = new InstrumentedServerSocketListener(serverSocket);
     }
 
@@ -53,12 +55,12 @@ public class ServerSocketListenerTest {
                 localClient.wait(10);
             }
         }
-        Assertions.assertTrue(localClient.isConnected());
+        assertTrue(localClient.isConnected());
         localClient.close();
 
         serverSocket.setSoTimeout(5000);
         Client client = listener.acceptClient();
-        Assertions.assertNotNull(client);
+        assertNotNull(client);
         client.close();
     }
 

@@ -13,10 +13,9 @@
  */
 package ch.qos.logback.core.rolling.helper;
 
-import java.time.Instant;
-import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 import ch.qos.logback.core.CoreConstants;
 import ch.qos.logback.core.pattern.DynamicConverter;
@@ -38,7 +37,7 @@ public class DateTokenConverter<E> extends DynamicConverter<E> implements MonoTy
     public static final String DEFAULT_DATE_PATTERN = CoreConstants.DAILY_DATE_PATTERN;
 
     private String datePattern;
-    private ZoneId zoneId;
+    private TimeZone timeZone;
     private CachingDateFormatter cdf;
     // is this token converter primary or auxiliary? Only the primary converter
     // determines the rolling period
@@ -57,20 +56,19 @@ public class DateTokenConverter<E> extends DynamicConverter<E> implements MonoTy
                 if (AUXILIARY_TOKEN.equalsIgnoreCase(option)) {
                     primary = false;
                 } else {
-                    zoneId = ZoneId.of(option);
+                    timeZone = TimeZone.getTimeZone(option);
                 }
             }
         }
 
-        cdf = new CachingDateFormatter(datePattern, zoneId);
+        cdf = new CachingDateFormatter(datePattern);
+        if (timeZone != null) {
+            cdf.setTimeZone(timeZone);
+        }
     }
 
     public String convert(Date date) {
         return cdf.format(date.getTime());
-    }
-
-    public String convert(Instant instant) {
-        return cdf.format(instant.toEpochMilli());
     }
 
     public String convert(Object o) {
@@ -80,10 +78,6 @@ public class DateTokenConverter<E> extends DynamicConverter<E> implements MonoTy
         if (o instanceof Date) {
             return convert((Date) o);
         }
-        if (o instanceof Instant) {
-            return convert((Instant) o);
-        }
-
         throw new IllegalArgumentException("Cannot convert " + o + " of type" + o.getClass().getName());
     }
 
@@ -94,16 +88,12 @@ public class DateTokenConverter<E> extends DynamicConverter<E> implements MonoTy
         return datePattern;
     }
 
-    public ZoneId getZoneId() {
-        return zoneId;
+    public TimeZone getTimeZone() {
+        return timeZone;
     }
 
     public boolean isApplicable(Object o) {
-        if(o instanceof Date)
-            return true;
-        if(o instanceof Instant)
-            return true;
-        return false;
+        return (o instanceof Date);
     }
 
     public String toRegex() {

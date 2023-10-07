@@ -16,34 +16,81 @@ package ch.qos.logback.core.util;
 import static ch.qos.logback.core.CoreConstants.FA_FILENAME_COLLISION_MAP;
 import static ch.qos.logback.core.CoreConstants.RFA_FILENAME_PATTERN_COLLISION_MAP;
 
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 
 import ch.qos.logback.core.Context;
+import ch.qos.logback.core.CoreConstants;
 import ch.qos.logback.core.rolling.helper.FileNamePattern;
 import ch.qos.logback.core.spi.ContextAwareBase;
 
 public class ContextUtil extends ContextAwareBase {
 
-    static final String GROOVY_RUNTIME_PACKAGE = "org.codehaus.groovy.runtime";
-    // static final String SYSTEM_LOGGER_FQCN = "java.lang.System$Logger";
-
     public ContextUtil(Context context) {
         setContext(context);
+    }
+
+    public static String getLocalHostName() throws UnknownHostException, SocketException {
+        try {
+            InetAddress localhost = InetAddress.getLocalHost();
+            return localhost.getHostName();
+        } catch (UnknownHostException e) {
+            return getLocalAddressAsString();
+        }
+    }
+
+    private static String getLocalAddressAsString() throws UnknownHostException, SocketException {
+        Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+        while (interfaces != null && interfaces.hasMoreElements()) {
+            Enumeration<InetAddress> addresses = interfaces.nextElement().getInetAddresses();
+            while (addresses != null && addresses.hasMoreElements()) {
+                InetAddress address = addresses.nextElement();
+                if (acceptableAddress(address)) {
+                    return address.getHostAddress();
+                }
+            }
+        }
+        throw new UnknownHostException();
+    }
+
+    private static boolean acceptableAddress(InetAddress address) {
+        return address != null && !address.isLoopbackAddress() && !address.isAnyLocalAddress() && !address.isLinkLocalAddress();
+    }
+
+    /**
+     * Add the local host's name as a property
+     */
+    public String safelyGetLocalHostName() {
+        try {
+            String localhostName = getLocalHostName();
+            return localhostName;
+        } catch (UnknownHostException e) {
+            addError("Failed to get local hostname", e);
+        } catch (SocketException e) {
+            addError("Failed to get local hostname", e);
+        } catch (SecurityException e) {
+            addError("Failed to get local hostname", e);
+        }
+        return CoreConstants.UNKNOWN_LOCALHOST;
     }
 
     public void addProperties(Properties props) {
         if (props == null) {
             return;
         }
-
-        for (Entry<Object, Object> e : props.entrySet()) {
-            String key = (String) e.getKey();
-            context.putProperty(key, (String) e.getValue());
+        @SuppressWarnings("rawtypes")
+        Iterator i = props.keySet().iterator();
+        while (i.hasNext()) {
+            String key = (String) i.next();
+            context.putProperty(key, props.getProperty(key));
         }
-
     }
 
     public static Map<String, String> getFilenameCollisionMap(Context context) {
@@ -58,13 +105,13 @@ public class ContextUtil extends ContextAwareBase {
         if (context == null)
             return null;
         @SuppressWarnings("unchecked")
-        Map<String, FileNamePattern> map = (Map<String, FileNamePattern>) context
-                .getObject(RFA_FILENAME_PATTERN_COLLISION_MAP);
+        Map<String, FileNamePattern> map = (Map<String, FileNamePattern>) context.getObject(RFA_FILENAME_PATTERN_COLLISION_MAP);
         return map;
     }
-
+    
     public void addGroovyPackages(List<String> frameworkPackages) {
-        addFrameworkPackage(frameworkPackages, GROOVY_RUNTIME_PACKAGE);
+        // addFrameworkPackage(frameworkPackages, "groovy.lang");
+        addFrameworkPackage(frameworkPackages, "org.codehaus.groovy.runtime");
     }
 
     public void addFrameworkPackage(List<String> frameworkPackages, String packageName) {

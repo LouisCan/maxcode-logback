@@ -13,11 +13,11 @@
  */
 package ch.qos.logback.classic.net;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -30,10 +30,9 @@ import java.util.concurrent.TimeUnit;
 
 import javax.net.SocketFactory;
 
-import ch.qos.logback.classic.util.LogbackMDCAdapter;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -43,14 +42,15 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEventVO;
 import ch.qos.logback.core.net.SocketConnector;
-import ch.qos.logback.core.net.server.test.ServerSocketUtil;
+import ch.qos.logback.core.net.server.ServerSocketUtil;
 import ch.qos.logback.core.status.Status;
 
 /**
  * Unit tests for {@link SocketReceiver}.
  *
  * @author Carl Harris
- */public class SocketReceiverTest {
+ */
+public class SocketReceiverTest {
 
     private static final int DELAY = 1000;
     private static final String TEST_HOST_NAME = "NOT.A.VALID.HOST.NAME";
@@ -61,20 +61,17 @@ import ch.qos.logback.core.status.Status;
     private MockSocketConnector connector;
     private MockAppender appender;
     private LoggerContext lc;
-    LogbackMDCAdapter logbackMDCAdapter = new LogbackMDCAdapter();
-
     private Logger logger;
 
     private InstrumentedSocketReceiver receiver = new InstrumentedSocketReceiver();
 
-    @BeforeEach
+    @Before
     public void setUp() throws Exception {
         serverSocket = ServerSocketUtil.createServerSocket();
         socket = new Socket(serverSocket.getInetAddress(), serverSocket.getLocalPort());
         connector = new MockSocketConnector(socket);
 
         lc = new LoggerContext();
-        lc.setMDCAdapter(logbackMDCAdapter);
         lc.reset();
         receiver.setContext(lc);
         appender = new MockAppender();
@@ -83,7 +80,7 @@ import ch.qos.logback.core.status.Status;
         logger.addAppender(appender);
     }
 
-    @AfterEach
+    @After
     public void tearDown() throws Exception {
         receiver.stop();
         ExecutorService executor = lc.getExecutorService();
@@ -168,8 +165,7 @@ import ch.qos.logback.core.status.Status;
         ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 
         logger.setLevel(Level.DEBUG);
-        ILoggingEvent event = new LoggingEvent(logger.getName(), logger, Level.DEBUG, "test message", null,
-                new Object[0]);
+        ILoggingEvent event = new LoggingEvent(logger.getName(), logger, Level.DEBUG, "test message", null, new Object[0]);
 
         LoggingEventVO eventVO = LoggingEventVO.build(event);
         oos.writeObject(eventVO);
@@ -193,8 +189,7 @@ import ch.qos.logback.core.status.Status;
         ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 
         logger.setLevel(Level.INFO);
-        ILoggingEvent event = new LoggingEvent(logger.getName(), logger, Level.DEBUG, "test message", null,
-                new Object[0]);
+        ILoggingEvent event = new LoggingEvent(logger.getName(), logger, Level.DEBUG, "test message", null, new Object[0]);
 
         LoggingEventVO eventVO = LoggingEventVO.build(event);
         oos.writeObject(eventVO);
@@ -211,8 +206,7 @@ import ch.qos.logback.core.status.Status;
         private boolean connectorCreated;
 
         @Override
-        protected synchronized SocketConnector newConnector(InetAddress address, int port, int initialDelay,
-                int retryDelay) {
+        protected synchronized SocketConnector newConnector(InetAddress address, int port, int initialDelay, int retryDelay) {
             connectorCreated = true;
             notifyAll();
             return connector;
@@ -261,8 +255,7 @@ import ch.qos.logback.core.status.Status;
     private static class MockSocketFactory extends SocketFactory {
 
         @Override
-        public Socket createSocket(InetAddress address, int port, InetAddress localAddress, int localPort)
-                throws IOException {
+        public Socket createSocket(InetAddress address, int port, InetAddress localAddress, int localPort) throws IOException {
             throw new UnsupportedOperationException();
         }
 
@@ -272,8 +265,7 @@ import ch.qos.logback.core.status.Status;
         }
 
         @Override
-        public Socket createSocket(String host, int port, InetAddress localHost, int localPort)
-                throws IOException, UnknownHostException {
+        public Socket createSocket(String host, int port, InetAddress localHost, int localPort) throws IOException, UnknownHostException {
             throw new UnsupportedOperationException();
         }
 

@@ -15,18 +15,25 @@ package ch.qos.logback.classic.joran.action;
 
 import org.xml.sax.Attributes;
 
-import ch.qos.logback.classic.model.ContextNameModel;
-import ch.qos.logback.core.joran.action.BaseModelAction;
-import ch.qos.logback.core.joran.spi.SaxEventInterpretationContext;
-import ch.qos.logback.core.model.Model;
+import ch.qos.logback.core.joran.action.Action;
+import ch.qos.logback.core.joran.spi.InterpretationContext;
 
-public class ContextNameAction extends BaseModelAction {
+public class ContextNameAction extends Action {
 
-    @Override
-    protected Model buildCurrentModel(SaxEventInterpretationContext interpretationContext, String name,
-            Attributes attributes) {
-        ContextNameModel contextNameModel = new ContextNameModel();
-        return contextNameModel;
+    public void begin(InterpretationContext ec, String name, Attributes attributes) {
     }
 
+    public void body(InterpretationContext ec, String body) {
+
+        String finalBody = ec.subst(body);
+        addInfo("Setting logger context name as [" + finalBody + "]");
+        try {
+            context.setName(finalBody);
+        } catch (IllegalStateException e) {
+            addError("Failed to rename context [" + context.getName() + "] as [" + finalBody + "]", e);
+        }
+    }
+
+    public void end(InterpretationContext ec, String name) {
+    }
 }

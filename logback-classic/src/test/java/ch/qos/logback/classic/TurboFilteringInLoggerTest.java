@@ -13,71 +13,45 @@
  */
 package ch.qos.logback.classic;
 
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.classic.turbo.MDCFilter;
-import ch.qos.logback.classic.turbo.MarkerFilter;
-import ch.qos.logback.classic.turbo.TurboFilter;
-import ch.qos.logback.core.read.ListAppender;
-import ch.qos.logback.core.spi.FilterReply;
-import ch.qos.logback.core.testUtil.RandomUtil;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.slf4j.MDC;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Before;
+import org.junit.Test;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import ch.qos.logback.classic.turbo.MarkerFilter;
+import ch.qos.logback.classic.turbo.TurboFilter;
+import ch.qos.logback.core.spi.FilterReply;
 
 public class TurboFilteringInLoggerTest {
 
     static final String BLUE = "BLUE";
-    LoggerContext loggerContext;
+    LoggerContext context;
     Logger logger;
     Marker blueMarker = MarkerFactory.getMarker(BLUE);
 
-    int diff = RandomUtil.getPositiveInt();
-    String key = "tfiolKey" + diff;
-    String value = "val" + diff;
-
-    ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
-
-    MDCFilter mdcFilter = new MDCFilter();
-    @BeforeEach
+    @Before
     public void setUp() throws Exception {
-        loggerContext = new LoggerContext();
-        loggerContext.setName("test");
-        loggerContext.start();
-        logger = loggerContext.getLogger(TurboFilteringInLoggerTest.class);
-
-        Logger root = loggerContext.getLogger(Logger.ROOT_LOGGER_NAME);
-        root.setLevel(Level.ERROR);
-        listAppender.start();
-        root.addAppender(listAppender);
-
+        context = new LoggerContext();
+        context.setName("test");
+        context.start();
+        logger = context.getLogger(TurboFilteringInLoggerTest.class);
     }
 
-    private void addMDCFilter() {
-
-        mdcFilter.setOnMatch("ACCEPT");
-        mdcFilter.setOnMismatch("DENY");
-        mdcFilter.setMDCKey(key);
-        mdcFilter.setValue(value);
-        mdcFilter.start();
-        loggerContext.addTurboFilter(mdcFilter);
-    }
     private void addYesFilter() {
         YesFilter filter = new YesFilter();
         filter.start();
-        loggerContext.addTurboFilter(filter);
+        context.addTurboFilter(filter);
     }
 
     private void addNoFilter() {
         NoFilter filter = new NoFilter();
         filter.start();
-        loggerContext.addTurboFilter(filter);
+        context.addTurboFilter(filter);
     }
 
     private void addAcceptBLUEFilter() {
@@ -85,7 +59,7 @@ public class TurboFilteringInLoggerTest {
         filter.setMarker(BLUE);
         filter.setOnMatch("ACCEPT");
         filter.start();
-        loggerContext.addTurboFilter(filter);
+        context.addTurboFilter(filter);
     }
 
     private void addDenyBLUEFilter() {
@@ -93,7 +67,7 @@ public class TurboFilteringInLoggerTest {
         filter.setMarker(BLUE);
         filter.setOnMatch("DENY");
         filter.start();
-        loggerContext.addTurboFilter(filter);
+        context.addTurboFilter(filter);
     }
 
     @Test
@@ -183,21 +157,11 @@ public class TurboFilteringInLoggerTest {
     @Test
     public void testLoggingContextReset() {
         addYesFilter();
-        assertNotNull(loggerContext.getTurboFilterList().get(0));
-        loggerContext.reset();
-        assertEquals(0, loggerContext.getTurboFilterList().size());
+        assertNotNull(context.getTurboFilterList().get(0));
+        context.reset();
+        assertEquals(0, context.getTurboFilterList().size());
     }
 
-    @Test
-    public void fluentAPI() {
-        addMDCFilter();
-        Logger logger = loggerContext.getLogger(this.getClass());
-        logger.atDebug().log("hello 1");
-        assertEquals(0, listAppender.list.size());
-        MDC.put(key, value);
-        logger.atDebug().log("hello 2");
-        assertEquals(1, listAppender.list.size());
-    }
 }
 
 class YesFilter extends TurboFilter {

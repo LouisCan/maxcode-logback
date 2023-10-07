@@ -13,14 +13,18 @@
  */
 package ch.qos.logback.core;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import org.junit.Test;
+
+import ch.qos.logback.core.spi.LifeCycle;
 
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
-
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
-import ch.qos.logback.core.spi.LifeCycle;
 
 public class ContextBaseTest {
 
@@ -45,7 +49,7 @@ public class ContextBaseTest {
         context.setName("hello");
         try {
             context.setName("x");
-            Assertions.fail("renaming is not allowed");
+            fail("renaming is not allowed");
         } catch (IllegalStateException ise) {
         }
     }
@@ -55,26 +59,26 @@ public class ContextBaseTest {
         context.setName("hello");
         context.putProperty("keyA", "valA");
         context.putObject("keyA", "valA");
-        Assertions.assertEquals("valA", context.getProperty("keyA"));
-        Assertions.assertEquals("valA", context.getObject("keyA"));
+        assertEquals("valA", context.getProperty("keyA"));
+        assertEquals("valA", context.getObject("keyA"));
         MockLifeCycleComponent component = new MockLifeCycleComponent();
         context.register(component);
-        Assertions.assertSame(component, lifeCycleManager.getLastComponent());
+        assertSame(component, lifeCycleManager.getLastComponent());
         context.reset();
-        Assertions.assertNull(context.getProperty("keyA"));
-        Assertions.assertNull(context.getObject("keyA"));
-        Assertions.assertTrue(lifeCycleManager.isReset());
+        assertNull(context.getProperty("keyA"));
+        assertNull(context.getObject("keyA"));
+        assertTrue(lifeCycleManager.isReset());
     }
 
     @Test
     public void contextNameProperty() {
-        Assertions.assertNull(context.getProperty(CoreConstants.CONTEXT_NAME_KEY));
+        assertNull(context.getProperty(CoreConstants.CONTEXT_NAME_KEY));
         String HELLO = "hello";
         context.setName(HELLO);
-        Assertions.assertEquals(HELLO, context.getProperty(CoreConstants.CONTEXT_NAME_KEY));
+        assertEquals(HELLO, context.getProperty(CoreConstants.CONTEXT_NAME_KEY));
         // good to have a raw reference to the "CONTEXT_NAME" as most clients would
         // not go through CoreConstants
-        Assertions.assertEquals(HELLO, context.getProperty("CONTEXT_NAME"));
+        assertEquals(HELLO, context.getProperty("CONTEXT_NAME"));
     }
 
     private static class InstrumentedContextBase extends ContextBase {
@@ -137,7 +141,7 @@ public class ContextBaseTest {
                 executingThreads.wait();
             }
         }
-        Assertions.assertTrue(executingThreads.get(0).isDaemon(), "executing thread should be a daemon thread.");
+        assertTrue("executing thread should be a daemon thread.", executingThreads.get(0).isDaemon());
     }
 
 }

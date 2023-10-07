@@ -13,10 +13,9 @@
  */
 package ch.qos.logback.core.util;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import static org.junit.Assert.assertEquals;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.Test;
 
 public class DurationTest {
 

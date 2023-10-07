@@ -17,32 +17,34 @@ import static ch.qos.logback.classic.ClassicConstants.JNDI_CONTEXT_NAME;
 
 import javax.naming.Context;
 import javax.naming.NamingException;
-import jakarta.servlet.ServletContextEvent;
-import jakarta.servlet.ServletContextListener;
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
 
 import org.slf4j.Logger;
 
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.selector.ContextSelector;
 import ch.qos.logback.classic.util.ContextSelectorStaticBinder;
+import ch.qos.logback.core.util.EnvUtil;
 import ch.qos.logback.core.util.JNDIUtil;
+import ch.qos.logback.core.util.OptionHelper;
 
 public class ContextDetachingSCL implements ServletContextListener {
 
     public void contextInitialized(ServletContextEvent arg0) {
         // do nothing
     }
-
+    
     public void contextDestroyed(ServletContextEvent servletContextEvent) {
         String loggerContextName = null;
 
         try {
             Context ctx = JNDIUtil.getInitialContext();
-            loggerContextName = (String) JNDIUtil.lookupString(ctx, JNDI_CONTEXT_NAME);
+            loggerContextName = (String) JNDIUtil.lookup(ctx, JNDI_CONTEXT_NAME);
         } catch (NamingException ne) {
         }
 
-        if (loggerContextName != null) {
+        if (!OptionHelper.isEmpty(loggerContextName)) {
             System.out.println("About to detach context named " + loggerContextName);
 
             ContextSelector selector = ContextSelectorStaticBinder.getSingleton().getContextSelector();
@@ -62,5 +64,7 @@ public class ContextDetachingSCL implements ServletContextListener {
             }
         }
     }
+
+ 
 
 }
