@@ -14,11 +14,7 @@
 package ch.qos.logback.core.spi;
 
 import ch.qos.logback.core.Context;
-import ch.qos.logback.core.status.ErrorStatus;
-import ch.qos.logback.core.status.InfoStatus;
-import ch.qos.logback.core.status.Status;
-import ch.qos.logback.core.status.StatusManager;
-import ch.qos.logback.core.status.WarnStatus;
+import ch.qos.logback.core.status.*;
 
 /**
  * A helper class that implements ContextAware methods. Use this class to
@@ -96,6 +92,14 @@ public class ContextAwareImpl implements ContextAware {
 
     public void addError(String msg, Throwable ex) {
         addStatus(new ErrorStatus(msg, getOrigin(), ex));
+    }
+
+    public void addBlog(String msg) {
+        addStatus(new BlogStatus(msg, getOrigin()));
+    }
+
+    public void addBlog(String msg, Throwable ex) {
+        addStatus(new BlogStatus(msg, getOrigin(), ex));
     }
 
 }

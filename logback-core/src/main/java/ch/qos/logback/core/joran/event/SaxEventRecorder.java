@@ -180,6 +180,14 @@ public class SaxEventRecorder extends DefaultHandler implements ContextAware {
         cai.addInfo(msg, ex);
     }
 
+    public void addBlog(String msg) {
+        cai.addBlog(msg);
+    }
+
+    public void addBlog(String msg, Throwable ex) {
+        cai.addBlog(msg, ex);
+    }
+
     public void addStatus(Status status) {
         cai.addStatus(status);
     }

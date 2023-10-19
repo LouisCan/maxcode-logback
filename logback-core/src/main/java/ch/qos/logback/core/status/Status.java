@@ -20,6 +20,7 @@ public interface Status {
     int INFO = 0;
     int WARN = 1;
     int ERROR = 2;
+    int BLOG= 3;
 
     int getLevel();
 

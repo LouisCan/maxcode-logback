@@ -8,18 +8,20 @@
   <parent>
     <groupId>ch.qos.logback</groupId>
     <artifactId>logback-parent</artifactId>
-    <version>1.2.9</version>
+    <version>1.2.9-beta</version>
   </parent>
 
   <artifactId>logback-classic</artifactId>
   <packaging>jar</packaging>
   <name>Logback Classic Module</name>
   <description>logback-classic module</description>
+  <version>1.2.9-beta</version>
 
   <dependencies>
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-core</artifactId>
+      <version>1.2.9-beta</version>
       <scope>compile</scope>
     </dependency>
     <dependency>

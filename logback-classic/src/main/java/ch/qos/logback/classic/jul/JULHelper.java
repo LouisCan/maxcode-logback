@@ -47,6 +47,8 @@ public class JULHelper {
             return java.util.logging.Level.WARNING;
         case Level.ERROR_INT:
             return java.util.logging.Level.SEVERE;
+        case Level.BLOG_INT:
+            return java.util.logging.Level.SEVERE;
         case Level.OFF_INT:
             return java.util.logging.Level.OFF;
         default:

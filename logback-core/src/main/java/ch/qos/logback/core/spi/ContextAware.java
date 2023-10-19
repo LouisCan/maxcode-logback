@@ -39,4 +39,8 @@ public interface ContextAware {
 
     void addError(String msg, Throwable ex);
 
+    void addBlog(String msg);
+
+    void addBlog(String msg, Throwable ex);
+
 }

@@ -1,13 +1,13 @@
 /**
  * Logback: the reliable, generic, fast and flexible logging framework.
  * Copyright (C) 1999-2015, QOS.ch. All rights reserved.
- *
+ * <p>
  * This program and the accompanying materials are dual-licensed under
  * either the terms of the Eclipse Public License v1.0 as published by
  * the Eclipse Foundation
- *
- *   or (per the licensee's choosing)
- *
+ * <p>
+ * or (per the licensee's choosing)
+ * <p>
  * under the terms of the GNU Lesser General Public License version 2.1
  * as published by the Free Software Foundation.
  */
@@ -27,6 +27,7 @@ public final class Level implements java.io.Serializable {
     private static final long serialVersionUID = -814092767334282137L;
 
     public static final int OFF_INT = Integer.MAX_VALUE;
+    public static final int BLOG_INT = 50000;
     public static final int ERROR_INT = 40000;
     public static final int WARN_INT = 30000;
     public static final int INFO_INT = 20000;
@@ -35,6 +36,7 @@ public final class Level implements java.io.Serializable {
     public static final int ALL_INT = Integer.MIN_VALUE;
 
     public static final Integer OFF_INTEGER = OFF_INT;
+    public static final Integer BLOG_INTEGER = BLOG_INT;
     public static final Integer ERROR_INTEGER = ERROR_INT;
     public static final Integer WARN_INTEGER = WARN_INT;
     public static final Integer INFO_INTEGER = INFO_INT;
@@ -47,6 +49,11 @@ public final class Level implements java.io.Serializable {
      */
     public static final Level OFF = new Level(OFF_INT, "OFF");
 
+    /**
+     * The <code>BLOG</code> level designates error events which may or not
+     * be fatal to the application.
+     */
+    public static final Level BLOG = new Level(BLOG_INT, "BLOG");
     /**
      * The <code>ERROR</code> level designates error events which may or not
      * be fatal to the application.
@@ -113,22 +120,24 @@ public final class Level implements java.io.Serializable {
      */
     public Integer toInteger() {
         switch (levelInt) {
-        case ALL_INT:
-            return ALL_INTEGER;
-        case TRACE_INT:
-            return TRACE_INTEGER;
-        case DEBUG_INT:
-            return DEBUG_INTEGER;
-        case INFO_INT:
-            return INFO_INTEGER;
-        case WARN_INT:
-            return WARN_INTEGER;
-        case ERROR_INT:
-            return ERROR_INTEGER;
-        case OFF_INT:
-            return OFF_INTEGER;
-        default:
-            throw new IllegalStateException("Level " + levelStr + ", " + levelInt + " is unknown.");
+            case ALL_INT:
+                return ALL_INTEGER;
+            case TRACE_INT:
+                return TRACE_INTEGER;
+            case DEBUG_INT:
+                return DEBUG_INTEGER;
+            case INFO_INT:
+                return INFO_INTEGER;
+            case WARN_INT:
+                return WARN_INTEGER;
+            case ERROR_INT:
+                return ERROR_INTEGER;
+            case BLOG_INT:
+                return BLOG_INTEGER;
+            case OFF_INT:
+                return OFF_INTEGER;
+            default:
+                throw new IllegalStateException("Level " + levelStr + ", " + levelInt + " is unknown.");
         }
     }
 
@@ -172,22 +181,24 @@ public final class Level implements java.io.Serializable {
      */
     public static Level toLevel(int val, Level defaultLevel) {
         switch (val) {
-        case ALL_INT:
-            return ALL;
-        case TRACE_INT:
-            return TRACE;
-        case DEBUG_INT:
-            return DEBUG;
-        case INFO_INT:
-            return INFO;
-        case WARN_INT:
-            return WARN;
-        case ERROR_INT:
-            return ERROR;
-        case OFF_INT:
-            return OFF;
-        default:
-            return defaultLevel;
+            case ALL_INT:
+                return ALL;
+            case TRACE_INT:
+                return TRACE;
+            case DEBUG_INT:
+                return DEBUG;
+            case INFO_INT:
+                return INFO;
+            case WARN_INT:
+                return WARN;
+            case ERROR_INT:
+                return ERROR;
+            case BLOG_INT:
+                return BLOG;
+            case OFF_INT:
+                return OFF;
+            default:
+                return defaultLevel;
         }
     }
 
@@ -218,6 +229,9 @@ public final class Level implements java.io.Serializable {
         if (sArg.equalsIgnoreCase("ERROR")) {
             return Level.ERROR;
         }
+        if (sArg.equalsIgnoreCase("BLOG")) {
+            return Level.BLOG;
+        }
         if (sArg.equalsIgnoreCase("OFF")) {
             return Level.OFF;
         }
@@ -245,23 +259,26 @@ public final class Level implements java.io.Serializable {
     public static Level fromLocationAwareLoggerInteger(int levelInt) {
         Level level;
         switch (levelInt) {
-        case LocationAwareLogger.TRACE_INT:
-            level = TRACE;
-            break;
-        case LocationAwareLogger.DEBUG_INT:
-            level = DEBUG;
-            break;
-        case LocationAwareLogger.INFO_INT:
-            level = INFO;
-            break;
-        case LocationAwareLogger.WARN_INT:
-            level = WARN;
-            break;
-        case LocationAwareLogger.ERROR_INT:
-            level = ERROR;
-            break;
-        default:
-            throw new IllegalArgumentException(levelInt + " not a valid level value");
+            case LocationAwareLogger.TRACE_INT:
+                level = TRACE;
+                break;
+            case LocationAwareLogger.DEBUG_INT:
+                level = DEBUG;
+                break;
+            case LocationAwareLogger.INFO_INT:
+                level = INFO;
+                break;
+            case LocationAwareLogger.WARN_INT:
+                level = WARN;
+                break;
+            case LocationAwareLogger.ERROR_INT:
+                level = ERROR;
+                break;
+            case LocationAwareLogger.BLOG_INT:
+                level = BLOG;
+                break;
+            default:
+                throw new IllegalArgumentException(levelInt + " not a valid level value");
         }
         return level;
     }
@@ -278,18 +295,20 @@ public final class Level implements java.io.Serializable {
         if (level == null)
             throw new IllegalArgumentException("null level parameter is not admitted");
         switch (level.toInt()) {
-        case Level.TRACE_INT:
-            return LocationAwareLogger.TRACE_INT;
-        case Level.DEBUG_INT:
-            return LocationAwareLogger.DEBUG_INT;
-        case Level.INFO_INT:
-            return LocationAwareLogger.INFO_INT;
-        case Level.WARN_INT:
-            return LocationAwareLogger.WARN_INT;
-        case Level.ERROR_INT:
-            return LocationAwareLogger.ERROR_INT;
-        default:
-            throw new IllegalArgumentException(level + " not a valid level value");
+            case Level.TRACE_INT:
+                return LocationAwareLogger.TRACE_INT;
+            case Level.DEBUG_INT:
+                return LocationAwareLogger.DEBUG_INT;
+            case Level.INFO_INT:
+                return LocationAwareLogger.INFO_INT;
+            case Level.WARN_INT:
+                return LocationAwareLogger.WARN_INT;
+            case Level.ERROR_INT:
+                return LocationAwareLogger.ERROR_INT;
+            case Level.BLOG_INT:
+                return LocationAwareLogger.BLOG_INT;
+            default:
+                throw new IllegalArgumentException(level + " not a valid level value");
         }
     }
 }

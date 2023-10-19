@@ -1,13 +1,13 @@
 /**
  * Logback: the reliable, generic, fast and flexible logging framework.
  * Copyright (C) 1999-2015, QOS.ch. All rights reserved.
- *
+ * <p>
  * This program and the accompanying materials are dual-licensed under
  * either the terms of the Eclipse Public License v1.0 as published by
  * the Eclipse Foundation
- *
- *   or (per the licensee's choosing)
- *
+ * <p>
+ * or (per the licensee's choosing)
+ * <p>
  * under the terms of the GNU Lesser General Public License version 2.1
  * as published by the Free Software Foundation.
  */
@@ -29,6 +29,7 @@ public class MockContextAware extends ContextAwareBase implements ContextAware {
     private final List<String> info = new LinkedList<String>();
     private final List<String> warn = new LinkedList<String>();
     private final List<String> error = new LinkedList<String>();
+    private final List<String> blog = new LinkedList<String>();
 
     @Override
     public void addInfo(String msg) {
@@ -45,6 +46,11 @@ public class MockContextAware extends ContextAwareBase implements ContextAware {
         error.add(msg);
     }
 
+    @Override
+    public void addBlog(String msg) {
+        blog.add(msg);
+    }
+
     public boolean hasInfoMatching(String regex) {
         return hasMatching(info, regex);
     }
@@ -54,6 +60,10 @@ public class MockContextAware extends ContextAwareBase implements ContextAware {
     }
 
     public boolean hasErrorMatching(String regex) {
+        return hasMatching(info, regex);
+    }
+
+    public boolean hasBinlogMatching(String regex) {
         return hasMatching(info, regex);
     }
 

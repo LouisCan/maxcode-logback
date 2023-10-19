@@ -134,6 +134,8 @@ abstract public class ViewStatusMessagesServletBase extends HttpServlet {
             return "<span class=\"warn\">WARN</span>";
         case Status.ERROR:
             return "<span class=\"error\">ERROR</span>";
+        case Status.BLOG:
+            return "<span class=\"blog\">BLOG</span>";
         }
         return null;
     }

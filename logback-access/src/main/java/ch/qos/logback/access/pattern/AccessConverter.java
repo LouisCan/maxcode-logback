@@ -72,4 +72,14 @@ abstract public class AccessConverter extends DynamicConverter<IAccessEvent> imp
         cab.addError(msg, ex);
     }
 
+    @Override
+    public void addBlog(String msg) {
+        cab.addBlog(msg);
+    }
+
+    @Override
+    public void addBlog(String msg, Throwable ex) {
+        cab.addBlog(msg, ex);
+    }
+
 }

@@ -649,6 +649,65 @@ public final class Logger implements org.slf4j.Logger, LocationAwareLogger, Appe
         }
     }
 
+    public boolean isBlogEnabled() {
+        return isBlogEnabled(null);
+    }
+
+    public boolean isBlogEnabled(Marker marker) {
+        FilterReply decision = callTurboFilters(marker, Level.BLOG);
+        if (decision == FilterReply.NEUTRAL) {
+            return effectiveLevelInt <= Level.BLOG_INT;
+        } else if (decision == FilterReply.DENY) {
+            return false;
+        } else if (decision == FilterReply.ACCEPT) {
+            return true;
+        } else {
+            throw new IllegalStateException("Unknown FilterReply value: " + decision);
+        }
+    }
+
+
+    public void blog(String msg) {
+        filterAndLog_0_Or3Plus(FQCN, null, Level.BLOG, msg, null, null);
+    }
+
+    public void blog(String format, Object arg) {
+        filterAndLog_1(FQCN, null, Level.BLOG, format, arg, null);
+    }
+
+    public void blog(String format, Object arg1, Object arg2) {
+        filterAndLog_2(FQCN, null, Level.BLOG, format, arg1, arg2, null);
+    }
+
+    public void blog(String format, Object... argArray) {
+        filterAndLog_0_Or3Plus(FQCN, null, Level.BLOG, format, argArray, null);
+    }
+
+    public void blog(String msg, Throwable t) {
+        filterAndLog_0_Or3Plus(FQCN, null, Level.BLOG, msg, null, t);
+    }
+
+    public void blog(Marker marker, String msg) {
+        filterAndLog_0_Or3Plus(FQCN, marker, Level.BLOG, msg, null, null);
+    }
+
+    public void blog(Marker marker, String format, Object arg) {
+        filterAndLog_1(FQCN, marker, Level.BLOG, format, arg, null);
+    }
+
+    public void blog(Marker marker, String format, Object arg1, Object arg2) {
+        filterAndLog_2(FQCN, marker, Level.BLOG, format, arg1, arg2, null);
+    }
+
+    public void blog(Marker marker, String format, Object... argArray) {
+        filterAndLog_0_Or3Plus(FQCN, marker, Level.BLOG, format, argArray, null);
+    }
+
+    public void blog(Marker marker, String msg, Throwable t) {
+        filterAndLog_0_Or3Plus(FQCN, marker, Level.BLOG, msg, null, t);
+    }
+
+
     public boolean isWarnEnabled() {
         return isWarnEnabled(null);
     }

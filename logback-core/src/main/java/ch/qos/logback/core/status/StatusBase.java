@@ -125,6 +125,9 @@ abstract public class StatusBase implements Status {
         case ERROR:
             buf.append("ERROR");
             break;
+        case BLOG:
+            buf.append("BLOG");
+            break;
         }
         if (origin != null) {
             buf.append(" in ");

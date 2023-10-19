@@ -108,4 +108,12 @@ abstract public class DynamicConverter<E> extends FormattingConverter<E> impleme
     public void addError(String msg, Throwable ex) {
         cab.addError(msg, ex);
     }
+
+    public void addBlog(String msg) {
+        cab.addBlog(msg);
+    }
+
+    public void addBlog(String msg, Throwable ex) {
+        cab.addBlog(msg, ex);
+    }
 }

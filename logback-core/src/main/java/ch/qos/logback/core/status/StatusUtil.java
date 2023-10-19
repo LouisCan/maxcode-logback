@@ -81,6 +81,10 @@ public class StatusUtil {
         addStatus(new ErrorStatus(msg, caller, t));
     }
 
+    public void addBinlog(Object caller, String msg, Throwable t) {
+        addStatus(new BlogStatus(msg, caller, t));
+    }
+
     public boolean hasXMLParsingErrors(long threshold) {
         return containsMatch(threshold, Status.ERROR, CoreConstants.XML_PARSING);
     }
